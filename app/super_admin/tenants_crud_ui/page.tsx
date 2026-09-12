@@ -25,7 +25,7 @@ import {
   FormField,
   FormLabel,
   FormMessage,
-} from "../../../components/layout/Form";
+} from "../../../components/forms/Form";
 import { Header } from "../../../components/ui/header";
 
 const statuses = [

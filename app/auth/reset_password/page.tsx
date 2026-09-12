@@ -18,7 +18,7 @@ import {
   FormDescription,
   FormField,
   FormMessage,
-} from "../../../components/layout/Form";
+} from "../../../components/forms/Form";
 
 type RegisterForm = {
   firstName: string;
