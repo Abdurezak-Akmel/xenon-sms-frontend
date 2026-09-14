@@ -1,13 +1,14 @@
 @import 'tailwindcss';
+@custom-variant dark (&:where(.dark, .dark *));
 @import 'tw-animate-css';
 @import 'shadcn/tailwind.css';
 
 :root {
-  --background: #f7f9fc;
-  --foreground: #162237;
+  --background: #f8fafc;
+  --foreground: #0f172a;
   --card: #ffffff;
-  --muted: #66758a;
-  --line: #e6ebf2;
+  --muted: #64748b;
+  --line: #e2e8f0;
   --sidebar: #ffffff;
   --blue: #3267d6;
   --blue-soft: #edf3ff;
@@ -17,9 +18,26 @@
   --violet: #7957c7;
   --shadow: 0 8px 30px rgba(35, 61, 98, .05);
 }
+
+.dark {
+  --background: #07111f;
+  --foreground: #f1f5f9;
+  --card: #091222;
+  --muted: #94a3b8;
+  --line: #1e293b;
+  --sidebar: #060c18;
+  --blue-soft: #1e3765;
+}
 * { box-sizing: border-box; }
-html, body { margin: 0; min-height: 100%; }
-body { background: var(--background); color: var(--foreground); font-family: Arial, Helvetica, sans-serif; }
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
+}
+body { background: var(--background); color: var(--foreground); font-family: var(--font-sans), 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; }
 button, input { font: inherit; }
 button { cursor: pointer; }
 .app { min-height: 100vh; display: flex; background: var(--background); color: var(--foreground); transition: background .2s ease, color .2s ease; }
@@ -40,6 +58,23 @@ button { cursor: pointer; }
 /* Landing Page Custom Enhancements */
 html {
   scroll-behavior: smooth;
+}
+
+.landing-page {
+  font-family: var(--font-sans), 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  letter-spacing: -0.011em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+.landing-page h1,
+.landing-page h2,
+.landing-page h3 {
+  text-wrap: balance;
+  letter-spacing: -0.025em;
 }
 
 @keyframes floatSlow {

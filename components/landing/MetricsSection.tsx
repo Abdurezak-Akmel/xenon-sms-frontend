@@ -1,146 +1,85 @@
 "use client";
 
 import React from "react";
-import {
-  TrendingUp,
-  Clock3,
-  DollarSign,
-  ShieldCheck,
-  Award,
-  Users,
-  Building2,
-  CheckCircle,
-  Zap,
-} from "lucide-react";
+import { Banknote, Clock3, FileCheck2, ShieldCheck, TrendingUp } from "lucide-react";
+
+const metrics = [
+  {
+    value: "6",
+    label: "Role Workspaces",
+    text: "Super admin, school admin, branch admin, cashier, teacher, and student experiences are isolated by permission.",
+    icon: ShieldCheck,
+    color: "text-cyan-500 dark:text-cyan-300",
+    bg: "bg-cyan-500/10 border-cyan-500/20",
+  },
+  {
+    value: "1",
+    label: "Monthly Invoice",
+    text: "Each school receives a transparent statement for active users, resource usage, adjustments, and bank transfer details.",
+    icon: Banknote,
+    color: "text-emerald-500 dark:text-emerald-300",
+    bg: "bg-emerald-500/10 border-emerald-500/20",
+  },
+  {
+    value: "72h",
+    label: "Guided Import",
+    text: "Student, staff, class, guardian, and opening balance records are imported smoothly during guided onboarding.",
+    icon: FileCheck2,
+    color: "text-amber-500 dark:text-amber-300",
+    bg: "bg-amber-500/10 border-amber-500/20",
+  },
+  {
+    value: "4+ hrs",
+    label: "Saved Weekly",
+    text: "Teachers and administrators reclaim valuable hours by eliminating repeated registers and spreadsheet chasing.",
+    icon: Clock3,
+    color: "text-indigo-500 dark:text-indigo-300",
+    bg: "bg-indigo-500/10 border-indigo-500/20",
+  },
+];
 
 export function MetricsSection() {
-  const primaryMetrics = [
-    {
-      value: "98.4%",
-      label: "Attendance Precision",
-      highlight: "+34% decrease in unexcused absence",
-      description:
-        "Automated biometric & RFID gate tracking connected to immediate SMS guardian notifications eliminates proxy check-ins.",
-      icon: TrendingUp,
-      color: "from-blue-600 to-cyan-500",
-      bgLight: "bg-blue-50 dark:bg-blue-950/50",
-      borderColor: "border-blue-200 dark:border-blue-900/60",
-    },
-    {
-      value: "4.8 hrs",
-      label: "Saved Weekly / Teacher",
-      highlight: "Over 210 hours returned per year",
-      description:
-        "Intelligent rubric grading, auto-populated lesson plans, and single-click PDF report cards allow faculty to focus on teaching.",
-      icon: Clock3,
-      color: "from-indigo-600 to-purple-500",
-      bgLight: "bg-indigo-50 dark:bg-indigo-950/50",
-      borderColor: "border-indigo-200 dark:border-indigo-900/60",
-    },
-    {
-      value: "$185k+",
-      label: "Annual Tuition Leakage Prevented",
-      highlight: "89% reduction in overdue receivables",
-      description:
-        "Automated recurring billing, flexible installment plans, and zero-fee bank integrations systematically recover lost revenue.",
-      icon: DollarSign,
-      color: "from-emerald-600 to-teal-500",
-      bgLight: "bg-emerald-50 dark:bg-emerald-950/50",
-      borderColor: "border-emerald-200 dark:border-emerald-900/60",
-    },
-    {
-      value: "99.99%",
-      label: "Enterprise Uptime SLA",
-      highlight: "Sub-second global page loads",
-      description:
-        "Multi-region cloud infrastructure with continuous database replication, automated backups, and bank-grade data encryption.",
-      icon: ShieldCheck,
-      color: "from-amber-600 to-orange-500",
-      bgLight: "bg-amber-50 dark:bg-amber-950/50",
-      borderColor: "border-amber-200 dark:border-amber-900/60",
-    },
-  ];
-
-  const proofPoints = [
-    { label: "Active Students & Parents", value: "450,000+" },
-    { label: "Accredited Campuses Supported", value: "480+" },
-    { label: "Historical Data Migration Time", value: "< 72 Hours" },
-    { label: "Annual Client Retention Rate", value: "99.2%" },
-  ];
-
   return (
-    <section id="metrics" className="py-20 bg-slate-50/70 dark:bg-slate-900/40 border-y border-slate-200/80 dark:border-slate-800">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 text-xs font-bold uppercase tracking-wider">
-            <Award className="w-3.5 h-3.5" />
-            <span>Proven Institutional Impact</span>
+    <section id="metrics" className="w-full max-w-full overflow-x-clip bg-[#f8fafc] py-24 dark:bg-[#070e1b]">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="grid gap-8 lg:grid-cols-[0.85fr_1.15fr] lg:items-end">
+          <div className="min-w-0">
+            <div className="inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3.5 py-1 text-xs font-bold uppercase tracking-[0.18em] text-cyan-700 dark:text-cyan-300">
+              <TrendingUp className="h-3.5 w-3.5 text-cyan-500" />
+              <span>Operating Impact</span>
+            </div>
+            <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-4xl lg:text-5xl leading-tight">
+              Designed around the work schools repeat every day.
+            </h2>
           </div>
-          <h2 className="mt-4 text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-            Measurable Significance Across Every Department
-          </h2>
-          <p className="mt-4 text-base sm:text-lg text-slate-600 dark:text-slate-300">
-            Education leadership teams choose Xenon not just for ease of use, but for transformative operational outcomes verified by hundreds of academy audits.
+          <p className="min-w-0 text-base sm:text-lg leading-relaxed text-slate-600 dark:text-slate-300">
+            A good school system should reduce coordination noise. Xenon keeps people in their lane, gives leaders cross-school visibility, and makes billing clear enough for monthly finance review.
           </p>
         </div>
 
-        {/* Primary Metric Cards Grid */}
-        <div className="mt-14 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {primaryMetrics.map((item, idx) => {
-            const Icon = item.icon;
+        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {metrics.map((metric) => {
+            const Icon = metric.icon;
             return (
-              <div
-                key={idx}
-                className={`relative rounded-2xl bg-white dark:bg-slate-800/90 p-6 border ${item.borderColor} shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between group`}
+              <article
+                key={metric.label}
+                className="group min-w-0 rounded-2xl border border-slate-200/90 bg-white p-6 shadow-xs transition-all duration-300 hover:-translate-y-1 hover:border-cyan-400/40 hover:shadow-xl dark:border-white/10 dark:bg-[#091222] dark:hover:border-cyan-400/40"
               >
-                <div>
-                  <div className={`w-12 h-12 rounded-xl ${item.bgLight} flex items-center justify-center mb-5`}>
-                    <Icon className="w-6 h-6 text-slate-800 dark:text-slate-100" />
-                  </div>
-
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-4xl font-black tracking-tight text-slate-900 dark:text-white">
-                      {item.value}
-                    </span>
-                  </div>
-
-                  <h3 className="mt-2 text-base font-bold text-slate-900 dark:text-white">
-                    {item.label}
-                  </h3>
-
-                  <div className="mt-2 inline-block px-2.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700/60 text-xs font-semibold text-slate-700 dark:text-slate-300">
-                    {item.highlight}
-                  </div>
-
-                  <p className="mt-3 text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-                    {item.description}
-                  </p>
+                <div className={`inline-grid h-12 w-12 place-items-center rounded-xl border ${metric.bg} transition-transform group-hover:scale-105`}>
+                  <Icon className={`h-6 w-6 ${metric.color}`} />
                 </div>
-
-                <div className="mt-5 pt-4 border-t border-slate-100 dark:border-slate-700/60 flex items-center gap-1.5 text-xs font-semibold text-blue-600 dark:text-blue-400">
-                  <CheckCircle className="w-3.5 h-3.5" />
-                  <span>Audited operational benchmark</span>
-                </div>
-              </div>
+                <p className="mt-6 text-4xl sm:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+                  {metric.value}
+                </p>
+                <h3 className="mt-2 text-xs font-bold uppercase tracking-[0.16em] text-cyan-600 dark:text-cyan-400">
+                  {metric.label}
+                </h3>
+                <p className="mt-3 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+                  {metric.text}
+                </p>
+              </article>
             );
           })}
-        </div>
-
-        {/* Secondary Trust Strip */}
-        <div className="mt-12 rounded-2xl bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700/80 p-6 lg:p-8 shadow-xs">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center divide-y md:divide-y-0 md:divide-x divide-slate-100 dark:divide-slate-700">
-            {proofPoints.map((point, index) => (
-              <div key={index} className={index > 0 ? "pt-4 md:pt-0" : ""}>
-                <div className="text-2xl sm:text-3xl font-extrabold text-blue-600 dark:text-blue-400">
-                  {point.value}
-                </div>
-                <div className="mt-1 text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400">
-                  {point.label}
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
       </div>
     </section>

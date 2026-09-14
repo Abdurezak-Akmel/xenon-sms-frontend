@@ -3,455 +3,373 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import {
-  Sparkles,
   ArrowRight,
-  Play,
-  CheckCircle2,
-  ShieldCheck,
-  Zap,
-  GraduationCap,
-  Users,
-  CreditCard,
-  CalendarDays,
-  TrendingUp,
-  Clock3,
-  Bell,
-  Check,
-  Laptop,
-  Building2,
-  ChevronRight,
+  Banknote,
   BarChart3,
-  ArrowUpRight,
+  Bell,
+  BookOpenCheck,
+  Building2,
+  CheckCircle2,
+  GraduationCap,
+  Lock,
+  LogIn,
+  School,
+  Sparkles,
+  UserPlus,
+  UsersRound,
 } from "lucide-react";
 
 interface HeroSectionProps {
   onOpenDemoModal: () => void;
 }
 
+const workspaceTabs = [
+  {
+    id: "operations",
+    label: "Operations",
+    icon: Building2,
+    headline: "Branch activity is live & synchronized",
+    rows: [
+      ["Morning attendance", "94.8%", "Synced"],
+      ["Pending approvals", "7 items", "Review"],
+      ["Open incidents", "2 reports", "Assigned"],
+    ],
+  },
+  {
+    id: "finance",
+    label: "Finance",
+    icon: Banknote,
+    headline: "Bank transfers reconciled automatically",
+    rows: [
+      ["Transfer references", "83 verified", "Posted"],
+      ["Monthly invoice", "KSh 184,500", "Draft"],
+      ["Resource usage", "72% of cap", "Healthy"],
+    ],
+  },
+  {
+    id: "academics",
+    label: "Academics",
+    icon: BookOpenCheck,
+    headline: "Classroom gradebooks are up to date",
+    rows: [
+      ["Gradebooks", "214 updates", "Ready"],
+      ["Timetable conflicts", "0 clashes", "Clear"],
+      ["Report cards", "38 pending", "Review"],
+    ],
+  },
+];
+
+const trustItems = [
+  "Custom rate per school",
+  "Bank transfer billing",
+  "Six dedicated role workspaces",
+  "Branch-ready hierarchical access",
+];
+
 export function HeroSection({ onOpenDemoModal }: HeroSectionProps) {
-  const [activeTab, setActiveTab] = useState<"academics" | "attendance" | "finance" | "comms">("academics");
+  const [activeTab, setActiveTab] = useState(workspaceTabs[0]);
 
   return (
-    <section className="relative pt-28 pb-16 md:pt-36 md:pb-24 overflow-hidden">
-      {/* Ambient background glows */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] sm:w-[900px] h-[450px] bg-gradient-to-tr from-blue-500/15 via-indigo-500/10 to-cyan-400/10 blur-3xl pointer-events-none -z-10 animate-pulse-glow" />
-      <div className="absolute top-1/3 -right-48 w-96 h-96 bg-purple-500/10 blur-3xl pointer-events-none -z-10" />
+    <section className="relative w-full max-w-full overflow-x-clip bg-gradient-to-b from-slate-50 via-[#f0f5ff]/60 to-white text-slate-900 transition-colors duration-300 dark:from-[#050b14] dark:via-[#07111f] dark:to-[#0a1526] dark:text-white">
+      {/* Dynamic ambient lighting & grid mesh */}
+      <div className="absolute inset-0 -z-10 bg-[linear-gradient(rgba(15,23,42,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.035)_1px,transparent_1px)] dark:bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:36px_36px]" />
+      <div className="absolute -top-40 left-1/2 -z-10 h-[500px] w-[800px] -translate-x-1/2 rounded-full bg-cyan-500/10 dark:bg-cyan-500/15 blur-[120px] pointer-events-none" />
+      <div className="absolute top-1/3 -right-20 -z-10 h-96 w-96 rounded-full bg-blue-600/10 blur-[100px] pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Top Announcement Pill */}
-        <div className="flex justify-center">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 dark:bg-blue-950/80 border border-blue-200 dark:border-blue-800 text-xs font-semibold text-blue-700 dark:text-blue-300 shadow-sm hover:border-blue-300 transition-colors">
-            <span className="flex h-2 w-2 rounded-full bg-blue-600 animate-ping" />
-            <Sparkles className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-            <span>Next-Gen Xenon 3.0 Released</span>
-            <span className="text-slate-400 dark:text-slate-600">•</span>
-            <a href="#features" className="underline hover:text-blue-800 dark:hover:text-blue-200 flex items-center gap-0.5">
-              Explore capabilities <ArrowRight className="w-3 h-3" />
-            </a>
+      <div className="mx-auto max-w-7xl px-4 pb-16 pt-32 sm:px-6 md:pb-24 md:pt-40 lg:px-8">
+        <div className="grid gap-12 lg:grid-cols-[0.92fr_1.08fr] lg:items-center">
+          {/* Left Column: Value Proposition & CTAs */}
+          <div className="min-w-0">
+            <div className="inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3.5 py-1.5 text-xs font-bold uppercase tracking-[0.18em] text-cyan-700 shadow-xs backdrop-blur-md dark:border-cyan-400/30 dark:bg-cyan-400/10 dark:text-cyan-300">
+              <Sparkles className="h-3.5 w-3.5 text-cyan-600 dark:text-cyan-300 animate-pulse" />
+              <span>School management without role confusion</span>
+            </div>
+
+            <h1 className="mt-6 max-w-3xl text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-5xl lg:text-6xl leading-[1.1]">
+              Run every school role from{" "}
+              <span className="bg-gradient-to-r from-cyan-600 via-teal-600 to-blue-700 bg-clip-text text-transparent dark:from-cyan-300 dark:via-teal-200 dark:to-sky-300">
+                one clean operating system.
+              </span>
+            </h1>
+
+            <p className="mt-6 max-w-2xl text-base leading-relaxed text-slate-600 dark:text-slate-300 sm:text-lg">
+              Xenon SMS brings school administration, branches, finance,
+              teachers, students, academics, attendance, and monthly billing
+              into one calm, permission-aware platform.
+            </p>
+
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+              <Link
+                href="/auth/register"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-400 to-teal-400 px-6 py-3.5 text-sm font-bold text-slate-950 shadow-lg shadow-cyan-500/25 transition-all hover:-translate-y-0.5 hover:from-cyan-300 hover:to-teal-300"
+              >
+                <UserPlus className="h-4 w-4" />
+                <span>Get Started Free</span>
+              </Link>
+              <Link
+                href="/auth/login"
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-6 py-3.5 text-sm font-semibold text-slate-800 shadow-xs transition-all hover:-translate-y-0.5 hover:border-cyan-500/50 hover:bg-slate-50 dark:border-white/20 dark:bg-white/10 dark:text-white dark:backdrop-blur-md dark:hover:border-cyan-400/40 dark:hover:bg-white/15"
+              >
+                <LogIn className="h-4 w-4" />
+                <span>Sign In</span>
+              </Link>
+              <button
+                onClick={onOpenDemoModal}
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-cyan-500/30 bg-cyan-50/80 px-6 py-3.5 text-sm font-semibold text-cyan-800 transition-all hover:-translate-y-0.5 hover:bg-cyan-100 dark:border-cyan-400/30 dark:bg-cyan-400/5 dark:text-cyan-200 dark:hover:bg-cyan-400/15"
+              >
+                <span>Discuss Billing</span>
+                <ArrowRight className="h-4 w-4 text-cyan-600 dark:text-cyan-300" />
+              </button>
+            </div>
+
+            <div className="mt-8 grid gap-2.5 sm:grid-cols-2">
+              {trustItems.map((item) => (
+                <div
+                  key={item}
+                  className="flex items-center gap-2 text-xs font-semibold text-slate-700 dark:text-slate-300 sm:text-sm"
+                >
+                  <CheckCircle2 className="h-4 w-4 shrink-0 text-cyan-600 dark:text-cyan-400" />
+                  <span>{item}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Right Column: Interactive Dashboard Preview */}
+          <div id="preview" className="relative min-w-0">
+            {/* Pill callout badge */}
+            <div className="absolute right-2 -top-3.5 hidden rounded-xl border border-cyan-500/30 bg-gradient-to-r from-cyan-500 to-blue-600 px-3.5 py-1.5 text-xs font-bold text-white shadow-xl shadow-cyan-500/20 backdrop-blur-md lg:block">
+              Bank transfer billing
+            </div>
+
+            <div className="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-2xl shadow-slate-900/10 backdrop-blur-xl dark:border-white/15 dark:bg-[#091222]/95 dark:shadow-black/60">
+              {/* Window Chrome Header */}
+              <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-4 py-3 dark:border-white/10 dark:bg-white/[0.04]">
+                <div className="flex items-center gap-2">
+                  <span className="h-3 w-3 rounded-full bg-rose-500/80" />
+                  <span className="h-3 w-3 rounded-full bg-amber-400/80" />
+                  <span className="h-3 w-3 rounded-full bg-emerald-400/80" />
+                </div>
+                <div className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1 text-xs text-slate-600 dark:border-white/10 dark:bg-black/30 dark:text-slate-400">
+                  <Lock className="h-3 w-3 text-cyan-600 dark:text-cyan-400" />
+                  <span>xenon.sms/dashboard</span>
+                </div>
+                <div className="w-12" />
+              </div>
+
+              <div className="grid min-h-[500px] lg:grid-cols-[160px_1fr]">
+                {/* Mini Side Rail */}
+                <aside className="hidden border-r border-slate-200 bg-slate-50/80 p-3 dark:border-white/10 dark:bg-[#060c18]/80 lg:block">
+                  <div className="flex items-center gap-2 px-1 py-1">
+                    <span className="grid h-7 w-7 place-items-center rounded-lg bg-cyan-400 text-slate-950 shadow-xs shadow-cyan-400/30">
+                      <School className="h-4 w-4" />
+                    </span>
+                    <span className="text-sm font-bold tracking-tight text-slate-900 dark:text-white">Xenon</span>
+                  </div>
+                  <div className="mt-6 space-y-1">
+                    {[
+                      "Overview",
+                      "Branches",
+                      "Finance",
+                      "Classes",
+                      "Users",
+                      "Reports",
+                    ].map((item, index) => (
+                      <div
+                        key={item}
+                        className={`rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-colors ${
+                          index === 0
+                            ? "bg-cyan-500/15 text-cyan-700 font-bold border border-cyan-500/30 dark:bg-cyan-400/15 dark:text-cyan-300 dark:border-cyan-400/30"
+                            : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
+                        }`}
+                      >
+                        {item}
+                      </div>
+                    ))}
+                  </div>
+                </aside>
+
+                {/* Dashboard Main Panel */}
+                <div className="p-4 sm:p-5">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-cyan-600 dark:text-cyan-400">
+                        Executive View
+                      </p>
+                      <h2 className="mt-1 text-lg font-bold text-slate-900 dark:text-white sm:text-xl">
+                        {activeTab.headline}
+                      </h2>
+                    </div>
+                    <div className="flex rounded-xl border border-slate-200 bg-slate-100 p-1 shadow-inner dark:border-white/10 dark:bg-[#050b14]">
+                      {workspaceTabs.map((tab) => {
+                        const Icon = tab.icon;
+                        const isActive = activeTab.id === tab.id;
+                        return (
+                          <button
+                            key={tab.id}
+                            onClick={() => setActiveTab(tab)}
+                            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
+                              isActive
+                                ? "bg-white text-slate-950 shadow-sm font-bold dark:bg-white dark:text-slate-950"
+                                : "text-slate-600 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white"
+                            }`}
+                          >
+                            <Icon className="h-3.5 w-3.5" />
+                            <span className="hidden sm:inline">
+                              {tab.label}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Top 3 KPI Cards */}
+                  <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                    {[
+                      ["Active users", "4,820", UsersRound, "text-cyan-600 dark:text-cyan-400 bg-cyan-500/10 border-cyan-500/20"],
+                      ["Branches", "64", Building2, "text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20"],
+                      ["Learners", "38,450", GraduationCap, "text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 border-indigo-500/20"],
+                    ].map(([label, value, Icon, styleClass]) => {
+                      const MetricIcon = Icon as typeof UsersRound;
+                      return (
+                        <div
+                          key={label as string}
+                          className="rounded-xl border border-slate-200/90 bg-slate-50/70 p-3.5 transition-colors hover:border-cyan-400/40 dark:border-white/10 dark:bg-white/[0.03]"
+                        >
+                          <div className={`inline-grid h-7 w-7 place-items-center rounded-lg border ${styleClass as string}`}>
+                            <MetricIcon className="h-3.5 w-3.5" />
+                          </div>
+                          <p className="mt-3 text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+                            {value as string}
+                          </p>
+                          <p className="mt-0.5 text-xs font-medium text-slate-500 dark:text-slate-400">
+                            {label as string}
+                          </p>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Middle Split Chart & Quick Items */}
+                  <div className="mt-4 grid gap-3 xl:grid-cols-[1.1fr_0.9fr]">
+                    <div className="rounded-xl border border-slate-200/90 bg-slate-50/70 p-3.5 dark:border-white/10 dark:bg-white/[0.03]">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                          Monthly Operating Signal
+                        </h3>
+                        <BarChart3 className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />
+                      </div>
+                      <div className="mt-4 flex h-32 items-end gap-2 px-1">
+                        {[48, 64, 42, 82, 58, 88, 72, 96].map(
+                          (height, index) => (
+                            <div
+                              key={index}
+                              className="flex flex-1 flex-col justify-end"
+                            >
+                              <div
+                                className={`rounded-t transition-all duration-300 hover:brightness-110 ${
+                                  index % 3 === 0
+                                    ? "bg-cyan-500 dark:bg-cyan-400"
+                                    : index % 3 === 1
+                                    ? "bg-emerald-500 dark:bg-emerald-400"
+                                    : "bg-indigo-500 dark:bg-indigo-400"
+                                }`}
+                                style={{ height: `${height}%` }}
+                              />
+                            </div>
+                          ),
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="rounded-xl border border-slate-200/90 bg-slate-50/70 p-3.5 dark:border-white/10 dark:bg-white/[0.03]">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                          Today&apos;s Actions
+                        </h3>
+                        <Bell className="h-4 w-4 text-amber-500 dark:text-amber-300" />
+                      </div>
+                      <div className="mt-3 space-y-2">
+                        {[
+                          ["Fee statement draft", "Ready for review"],
+                          ["Teacher attendance", "2 leave approvals"],
+                          ["Class timetable", "Updated at 08:15"],
+                        ].map(([title, meta]) => (
+                          <div
+                            key={title}
+                            className="rounded-lg border border-slate-200 bg-white p-2.5 dark:border-white/5 dark:bg-[#050b14]/70"
+                          >
+                            <p className="text-xs font-bold text-slate-900 dark:text-white">
+                              {title}
+                            </p>
+                            <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                              {meta}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Module Status Table */}
+                  <div className="mt-3 overflow-hidden rounded-xl border border-slate-200 dark:border-white/10">
+                    <table className="w-full min-w-0 text-left">
+                      <thead className="bg-slate-100 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-600 dark:bg-[#050b14] dark:text-slate-400">
+                        <tr>
+                          <th className="px-3.5 py-2.5">Module</th>
+                          <th className="px-3.5 py-2.5">Snapshot</th>
+                          <th className="px-3.5 py-2.5">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 text-xs dark:divide-white/5">
+                        {activeTab.rows.map((row) => (
+                          <tr key={row[0]}>
+                            <td className="px-3.5 py-2 font-semibold text-slate-900 dark:text-white">
+                              {row[0]}
+                            </td>
+                            <td className="px-3.5 py-2 text-slate-600 dark:text-slate-300">
+                              {row[1]}
+                            </td>
+                            <td className="px-3.5 py-2">
+                              <span className="rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
+                                {row[2]}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Hero Title & Subtitle */}
-        <div className="mt-7 text-center max-w-4xl mx-auto">
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-slate-900 dark:text-white leading-[1.12]">
-            The Unified Operating System for{" "}
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-500">
-              Modern Schools & Academy Groups
-            </span>
-          </h1>
-
-          <p className="mt-6 text-lg sm:text-xl text-slate-600 dark:text-slate-300 leading-relaxed font-normal max-w-3xl mx-auto">
-            Say goodbye to fragmented spreadsheets, disconnected portals, and manual billing.
-            Xenon delivers effortless attendance, automated fee recovery, intelligent timetables, and unified parent communications in a single, lightning-fast platform.
-          </p>
-
-          {/* Action CTAs */}
-          <div className="mt-8 sm:mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <button
-              onClick={onOpenDemoModal}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-7 py-3.5 text-base font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-xl shadow-lg shadow-blue-600/25 hover:shadow-xl hover:shadow-blue-600/35 active:scale-[0.98] transition-all duration-150"
+        {/* Bottom Metrics Bar */}
+        <div className="mt-14 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {[
+            ["Partner Schools", "18", "Across 6 administrative regions"],
+            ["Active Branches", "64", "Synchronized in real time"],
+            ["Platform Users", "4,820", "Protected by role boundaries"],
+            ["Billing Mode", "Bank Transfer", "Direct transparent monthly terms"],
+          ].map(([label, value, sub]) => (
+            <div
+              key={label}
+              className="rounded-2xl border border-slate-200/90 bg-white/90 p-5 shadow-xs backdrop-blur-md transition-all hover:border-cyan-500/40 hover:shadow-md dark:border-white/10 dark:bg-white/[0.03] dark:hover:border-cyan-400/30"
             >
-              <span>Schedule 15-Min Live Demo</span>
-              <ArrowRight className="w-5 h-5" />
-            </button>
-
-            <a
-              href="#preview"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 text-base font-semibold text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/80 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm transition-all"
-            >
-              <Play className="w-4 h-4 text-blue-600 dark:text-blue-400 fill-blue-600 dark:fill-blue-400" />
-              <span>Interactive Platform Tour</span>
-            </a>
-          </div>
-
-          {/* Quick trust metrics */}
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-y-2 gap-x-6 text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium">
-            <span className="flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-emerald-500" /> No credit card required
-            </span>
-            <span className="flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-emerald-500" /> 14-Day fully guided sandbox
-            </span>
-            <span className="flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-emerald-500" /> Free historical data migration
-            </span>
-            <span className="flex items-center gap-1.5">
-              <ShieldCheck className="w-4 h-4 text-blue-500" /> FERPA & GDPR compliant
-            </span>
-          </div>
-        </div>
-
-        {/* Interactive Showcase Preview Window */}
-        <div id="preview" className="mt-14 sm:mt-18 relative max-w-6xl mx-auto">
-          {/* Glass frame container */}
-          <div className="rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 shadow-2xl shadow-blue-900/10 overflow-hidden backdrop-blur-xl">
-            {/* Window header */}
-            <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-950/60 flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-red-400/90" />
-                <div className="w-3 h-3 rounded-full bg-amber-400/90" />
-                <div className="w-3 h-3 rounded-full bg-emerald-400/90" />
-                <span className="ml-3 text-xs font-medium text-slate-500 dark:text-slate-400 hidden sm:inline-block">
-                  Xenon Command Center • Adams Hill Academy (Multi-Branch)
-                </span>
-              </div>
-
-              {/* Module Tab Switcher */}
-              <div className="flex items-center gap-1 bg-slate-200/70 dark:bg-slate-800/80 p-1 rounded-lg text-xs font-semibold">
-                <button
-                  onClick={() => setActiveTab("academics")}
-                  className={`px-3 py-1 rounded-md transition-all ${
-                    activeTab === "academics"
-                      ? "bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-300 shadow-xs"
-                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900"
-                  }`}
-                >
-                  Academics & Timetable
-                </button>
-                <button
-                  onClick={() => setActiveTab("attendance")}
-                  className={`px-3 py-1 rounded-md transition-all ${
-                    activeTab === "attendance"
-                      ? "bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-300 shadow-xs"
-                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900"
-                  }`}
-                >
-                  Attendance & RFID
-                </button>
-                <button
-                  onClick={() => setActiveTab("finance")}
-                  className={`px-3 py-1 rounded-md transition-all ${
-                    activeTab === "finance"
-                      ? "bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-300 shadow-xs"
-                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900"
-                  }`}
-                >
-                  Finance & Invoicing
-                </button>
-                <button
-                  onClick={() => setActiveTab("comms")}
-                  className={`px-3 py-1 rounded-md transition-all hidden sm:block ${
-                    activeTab === "comms"
-                      ? "bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-300 shadow-xs"
-                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900"
-                  }`}
-                >
-                  Parent Feed
-                </button>
-              </div>
+              <p className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+                {value}
+              </p>
+              <p className="mt-1 text-xs font-bold uppercase tracking-[0.16em] text-cyan-700 dark:text-cyan-300">
+                {label}
+              </p>
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                {sub}
+              </p>
             </div>
-
-            {/* Showcase Dynamic Content Area */}
-            <div className="p-4 sm:p-6 lg:p-8 bg-slate-50/50 dark:bg-[#0c1424]/60">
-              {activeTab === "academics" && (
-                <div className="space-y-6 animate-in fade-in duration-300">
-                  {/* Stats Bar */}
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
-                    <div className="bg-white dark:bg-slate-800/80 p-4 rounded-xl border border-slate-200/80 dark:border-slate-700/70 shadow-xs">
-                      <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-medium">
-                        <span>Active Classes</span>
-                        <GraduationCap className="w-4 h-4 text-blue-600" />
-                      </div>
-                      <p className="text-2xl font-bold text-slate-900 dark:text-white mt-2">128 Sections</p>
-                      <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1 mt-1">
-                        <TrendingUp className="w-3 h-3" /> 0 Schedule Conflicts
-                      </span>
-                    </div>
-
-                    <div className="bg-white dark:bg-slate-800/80 p-4 rounded-xl border border-slate-200/80 dark:border-slate-700/70 shadow-xs">
-                      <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-medium">
-                        <span>Curriculum Progress</span>
-                        <CalendarDays className="w-4 h-4 text-indigo-600" />
-                      </div>
-                      <p className="text-2xl font-bold text-slate-900 dark:text-white mt-2">84.2%</p>
-                      <span className="text-[11px] text-blue-600 dark:text-blue-400 font-semibold flex items-center gap-1 mt-1">
-                        +5% ahead of term milestone
-                      </span>
-                    </div>
-
-                    <div className="bg-white dark:bg-slate-800/80 p-4 rounded-xl border border-slate-200/80 dark:border-slate-700/70 shadow-xs">
-                      <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-medium">
-                        <span>Teacher Fill Rate</span>
-                        <Users className="w-4 h-4 text-emerald-600" />
-                      </div>
-                      <p className="text-2xl font-bold text-slate-900 dark:text-white mt-2">99.1%</p>
-                      <span className="text-[11px] text-slate-500 font-medium mt-1 block">
-                        Auto-substitutes assigned: 3
-                      </span>
-                    </div>
-
-                    <div className="bg-white dark:bg-slate-800/80 p-4 rounded-xl border border-slate-200/80 dark:border-slate-700/70 shadow-xs">
-                      <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-medium">
-                        <span>Report Cards Ready</span>
-                        <BarChart3 className="w-4 h-4 text-amber-600" />
-                      </div>
-                      <p className="text-2xl font-bold text-slate-900 dark:text-white mt-2">1,248 / 1,248</p>
-                      <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold mt-1 block">
-                        100% digital signatures verified
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Schedule Timetable Snapshot */}
-                  <div className="bg-white dark:bg-slate-800/90 rounded-xl border border-slate-200/80 dark:border-slate-700 p-5 shadow-xs">
-                    <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-700">
-                      <div>
-                        <h4 className="text-sm font-bold text-slate-900 dark:text-white">
-                          Live Master Schedule • Grade 10-A (STEM Track)
-                        </h4>
-                        <p className="text-xs text-slate-500 dark:text-slate-400">
-                          Automated conflict solver powered by Xenon Engine
-                        </p>
-                      </div>
-                      <span className="text-xs px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 font-semibold border border-emerald-200 dark:border-emerald-800">
-                        Live Room Sync Active
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mt-4">
-                      <div className="p-3 rounded-lg border-l-4 border-l-blue-500 bg-blue-50/50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                        <span className="text-[10px] font-bold text-blue-700 dark:text-blue-300 uppercase tracking-wide">
-                          08:30 - 09:45 AM
-                        </span>
-                        <h5 className="text-xs font-bold text-slate-900 dark:text-white mt-1">Advanced Physics II</h5>
-                        <p className="text-[11px] text-slate-500">Dr. Aris Vance • Lab 301</p>
-                      </div>
-
-                      <div className="p-3 rounded-lg border-l-4 border-l-emerald-500 bg-emerald-50/50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                        <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-300 uppercase tracking-wide">
-                          10:00 - 11:15 AM
-                        </span>
-                        <h5 className="text-xs font-bold text-slate-900 dark:text-white mt-1">Calculus & Modeling</h5>
-                        <p className="text-[11px] text-slate-500">Prof. Elena Rostova • Hall B</p>
-                      </div>
-
-                      <div className="p-3 rounded-lg border-l-4 border-l-purple-500 bg-purple-50/50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                        <span className="text-[10px] font-bold text-purple-700 dark:text-purple-300 uppercase tracking-wide">
-                          11:30 - 12:45 PM
-                        </span>
-                        <h5 className="text-xs font-bold text-slate-900 dark:text-white mt-1">Computer Science Principles</h5>
-                        <p className="text-[11px] text-slate-500">K. Thompson • Innovation Suite</p>
-                      </div>
-
-                      <div className="p-3 rounded-lg border-l-4 border-l-amber-500 bg-amber-50/50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                        <span className="text-[10px] font-bold text-amber-700 dark:text-amber-300 uppercase tracking-wide">
-                          01:30 - 02:45 PM
-                        </span>
-                        <h5 className="text-xs font-bold text-slate-900 dark:text-white mt-1">Global Literature & Rhetoric</h5>
-                        <p className="text-[11px] text-slate-500">M. Sterling • Humanities 104</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {activeTab === "attendance" && (
-                <div className="space-y-6 animate-in fade-in duration-300">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="bg-white dark:bg-slate-800/90 p-5 rounded-xl border border-slate-200/80 dark:border-slate-700">
-                      <span className="text-xs font-semibold text-slate-500">Campus Attendance Rate</span>
-                      <div className="flex items-baseline gap-2 mt-2">
-                        <span className="text-3xl font-extrabold text-slate-900 dark:text-white">96.8%</span>
-                        <span className="text-xs font-semibold text-emerald-600">+3.1% vs last month</span>
-                      </div>
-                      <div className="w-full bg-slate-100 dark:bg-slate-700 h-2 rounded-full mt-3 overflow-hidden">
-                        <div className="bg-emerald-500 h-full rounded-full w-[96.8%]" />
-                      </div>
-                    </div>
-
-                    <div className="bg-white dark:bg-slate-800/90 p-5 rounded-xl border border-slate-200/80 dark:border-slate-700">
-                      <span className="text-xs font-semibold text-slate-500">RFID Gate Scans Today</span>
-                      <div className="flex items-baseline gap-2 mt-2">
-                        <span className="text-3xl font-extrabold text-slate-900 dark:text-white">1,214</span>
-                        <span className="text-xs font-semibold text-blue-600">98% on-time check-in</span>
-                      </div>
-                      <p className="text-xs text-slate-500 mt-2">Auto SMS dispatched to 34 guardians of late arrivals</p>
-                    </div>
-
-                    <div className="bg-white dark:bg-slate-800/90 p-5 rounded-xl border border-slate-200/80 dark:border-slate-700">
-                      <span className="text-xs font-semibold text-slate-500">Staff Present</span>
-                      <div className="flex items-baseline gap-2 mt-2">
-                        <span className="text-3xl font-extrabold text-slate-900 dark:text-white">94 / 96</span>
-                        <span className="text-xs font-semibold text-emerald-600">2 Approved Leaves</span>
-                      </div>
-                      <p className="text-xs text-slate-500 mt-2">All classroom coverage covered without disruption</p>
-                    </div>
-                  </div>
-
-                  <div className="bg-white dark:bg-slate-800/90 rounded-xl border border-slate-200/80 dark:border-slate-700 p-4">
-                    <h5 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-3">
-                      Real-time Gate Activity Log (Live Stream)
-                    </h5>
-                    <div className="divide-y divide-slate-100 dark:divide-slate-700 text-xs">
-                      <div className="py-2.5 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-7 h-7 rounded-full bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 font-bold flex items-center justify-center text-[10px]">
-                            SK
-                          </div>
-                          <div>
-                            <span className="font-semibold text-slate-800 dark:text-slate-200">Sophia King (Grade 11B)</span>
-                            <span className="text-slate-400 ml-2">• Turnstile North 2</span>
-                          </div>
-                        </div>
-                        <span className="text-emerald-600 font-medium">Checked In (08:12 AM)</span>
-                      </div>
-                      <div className="py-2.5 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-7 h-7 rounded-full bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 font-bold flex items-center justify-center text-[10px]">
-                            JW
-                          </div>
-                          <div>
-                            <span className="font-semibold text-slate-800 dark:text-slate-200">James Walker (Grade 9A)</span>
-                            <span className="text-slate-400 ml-2">• Bus Route 14 GPS Sensor</span>
-                          </div>
-                        </div>
-                        <span className="text-emerald-600 font-medium">Boarded Bus (07:44 AM)</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {activeTab === "finance" && (
-                <div className="space-y-6 animate-in fade-in duration-300">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="bg-white dark:bg-slate-800/90 p-5 rounded-xl border border-slate-200/80 dark:border-slate-700">
-                      <span className="text-xs font-semibold text-slate-500">Term 1 Fees Collected</span>
-                      <div className="flex items-baseline gap-2 mt-2">
-                        <span className="text-3xl font-extrabold text-slate-900 dark:text-white">$482,900</span>
-                        <span className="text-xs font-semibold text-emerald-600">92.4% settled</span>
-                      </div>
-                      <p className="text-xs text-slate-500 mt-2">Recovered $38,400 previously delinquent balances</p>
-                    </div>
-
-                    <div className="bg-white dark:bg-slate-800/90 p-5 rounded-xl border border-slate-200/80 dark:border-slate-700">
-                      <span className="text-xs font-semibold text-slate-500">Auto Recurring Invoices</span>
-                      <div className="flex items-baseline gap-2 mt-2">
-                        <span className="text-3xl font-extrabold text-slate-900 dark:text-white">986</span>
-                        <span className="text-xs font-semibold text-blue-600">Active Direct Debits</span>
-                      </div>
-                      <p className="text-xs text-slate-500 mt-2">Zero reconciliation errors across 4 bank gateways</p>
-                    </div>
-
-                    <div className="bg-white dark:bg-slate-800/90 p-5 rounded-xl border border-slate-200/80 dark:border-slate-700">
-                      <span className="text-xs font-semibold text-slate-500">Scholarships & Grants</span>
-                      <div className="flex items-baseline gap-2 mt-2">
-                        <span className="text-3xl font-extrabold text-slate-900 dark:text-white">$64,000</span>
-                        <span className="text-xs font-semibold text-purple-600">52 recipients</span>
-                      </div>
-                      <p className="text-xs text-slate-500 mt-2">Audited endowment fund disbursement tracking</p>
-                    </div>
-                  </div>
-
-                  <div className="bg-white dark:bg-slate-800/90 rounded-xl border border-slate-200/80 dark:border-slate-700 p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <h5 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-                        Recent Instant Invoices & Multi-Gateway Transactions
-                      </h5>
-                      <span className="text-[11px] text-blue-600 font-semibold cursor-pointer hover:underline">
-                        Export Audit Ledger (.CSV/.XLS)
-                      </span>
-                    </div>
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-xs text-left">
-                        <thead>
-                          <tr className="text-slate-400 border-b border-slate-200 dark:border-slate-700">
-                            <th className="pb-2">Invoice #</th>
-                            <th className="pb-2">Student</th>
-                            <th className="pb-2">Amount</th>
-                            <th className="pb-2">Method</th>
-                            <th className="pb-2">Status</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                          <tr>
-                            <td className="py-2.5 font-semibold">INV-2026-0891</td>
-                            <td>Liam Gallagher (Grade 7B)</td>
-                            <td className="font-bold text-slate-900 dark:text-white">$1,450.00</td>
-                            <td>Stripe / Visa</td>
-                            <td><span className="px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-semibold text-[10px]">Instant Cleared</span></td>
-                          </tr>
-                          <tr>
-                            <td className="py-2.5 font-semibold">INV-2026-0890</td>
-                            <td>Aaliyah Patel (Grade 12A)</td>
-                            <td className="font-bold text-slate-900 dark:text-white">$2,100.00</td>
-                            <td>Bank Transfer ACH</td>
-                            <td><span className="px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-semibold text-[10px]">Instant Cleared</span></td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {activeTab === "comms" && (
-                <div className="space-y-4 animate-in fade-in duration-300">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-white dark:bg-slate-800/90 p-5 rounded-xl border border-slate-200/80 dark:border-slate-700">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-950 text-blue-600 flex items-center justify-center">
-                          <Bell className="w-4 h-4" />
-                        </div>
-                        <div>
-                          <h5 className="text-xs font-bold text-slate-900 dark:text-white">
-                            Parent Portal App Engagement
-                          </h5>
-                          <p className="text-[11px] text-slate-500">97.6% active parent mobile app adoption</p>
-                        </div>
-                      </div>
-                      <div className="mt-4 p-3 rounded-lg bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-700 text-xs">
-                        <p className="font-semibold text-slate-800 dark:text-slate-200">
-                          Broadcast: &quot;Science Fair Timetable & Lab Safety Protocol&quot;
-                        </p>
-                        <p className="text-slate-500 mt-1">Delivered to 1,248 guardians • 99.2% read confirmation rate</p>
-                      </div>
-                    </div>
-
-                    <div className="bg-white dark:bg-slate-800/90 p-5 rounded-xl border border-slate-200/80 dark:border-slate-700">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-950 text-emerald-600 flex items-center justify-center">
-                          <ShieldCheck className="w-4 h-4" />
-                        </div>
-                        <div>
-                          <h5 className="text-xs font-bold text-slate-900 dark:text-white">
-                            Direct 1-on-1 Parent & Teacher Chat
-                          </h5>
-                          <p className="text-[11px] text-slate-500">End-to-end monitored school compliance messaging</p>
-                        </div>
-                      </div>
-                      <div className="mt-4 p-3 rounded-lg bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-700 text-xs">
-                        <p className="font-semibold text-slate-800 dark:text-slate-200">
-                          Mrs. Diaz (Math Dept): &quot;Homework feedback updated for Mia&quot;
-                        </p>
-                        <p className="text-slate-500 mt-1">Guardian viewed attachment • 4 min response time</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
+          ))}
         </div>
       </div>
     </section>

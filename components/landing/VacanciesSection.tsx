@@ -9,9 +9,7 @@ import {
   Search,
   Building2,
   ArrowRight,
-  Filter,
   Sparkles,
-  CheckCircle2,
 } from "lucide-react";
 
 export interface JobListing {
@@ -74,7 +72,7 @@ export function VacanciesSection({ onSelectJob, onPostJob }: VacanciesSectionPro
       deadline: "Closing in 14 days",
       tags: ["Budgeting", "Audit Ledgers", "Procurement"],
       description:
-        "Manage institutional fiscal budget, capital expansion investments, endowment accounting, and multi-gateway fee collection policies.",
+        "Manage institutional budgets, capital expansion investments, endowment accounting, bank-transfer reconciliation, and fee collection policies.",
     },
     {
       id: "job-4",
@@ -115,43 +113,42 @@ export function VacanciesSection({ onSelectJob, onPostJob }: VacanciesSectionPro
   });
 
   return (
-    <section id="vacancies" className="py-24 bg-slate-50/70 dark:bg-[#0c1527] border-y border-slate-200/80 dark:border-slate-800">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="vacancies" className="w-full max-w-full overflow-x-clip border-y border-slate-200/80 bg-[#f8fafc] py-24 dark:border-white/10 dark:bg-[#070e1b]">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 text-xs font-bold uppercase tracking-wider">
-              <Briefcase className="w-3.5 h-3.5" />
+          <div className="max-w-2xl min-w-0">
+            <div className="inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3.5 py-1 text-xs font-bold uppercase tracking-[0.18em] text-cyan-700 dark:text-cyan-300">
+              <Briefcase className="h-3.5 w-3.5 text-cyan-500" />
               <span>Network Talent Exchange</span>
             </div>
-            <h2 className="mt-4 text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+            <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-4xl lg:text-5xl leading-tight">
               Open Vacancies Across Partner Schools
             </h2>
-            <p className="mt-3 text-base text-slate-600 dark:text-slate-300">
-              Explore dynamic teaching, leadership, and operational roles at leading institutions powered by Xenon.
+            <p className="mt-4 text-base sm:text-lg leading-relaxed text-slate-600 dark:text-slate-300">
+              Explore teaching, administrative, and technological careers at premier institutions powered by Xenon SMS.
             </p>
           </div>
 
-          {/* Post a vacancy prompt */}
           <button
             onClick={onPostJob}
-            className="shrink-0 px-4 py-2.5 rounded-xl border border-blue-200 dark:border-blue-800 bg-white dark:bg-slate-800 text-blue-700 dark:text-blue-300 text-xs font-bold hover:bg-blue-50 dark:hover:bg-slate-750 transition-all shadow-xs flex items-center gap-2"
+            className="shrink-0 inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-xs font-bold text-slate-800 shadow-xs transition-all hover:bg-slate-50 hover:border-cyan-400 dark:border-white/10 dark:bg-[#091222] dark:text-slate-200 dark:hover:bg-white/[0.05]"
           >
-            <Building2 className="w-4 h-4" />
+            <Building2 className="h-4 w-4 text-cyan-500" />
             <span>School Admins: Post a Vacancy</span>
           </button>
         </div>
 
         {/* Filter & Search Bar */}
-        <div className="mt-10 p-4 rounded-2xl bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+        <div className="mt-10 rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xs dark:border-white/10 dark:bg-[#091222] flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
           <div className="relative flex-1">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search className="h-4 w-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search by role title, school name, or location..."
-              className="w-full pl-10 pr-4 py-2 text-xs sm:text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white placeholder-slate-400"
+              placeholder="Search by role title, institution, or location..."
+              className="w-full rounded-xl border border-slate-200/80 bg-slate-50 pl-10 pr-4 py-2.5 text-xs sm:text-sm text-slate-900 placeholder-slate-400 focus:border-cyan-400 focus:outline-hidden focus:ring-2 focus:ring-cyan-400/20 dark:border-white/10 dark:bg-[#060c18] dark:text-white"
             />
           </div>
 
@@ -160,16 +157,16 @@ export function VacanciesSection({ onSelectJob, onPostJob }: VacanciesSectionPro
               { id: "all", label: "All Roles" },
               { id: "academic", label: "Teaching & Faculty" },
               { id: "admin", label: "Administration" },
-              { id: "finance", label: "Finance & Operations" },
+              { id: "finance", label: "Finance Desk" },
               { id: "tech", label: "EdTech & IT" },
             ].map((d) => (
               <button
                 key={d.id}
                 onClick={() => setFilterDept(d.id)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition-all ${
                   filterDept === d.id
-                    ? "bg-blue-600 text-white"
-                    : "bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-200"
+                    ? "bg-slate-950 text-white shadow-xs dark:bg-cyan-400 dark:text-slate-950"
+                    : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10"
                 }`}
               >
                 {d.label}
@@ -181,44 +178,48 @@ export function VacanciesSection({ onSelectJob, onPostJob }: VacanciesSectionPro
         {/* Job Listings Grid */}
         <div className="mt-6 space-y-4">
           {filteredJobs.length === 0 ? (
-            <div className="text-center py-12 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700">
-              <p className="text-sm font-semibold text-slate-500">
-                No open vacancies found matching &ldquo;{searchTerm}&rdquo;. Try clearing filters.
+            <div className="rounded-2xl border border-slate-200/90 bg-white py-12 text-center shadow-xs dark:border-white/10 dark:bg-[#091222]">
+              <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">
+                No open positions found matching &ldquo;{searchTerm}&rdquo;. Try broadening your search or resetting filters.
               </p>
             </div>
           ) : (
             filteredJobs.map((job) => (
               <div
                 key={job.id}
-                className="rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-800/90 p-5 sm:p-6 shadow-xs hover:border-blue-400 dark:hover:border-blue-500 hover:shadow-md transition-all duration-200 flex flex-col lg:flex-row lg:items-center justify-between gap-6 group"
+                className="group rounded-2xl border border-slate-200/90 bg-white p-6 shadow-xs transition-all duration-300 hover:-translate-y-0.5 hover:border-cyan-400/40 hover:shadow-lg dark:border-white/10 dark:bg-[#091222] flex flex-col lg:flex-row lg:items-center justify-between gap-6"
               >
-                <div className="space-y-2 flex-1">
+                <div className="flex-1 space-y-2.5">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/80 px-2.5 py-0.5 rounded-md border border-blue-100 dark:border-blue-900">
+                    <span className="rounded-lg border border-cyan-500/20 bg-cyan-500/10 px-2.5 py-0.5 text-xs font-bold text-cyan-700 dark:text-cyan-300">
                       {job.school}
                     </span>
-                    <span className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
-                      <Clock3 className="w-3 h-3" /> {job.deadline}
+                    <span className="flex items-center gap-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                      <Clock3 className="h-3.5 w-3.5" />
+                      {job.deadline}
                     </span>
                   </div>
 
-                  <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                  <h3 className="text-lg font-bold text-slate-900 group-hover:text-cyan-600 dark:text-white dark:group-hover:text-cyan-400 transition-colors">
                     {job.title}
                   </h3>
 
-                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 line-clamp-2 max-w-3xl">
+                  <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-400 line-clamp-2 max-w-3xl">
                     {job.description}
                   </p>
 
-                  <div className="flex flex-wrap items-center gap-y-2 gap-x-4 text-xs text-slate-500 dark:text-slate-400 pt-1">
-                    <span className="flex items-center gap-1">
-                      <MapPin className="w-3.5 h-3.5 text-slate-400" /> {job.location}
+                  <div className="flex flex-wrap items-center gap-x-5 gap-y-2 pt-1 text-xs text-slate-500 dark:text-slate-400">
+                    <span className="flex items-center gap-1.5">
+                      <MapPin className="h-3.5 w-3.5 text-slate-400" />
+                      {job.location}
                     </span>
-                    <span className="flex items-center gap-1">
-                      <DollarSign className="w-3.5 h-3.5 text-slate-400" /> {job.salary}
+                    <span className="flex items-center gap-1.5">
+                      <DollarSign className="h-3.5 w-3.5 text-slate-400" />
+                      {job.salary}
                     </span>
-                    <span className="flex items-center gap-1">
-                      <Briefcase className="w-3.5 h-3.5 text-slate-400" /> {job.type}
+                    <span className="flex items-center gap-1.5">
+                      <Briefcase className="h-3.5 w-3.5 text-slate-400" />
+                      {job.type}
                     </span>
                   </div>
 
@@ -226,7 +227,7 @@ export function VacanciesSection({ onSelectJob, onPostJob }: VacanciesSectionPro
                     {job.tags.map((t, tidx) => (
                       <span
                         key={tidx}
-                        className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300"
+                        className="rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600 dark:bg-white/5 dark:text-slate-300"
                       >
                         {t}
                       </span>
@@ -234,16 +235,16 @@ export function VacanciesSection({ onSelectJob, onPostJob }: VacanciesSectionPro
                   </div>
                 </div>
 
-                <div className="shrink-0 flex items-center lg:flex-col lg:items-end justify-between gap-3 pt-4 lg:pt-0 border-t lg:border-t-0 border-slate-100 dark:border-slate-700">
+                <div className="shrink-0 flex items-center lg:flex-col lg:items-end justify-between gap-3 border-t border-slate-100 pt-4 dark:border-white/5 lg:border-t-0 lg:pt-0">
                   <button
                     onClick={() => onSelectJob(job)}
-                    className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-sm shadow-blue-500/20 active:scale-95 transition-all flex items-center justify-center gap-2"
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-400 to-teal-400 px-5 py-2.5 text-xs font-extrabold text-slate-950 shadow-sm shadow-cyan-500/25 transition-all hover:-translate-y-0.5 hover:from-cyan-300 hover:to-teal-300"
                   >
                     <span>View & Apply</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
+                    <ArrowRight className="h-3.5 w-3.5" />
                   </button>
-                  <span className="text-[10px] text-slate-400 text-right">
-                    Verified Xenon Institution
+                  <span className="text-[11px] font-medium text-slate-400">
+                    Verified Xenon Partner
                   </span>
                 </div>
               </div>

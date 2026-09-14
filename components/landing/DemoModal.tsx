@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, CheckCircle2, Calendar, School, Mail, User, Users, ArrowRight } from "lucide-react";
+import { X, CheckCircle2, Calendar, School, Mail, User, ArrowRight } from "lucide-react";
 
 interface DemoModalProps {
   isOpen: boolean;
@@ -29,12 +29,12 @@ export function DemoModal({ isOpen, onClose }: DemoModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-200 dark:border-slate-800">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md animate-in fade-in duration-200">
+      <div className="relative w-full max-w-lg bg-white dark:bg-[#091222] rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-200/90 dark:border-white/10">
         {/* Close Button */}
         <button
           onClick={handleResetAndClose}
-          className="absolute top-5 right-5 p-2 rounded-full text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+          className="absolute top-5 right-5 p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
           aria-label="Close modal"
         >
           <X className="w-5 h-5" />
@@ -42,10 +42,10 @@ export function DemoModal({ isOpen, onClose }: DemoModalProps) {
 
         {submitted ? (
           <div className="text-center py-6 space-y-4">
-            <div className="w-14 h-14 rounded-2xl bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto">
+            <div className="w-14 h-14 rounded-2xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto border border-emerald-500/30">
               <CheckCircle2 className="w-8 h-8" />
             </div>
-            <h3 className="text-2xl font-bold text-slate-900 dark:text-white">
+            <h3 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">
               Walkthrough Reserved!
             </h3>
             <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed max-w-sm mx-auto">
@@ -54,7 +54,7 @@ export function DemoModal({ isOpen, onClose }: DemoModalProps) {
             <div className="pt-3">
               <button
                 onClick={handleResetAndClose}
-                className="px-6 py-2.5 rounded-xl bg-blue-600 text-white text-xs font-bold shadow-md shadow-blue-500/25 hover:bg-blue-700"
+                className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-cyan-400 to-teal-400 text-slate-950 text-xs font-bold shadow-md shadow-cyan-500/25 hover:from-cyan-300 hover:to-teal-300 transition-all"
               >
                 Close Window
               </button>
@@ -63,10 +63,10 @@ export function DemoModal({ isOpen, onClose }: DemoModalProps) {
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <span className="text-[11px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">
+              <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-cyan-600 dark:text-cyan-400">
                 Personalized Walkthrough
               </span>
-              <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-1">
+              <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white mt-1 tracking-tight">
                 Schedule a 15-Minute Xenon Tour
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
@@ -76,7 +76,7 @@ export function DemoModal({ isOpen, onClose }: DemoModalProps) {
 
             <div className="space-y-3 pt-2">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                   Full Name
                 </label>
                 <div className="relative">
@@ -87,13 +87,13 @@ export function DemoModal({ isOpen, onClose }: DemoModalProps) {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Dr. Jordan Henderson"
-                    className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                    className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm bg-slate-50 dark:bg-[#060c18] border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white focus:outline-hidden focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                   Work Email Address
                 </label>
                 <div className="relative">
@@ -104,14 +104,14 @@ export function DemoModal({ isOpen, onClose }: DemoModalProps) {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="jordan@academy.edu"
-                    className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                    className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm bg-slate-50 dark:bg-[#060c18] border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white focus:outline-hidden focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                     School Name
                   </label>
                   <div className="relative">
@@ -122,19 +122,19 @@ export function DemoModal({ isOpen, onClose }: DemoModalProps) {
                       value={school}
                       onChange={(e) => setSchool(e.target.value)}
                       placeholder="Adams Hill Prep"
-                      className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                      className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm bg-slate-50 dark:bg-[#060c18] border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white focus:outline-hidden focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                     Student Enrollment
                   </label>
                   <select
                     value={studentCount}
                     onChange={(e) => setStudentCount(e.target.value)}
-                    className="w-full px-3 py-2 text-xs sm:text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 text-xs sm:text-sm bg-slate-50 dark:bg-[#060c18] border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white focus:outline-hidden focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"
                   >
                     <option value="Under 500">Under 500 students</option>
                     <option value="500 - 1,500">500 - 1,500 students</option>
@@ -145,7 +145,7 @@ export function DemoModal({ isOpen, onClose }: DemoModalProps) {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                   Preferred Date & Time Window
                 </label>
                 <div className="relative">
@@ -154,7 +154,7 @@ export function DemoModal({ isOpen, onClose }: DemoModalProps) {
                     type="date"
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                    className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm bg-slate-50 dark:bg-[#060c18] border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white focus:outline-hidden focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"
                   />
                 </div>
               </div>
@@ -162,7 +162,7 @@ export function DemoModal({ isOpen, onClose }: DemoModalProps) {
 
             <button
               type="submit"
-              className="mt-4 w-full py-3 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs sm:text-sm shadow-md shadow-blue-500/25 transition-all flex items-center justify-center gap-2"
+              className="mt-4 w-full py-3 px-4 rounded-xl bg-gradient-to-r from-cyan-400 to-teal-400 hover:from-cyan-300 hover:to-teal-300 text-slate-950 font-bold text-xs sm:text-sm shadow-md shadow-cyan-500/25 transition-all flex items-center justify-center gap-2"
             >
               <span>Confirm 15-Minute Walkthrough</span>
               <ArrowRight className="w-4 h-4" />
