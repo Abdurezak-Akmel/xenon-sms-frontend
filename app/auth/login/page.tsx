@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
+  ArrowLeft,
   ArrowRight,
   CheckCircle2,
   Eye,
@@ -68,7 +69,7 @@ export default function LoginPage() {
         <aside className="relative hidden overflow-hidden bg-[#0f1d35] p-10 text-white lg:flex lg:flex-col lg:justify-between xl:p-14">
           <div className="absolute -left-20 -top-20 h-72 w-72 rounded-full border border-white/10" />
           <div className="absolute -bottom-28 right-0 h-80 w-80 rounded-full border border-cyan-300/20" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(96,165,250,0.28),_transparent_45%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(96,165,250,0.28),transparent_45%)]" />
 
           <div className="relative z-10">
             <div className="flex items-center gap-3">
@@ -114,6 +115,16 @@ export default function LoginPage() {
         </aside>
 
         <section className="relative flex items-center justify-center px-5 py-8 sm:px-8 lg:px-10 xl:px-16">
+          <div className="absolute left-5 top-5 z-20 sm:left-8 sm:top-8">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-2 rounded-full border border-slate-200/80 bg-white/80 px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm backdrop-blur-sm transition hover:border-cyan-300 hover:text-cyan-600 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200 dark:hover:border-cyan-500 dark:hover:text-cyan-300"
+            >
+              <ArrowLeft size={14} />
+              Back
+            </Link>
+          </div>
+
           <div className="absolute right-5 top-5 z-20">
             <button
               type="button"
@@ -126,7 +137,7 @@ export default function LoginPage() {
             </button>
           </div>
 
-          <div className="w-full max-w-xl">
+          <div className="w-full max-w-xl pt-10 sm:pt-12">
             <div className="mb-8 flex items-center gap-3 lg:hidden">
               <div className="grid h-9 w-9 place-items-center rounded-xl bg-[#3267d6] text-white shadow-md shadow-cyan-500/20">
                 <Sparkles size={18} />

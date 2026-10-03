@@ -112,7 +112,8 @@ export function NavBar({
   children,
   ...props
 }: NavBarProps) {
-  const [uncontrolledProfileOpen, setUncontrolledProfileOpen] = React.useState(false);
+  const [uncontrolledProfileOpen, setUncontrolledProfileOpen] =
+    React.useState(false);
   const isProfileOpen = controlledProfileOpen ?? uncontrolledProfileOpen;
 
   const profileRef = React.useRef<HTMLDivElement>(null);
@@ -142,7 +143,8 @@ export function NavBar({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isProfileOpen]);
 
-  const userInitials = user?.initials || (user?.name ? getInitials(user.name) : "US");
+  const userInitials =
+    user?.initials || (user?.name ? getInitials(user.name) : "US");
 
   return (
     <header
@@ -165,13 +167,18 @@ export function NavBar({
           </button>
         )}
 
-        <nav aria-label="Breadcrumbs" className="breadcrumbs flex items-center gap-2 text-xs text-(--muted) truncate">
+        <nav
+          aria-label="Breadcrumbs"
+          className="breadcrumbs flex items-center gap-2 text-xs text-(--muted) truncate"
+        >
           {breadcrumbs && breadcrumbs.length > 0 ? (
             breadcrumbs.map((crumb, index) => {
               const isLast = index === breadcrumbs.length - 1;
               return (
                 <React.Fragment key={index}>
-                  {index > 0 && <ChevronRight className="size-3.5 shrink-0 text-(--muted)/60" />}
+                  {index > 0 && (
+                    <ChevronRight className="size-3.5 shrink-0 text-(--muted)/60" />
+                  )}
                   {crumb.onClick ? (
                     <button
                       type="button"
@@ -227,7 +234,9 @@ export function NavBar({
       </div>
 
       {/* Center content (if custom children passed) */}
-      {children && <div className="hidden md:flex items-center gap-2">{children}</div>}
+      {children && (
+        <div className="hidden md:flex items-center gap-2">{children}</div>
+      )}
 
       {/* Right side actions */}
       <div className="top-actions flex items-center gap-2 sm:gap-3 shrink-0">
@@ -260,7 +269,8 @@ export function NavBar({
             aria-label={`Notifications ${notifications.count ? `(${notifications.count} unread)` : ""}`}
           >
             <Bell className="size-4.5" />
-            {(notifications.hasUnread || (notifications.count && notifications.count > 0)) && (
+            {(notifications.hasUnread ||
+              (notifications.count && notifications.count > 0)) && (
               <span className="notification-dot absolute top-2 right-2 flex size-2">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-(--red) opacity-75" />
                 <span className="relative inline-flex size-2 rounded-full bg-(--red)" />
@@ -371,7 +381,9 @@ export function NavBar({
                         }}
                         role="menuitem"
                       >
-                        {IconComponent && <IconComponent className="size-3.5" />}
+                        {IconComponent && (
+                          <IconComponent className="size-3.5" />
+                        )}
                         <span>{item.label}</span>
                       </button>
                     );

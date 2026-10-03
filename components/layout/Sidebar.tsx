@@ -125,13 +125,7 @@ export function Sidebar({
   const [schoolMenuOpen, setSchoolMenuOpen] = React.useState(false);
 
   return (
-    <aside
-      className={cn(
-        "sidebar",
-        !isOpen && "collapsed",
-        className,
-      )}
-    >
+    <aside className={cn("sidebar", !isOpen && "collapsed", className)}>
       <div className="brand">
         <div className="brand-mark">
           <Sparkles size={18} />

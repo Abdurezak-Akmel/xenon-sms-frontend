@@ -36,7 +36,8 @@ export const inputVariants = cva(
 );
 
 export interface InputProps
-  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "size">,
+  extends
+    Omit<React.InputHTMLAttributes<HTMLInputElement>, "size">,
     VariantProps<typeof inputVariants> {
   /** Label displayed above the input */
   label?: React.ReactNode;
@@ -113,7 +114,8 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     const isPasswordType = type === "password";
     const resolvedType = isPasswordType && showPassword ? "text" : type;
     const isError = Boolean(error) || Boolean(hasError);
-    const errorMessage = typeof error === "string" || React.isValidElement(error) ? error : null;
+    const errorMessage =
+      typeof error === "string" || React.isValidElement(error) ? error : null;
 
     const hasStartIcon = Boolean(startIcon);
     const hasEndContent =
@@ -131,7 +133,9 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           >
             <span>{label}</span>
             {props.required && (
-              <span className="text-(--red) text-[11px] font-normal">*required</span>
+              <span className="text-(--red) text-[11px] font-normal">
+                *required
+              </span>
             )}
           </label>
         )}
@@ -156,8 +160,8 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
               errorMessage
                 ? `${inputId}-error`
                 : helperText
-                ? `${inputId}-helper`
-                : undefined
+                  ? `${inputId}-helper`
+                  : undefined
             }
             className={cn(
               inputVariants({
@@ -224,10 +228,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             {errorMessage}
           </p>
         ) : helperText ? (
-          <p
-            id={`${inputId}-helper`}
-            className="text-[11px] text-(--muted)"
-          >
+          <p id={`${inputId}-helper`} className="text-[11px] text-(--muted)">
             {helperText}
           </p>
         ) : null}

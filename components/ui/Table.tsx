@@ -1,7 +1,13 @@
 "use client";
 
 import * as React from "react";
-import { ArrowDown, ArrowUp, ArrowUpDown, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowUp,
+  ArrowUpDown,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function Table({
@@ -38,10 +44,7 @@ export function TableBody({
   ...props
 }: React.HTMLAttributes<HTMLTableSectionElement>) {
   return (
-    <tbody
-      className={cn("divide-y divide-(--line)", className)}
-      {...props}
-    />
+    <tbody className={cn("divide-y divide-(--line)", className)} {...props} />
   );
 }
 
@@ -51,7 +54,10 @@ export function TableFooter({
 }: React.HTMLAttributes<HTMLTableSectionElement>) {
   return (
     <tfoot
-      className={cn("border-t border-(--line) bg-(--background)/50 font-medium", className)}
+      className={cn(
+        "border-t border-(--line) bg-(--background)/50 font-medium",
+        className,
+      )}
       {...props}
     />
   );
@@ -154,7 +160,9 @@ export function TableEmpty({
       <td colSpan={colSpan} className="py-12 text-center text-xs">
         <div className="flex flex-col items-center justify-center gap-2">
           {icon && <div className="text-(--muted) mb-1">{icon}</div>}
-          <strong className="text-sm font-semibold text-(--foreground)">{title}</strong>
+          <strong className="text-sm font-semibold text-(--foreground)">
+            {title}
+          </strong>
           <p className="text-xs text-(--muted) max-w-sm">{description}</p>
         </div>
       </td>
@@ -177,8 +185,12 @@ export function TablePagination({
   onPageChange: (page: number) => void;
   className?: string;
 }) {
-  const from = totalItems ? (currentPage - 1) * (pageSize ?? 10) + 1 : undefined;
-  const to = totalItems ? Math.min(currentPage * (pageSize ?? 10), totalItems) : undefined;
+  const from = totalItems
+    ? (currentPage - 1) * (pageSize ?? 10) + 1
+    : undefined;
+  const to = totalItems
+    ? Math.min(currentPage * (pageSize ?? 10), totalItems)
+    : undefined;
 
   return (
     <div
@@ -190,14 +202,28 @@ export function TablePagination({
       <div>
         {totalItems && from && to ? (
           <span>
-            Showing <strong className="font-semibold text-(--foreground)">{from}</strong> to{" "}
-            <strong className="font-semibold text-(--foreground)">{to}</strong> of{" "}
-            <strong className="font-semibold text-(--foreground)">{totalItems}</strong> entries
+            Showing{" "}
+            <strong className="font-semibold text-(--foreground)">
+              {from}
+            </strong>{" "}
+            to{" "}
+            <strong className="font-semibold text-(--foreground)">{to}</strong>{" "}
+            of{" "}
+            <strong className="font-semibold text-(--foreground)">
+              {totalItems}
+            </strong>{" "}
+            entries
           </span>
         ) : (
           <span>
-            Page <strong className="font-semibold text-(--foreground)">{currentPage}</strong> of{" "}
-            <strong className="font-semibold text-(--foreground)">{totalPages}</strong>
+            Page{" "}
+            <strong className="font-semibold text-(--foreground)">
+              {currentPage}
+            </strong>{" "}
+            of{" "}
+            <strong className="font-semibold text-(--foreground)">
+              {totalPages}
+            </strong>
           </span>
         )}
       </div>

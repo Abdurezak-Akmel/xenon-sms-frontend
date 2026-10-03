@@ -179,12 +179,7 @@ export function ModalDescription({
   className,
 }: React.HTMLAttributes<HTMLParagraphElement>) {
   return (
-    <p
-      className={cn(
-        "mt-1 text-xs text-(--muted) leading-relaxed",
-        className,
-      )}
-    >
+    <p className={cn("mt-1 text-xs text-(--muted) leading-relaxed", className)}>
       {children}
     </p>
   );
@@ -195,12 +190,7 @@ export function ModalBody({
   className,
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div
-      className={cn(
-        "px-6 py-4 max-h-[75vh] overflow-y-auto",
-        className,
-      )}
-    >
+    <div className={cn("px-6 py-4 max-h-[75vh] overflow-y-auto", className)}>
       {children}
     </div>
   );

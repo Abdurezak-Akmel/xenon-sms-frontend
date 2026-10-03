@@ -4,7 +4,11 @@ import * as React from "react";
 import { Search, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Sidebar, type NavGroupDef } from "@/components/layout/Sidebar";
-import { NavBar, type NavUser, type NavBreadcrumb } from "@/components/layout/NavBar";
+import {
+  NavBar,
+  type NavUser,
+  type NavBreadcrumb,
+} from "@/components/layout/NavBar";
 import { Modal, ModalBody } from "@/components/ui/Modal";
 
 export interface DashboardLayoutProps {
@@ -72,7 +76,9 @@ export function DashboardLayout({
   ].filter((item) => item.toLowerCase().includes(searchQuery.toLowerCase()));
 
   return (
-    <div className={dark ? "app dark min-h-screen flex" : "app min-h-screen flex"}>
+    <div
+      className={dark ? "app dark min-h-screen flex" : "app min-h-screen flex"}
+    >
       {/* Sidebar navigation */}
       <Sidebar
         isOpen={sidebarOpen}
@@ -108,7 +114,12 @@ export function DashboardLayout({
           onSignOut={() => console.log("Sign out")}
         />
 
-        <main className={cn("content flex-1 p-6 sm:p-8 max-w-7xl w-full mx-auto", className)}>
+        <main
+          className={cn(
+            "content flex-1 p-6 sm:p-8 max-w-7xl w-full mx-auto",
+            className,
+          )}
+        >
           {children}
         </main>
       </div>

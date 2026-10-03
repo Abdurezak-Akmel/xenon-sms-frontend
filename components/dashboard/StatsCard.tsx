@@ -21,8 +21,10 @@ export type StatsCardTone =
 
 export type StatsCardTrend = "up" | "down" | "neutral" | "none";
 
-export interface StatsCardProps
-  extends Omit<React.HTMLAttributes<HTMLDivElement>, "title"> {
+export interface StatsCardProps extends Omit<
+  React.HTMLAttributes<HTMLDivElement>,
+  "title"
+> {
   /** The metric label or card title */
   title?: React.ReactNode;
   /** Alias for title to maintain backward compatibility */
@@ -103,7 +105,8 @@ export function StatsCard({
     <article
       className={cn(
         "metric-card relative flex flex-col justify-between overflow-hidden rounded-xl border border-(--line) bg-(--card) p-4.5 text-(--foreground) shadow-[var(--shadow)] transition-all duration-200",
-        isClickable && "cursor-pointer hover:-translate-y-0.5 hover:shadow-md hover:border-(--blue)/40",
+        isClickable &&
+          "cursor-pointer hover:-translate-y-0.5 hover:shadow-md hover:border-(--blue)/40",
         className,
       )}
       onClick={onClick}
@@ -149,19 +152,29 @@ export function StatsCard({
                       (trend === "neutral" || !trend) && "text-(--muted)",
                     )}
                   >
-                    {trend === "up" && <ArrowUpRight className="size-3.5 shrink-0" />}
-                    {trend === "down" && <ArrowDownRight className="size-3.5 shrink-0" />}
-                    {trend === "neutral" && <Minus className="size-3 shrink-0" />}
+                    {trend === "up" && (
+                      <ArrowUpRight className="size-3.5 shrink-0" />
+                    )}
+                    {trend === "down" && (
+                      <ArrowDownRight className="size-3.5 shrink-0" />
+                    )}
+                    {trend === "neutral" && (
+                      <Minus className="size-3 shrink-0" />
+                    )}
                     <span>{change}</span>
                   </small>
                 )}
 
                 {changeLabel && (
-                  <span className="text-[11px] text-(--muted)">{changeLabel}</span>
+                  <span className="text-[11px] text-(--muted)">
+                    {changeLabel}
+                  </span>
                 )}
 
                 {description && !change && !changeLabel && (
-                  <span className="text-[11px] text-(--muted)">{description}</span>
+                  <span className="text-[11px] text-(--muted)">
+                    {description}
+                  </span>
                 )}
               </div>
             )}
@@ -180,7 +193,10 @@ export function StatsCard({
                   e.stopPropagation();
                   onAction?.();
                 }}
-                aria-label={actionLabel || `Options for ${typeof displayTitle === "string" ? displayTitle : "metric"}`}
+                aria-label={
+                  actionLabel ||
+                  `Options for ${typeof displayTitle === "string" ? displayTitle : "metric"}`
+                }
               >
                 <MoreHorizontal className="size-4" />
               </button>

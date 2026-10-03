@@ -164,7 +164,9 @@ export function HeroSection({ onOpenDemoModal }: HeroSectionProps) {
                     <span className="grid h-7 w-7 place-items-center rounded-lg bg-cyan-400 text-slate-950 shadow-xs shadow-cyan-400/30">
                       <School className="h-4 w-4" />
                     </span>
-                    <span className="text-sm font-bold tracking-tight text-slate-900 dark:text-white">Xenon</span>
+                    <span className="text-sm font-bold tracking-tight text-slate-900 dark:text-white">
+                      Xenon
+                    </span>
                   </div>
                   <div className="mt-6 space-y-1">
                     {[
@@ -227,9 +229,24 @@ export function HeroSection({ onOpenDemoModal }: HeroSectionProps) {
                   {/* Top 3 KPI Cards */}
                   <div className="mt-5 grid gap-3 sm:grid-cols-3">
                     {[
-                      ["Active users", "4,820", UsersRound, "text-cyan-600 dark:text-cyan-400 bg-cyan-500/10 border-cyan-500/20"],
-                      ["Branches", "64", Building2, "text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20"],
-                      ["Learners", "38,450", GraduationCap, "text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 border-indigo-500/20"],
+                      [
+                        "Active users",
+                        "4,820",
+                        UsersRound,
+                        "text-cyan-600 dark:text-cyan-400 bg-cyan-500/10 border-cyan-500/20",
+                      ],
+                      [
+                        "Branches",
+                        "64",
+                        Building2,
+                        "text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
+                      ],
+                      [
+                        "Learners",
+                        "38,450",
+                        GraduationCap,
+                        "text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 border-indigo-500/20",
+                      ],
                     ].map(([label, value, Icon, styleClass]) => {
                       const MetricIcon = Icon as typeof UsersRound;
                       return (
@@ -237,7 +254,9 @@ export function HeroSection({ onOpenDemoModal }: HeroSectionProps) {
                           key={label as string}
                           className="rounded-xl border border-slate-200/90 bg-slate-50/70 p-3.5 transition-colors hover:border-cyan-400/40 dark:border-white/10 dark:bg-white/[0.03]"
                         >
-                          <div className={`inline-grid h-7 w-7 place-items-center rounded-lg border ${styleClass as string}`}>
+                          <div
+                            className={`inline-grid h-7 w-7 place-items-center rounded-lg border ${styleClass as string}`}
+                          >
                             <MetricIcon className="h-3.5 w-3.5" />
                           </div>
                           <p className="mt-3 text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">
@@ -272,8 +291,8 @@ export function HeroSection({ onOpenDemoModal }: HeroSectionProps) {
                                   index % 3 === 0
                                     ? "bg-cyan-500 dark:bg-cyan-400"
                                     : index % 3 === 1
-                                    ? "bg-emerald-500 dark:bg-emerald-400"
-                                    : "bg-indigo-500 dark:bg-indigo-400"
+                                      ? "bg-emerald-500 dark:bg-emerald-400"
+                                      : "bg-indigo-500 dark:bg-indigo-400"
                                 }`}
                                 style={{ height: `${height}%` }}
                               />
@@ -353,7 +372,11 @@ export function HeroSection({ onOpenDemoModal }: HeroSectionProps) {
             ["Partner Schools", "18", "Across 6 administrative regions"],
             ["Active Branches", "64", "Synchronized in real time"],
             ["Platform Users", "4,820", "Protected by role boundaries"],
-            ["Billing Mode", "Bank Transfer", "Direct transparent monthly terms"],
+            [
+              "Billing Mode",
+              "Bank Transfer",
+              "Direct transparent monthly terms",
+            ],
           ].map(([label, value, sub]) => (
             <div
               key={label}

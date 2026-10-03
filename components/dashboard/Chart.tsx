@@ -22,8 +22,18 @@ export interface ChartProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 const defaultMonths = [
-  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
 ];
 
 export function Chart({
@@ -64,9 +74,13 @@ export function Chart({
           <i className="legend-dot blue size-2 rounded-full bg-(--blue)" /> Rate
         </span>
         <div>
-          <strong className="text-base font-bold text-(--foreground)">{currentValue}</strong>
+          <strong className="text-base font-bold text-(--foreground)">
+            {currentValue}
+          </strong>
           {currentChange && (
-            <small className="text-xs text-(--green) font-medium ml-1.5">{currentChange}</small>
+            <small className="text-xs text-(--green) font-medium ml-1.5">
+              {currentChange}
+            </small>
           )}
         </div>
       </div>

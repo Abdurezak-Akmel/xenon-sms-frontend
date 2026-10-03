@@ -211,9 +211,7 @@ export function DropdownHeader({
 export function DropdownDivider({
   className,
 }: React.HTMLAttributes<HTMLHRElement>) {
-  return (
-    <hr className={cn("my-1 border-t border-(--line)", className)} />
-  );
+  return <hr className={cn("my-1 border-t border-(--line)", className)} />;
 }
 
 export function DropdownItem({
@@ -246,7 +244,11 @@ export function DropdownItem({
         className,
       )}
     >
-      {icon && <span className="size-4 shrink-0 flex items-center justify-center">{icon}</span>}
+      {icon && (
+        <span className="size-4 shrink-0 flex items-center justify-center">
+          {icon}
+        </span>
+      )}
       <span className="truncate">{children}</span>
     </button>
   );
