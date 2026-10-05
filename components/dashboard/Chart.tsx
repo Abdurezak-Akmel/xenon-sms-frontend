@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/route_protection/ProtectedRoute";
 
 export interface ChartSeries {
   label: string;

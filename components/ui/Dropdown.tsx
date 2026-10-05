@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { ChevronDown, type LucideIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/route_protection/ProtectedRoute";
 
 export interface DropdownItem {
   id?: string;

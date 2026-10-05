@@ -3,7 +3,7 @@
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { Eye, EyeOff, X, AlertCircle } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/route_protection/ProtectedRoute";
 
 export const inputVariants = cva(
   "flex w-full rounded-lg border bg-(--card) text-(--foreground) transition-all duration-150 outline-none file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-(--muted) disabled:cursor-not-allowed disabled:opacity-50",

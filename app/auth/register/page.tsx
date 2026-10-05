@@ -16,6 +16,7 @@ import {
   SunMedium,
   User,
 } from "lucide-react";
+import { registerUser } from "../../../services/auth.service";
 
 export default function RegisterPage() {
   const [isDark, setIsDark] = useState(true);
@@ -27,6 +28,9 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   useEffect(() => {
     try {
@@ -57,16 +61,36 @@ export default function RegisterPage() {
     }
   }, [isDark]);
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    console.log("Register submitted", {
-      firstName,
-      lastName,
-      email,
-      password,
-      confirmPassword,
-      rememberMe,
-    });
+    setError(null);
+    setSuccessMessage(null);
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const response = await registerUser({
+        firstName,
+        lastName,
+        email,
+        password,
+      });
+      setSuccessMessage(response.message);
+      setPassword("");
+      setConfirmPassword("");
+    } catch (registrationError) {
+      setError(
+        registrationError instanceof Error
+          ? registrationError.message
+          : "Unable to create your account. Please try again.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -176,6 +200,25 @@ export default function RegisterPage() {
                 </div>
               </div>
 
+              {error && (
+                <p
+                  role="alert"
+                  className="mb-5 rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900/70 dark:bg-red-950/40 dark:text-red-300"
+                >
+                  {error}
+                </p>
+              )}
+
+              {successMessage && (
+                <p
+                  role="status"
+                  className="mb-5 flex items-start gap-2 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm text-emerald-800 dark:border-emerald-900/70 dark:bg-emerald-950/40 dark:text-emerald-300"
+                >
+                  <CheckCircle2 className="mt-0.5 size-4 shrink-0" />
+                  <span>{successMessage}</span>
+                </p>
+              )}
+
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
@@ -190,6 +233,7 @@ export default function RegisterPage() {
                       <input
                         id="firstName"
                         type="text"
+                        required
                         value={firstName}
                         onChange={(event) => setFirstName(event.target.value)}
                         placeholder="Jordan"
@@ -211,6 +255,7 @@ export default function RegisterPage() {
                       <input
                         id="lastName"
                         type="text"
+                        required
                         value={lastName}
                         onChange={(event) => setLastName(event.target.value)}
                         placeholder="Miller"
@@ -233,6 +278,7 @@ export default function RegisterPage() {
                     <input
                       id="register-email"
                       type="email"
+                      required
                       value={email}
                       onChange={(event) => setEmail(event.target.value)}
                       placeholder="name@school.edu"
@@ -254,6 +300,8 @@ export default function RegisterPage() {
                     <input
                       id="register-password"
                       type={showPassword ? "text" : "password"}
+                      minLength={8}
+                      required
                       value={password}
                       onChange={(event) => setPassword(event.target.value)}
                       placeholder="Create a password"
@@ -285,6 +333,8 @@ export default function RegisterPage() {
                     <input
                       id="confirm-password"
                       type={showConfirmation ? "text" : "password"}
+                      minLength={8}
+                      required
                       value={confirmPassword}
                       onChange={(event) =>
                         setConfirmPassword(event.target.value)
@@ -329,10 +379,15 @@ export default function RegisterPage() {
 
                 <button
                   type="submit"
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#3267d6] px-4 py-3 text-sm font-semibold text-white shadow-[0_18px_30px_rgba(50,103,214,0.28)] transition hover:bg-[#2957c0] focus:outline-none focus:ring-4 focus:ring-cyan-500/20"
+                  disabled={isSubmitting || Boolean(successMessage)}
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#3267d6] px-4 py-3 text-sm font-semibold text-white shadow-[0_18px_30px_rgba(50,103,214,0.28)] transition hover:bg-[#2957c0] focus:outline-none focus:ring-4 focus:ring-cyan-500/20 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  Create account
-                  <ArrowRight size={16} />
+                  {isSubmitting
+                    ? "Creating account..."
+                    : successMessage
+                      ? "Account created"
+                      : "Create account"}
+                  {!isSubmitting && !successMessage && <ArrowRight size={16} />}
                 </button>
               </form>
 

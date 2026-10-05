@@ -28,7 +28,7 @@ import {
   WalletCards,
   type LucideIcon,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/route_protection/ProtectedRoute";
 
 export interface NavItemDef {
   label: string;

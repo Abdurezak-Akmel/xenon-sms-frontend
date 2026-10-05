@@ -15,6 +15,7 @@ import {
   Sparkles,
   SunMedium,
 } from "lucide-react";
+import { loginUser } from "../../../services/auth.service";
 
 export default function LoginPage() {
   const [isDark, setIsDark] = useState(true);
@@ -22,6 +23,8 @@ export default function LoginPage() {
   const [password, setPassword] = useState("password123");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     try {
@@ -52,9 +55,39 @@ export default function LoginPage() {
     }
   }, [isDark]);
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    console.log("Login submitted", { email, password, rememberMe });
+    setError(null);
+    setIsSubmitting(true);
+
+    try {
+      const response = await loginUser({ email, password });
+      const roleCode = response.user.metadata?.roleCode;
+
+      if (roleCode === "guest") {
+        window.location.assign("/guest");
+        return;
+      }
+
+      if (roleCode === "super-admin") {
+        window.location.assign("/super_admin");
+        return;
+      }
+
+      setError(
+        typeof roleCode === "string"
+          ? `The ${roleCode} role does not have a login destination configured.`
+          : "Your account does not have a role assigned. Contact your administrator.",
+      );
+    } catch (loginError) {
+      setError(
+        loginError instanceof Error
+          ? loginError.message
+          : "Unable to sign in. Please try again.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -165,6 +198,15 @@ export default function LoginPage() {
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-5">
+                {error && (
+                  <p
+                    role="alert"
+                    className="rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900/70 dark:bg-red-950/40 dark:text-red-300"
+                  >
+                    {error}
+                  </p>
+                )}
+
                 <div className="space-y-2">
                   <label
                     htmlFor="email"
@@ -242,10 +284,11 @@ export default function LoginPage() {
 
                 <button
                   type="submit"
+                  disabled={isSubmitting}
                   className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#3267d6] px-4 py-3 text-sm font-semibold text-white shadow-[0_18px_30px_rgba(50,103,214,0.28)] transition hover:bg-[#2957c0] focus:outline-none focus:ring-4 focus:ring-cyan-500/20"
                 >
-                  Sign in
-                  <ArrowRight size={16} />
+                  {isSubmitting ? "Signing in..." : "Sign in"}
+                  {!isSubmitting && <ArrowRight size={16} />}
                 </button>
               </form>
 

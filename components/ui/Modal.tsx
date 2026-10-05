@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { AlertTriangle, CheckCircle2, Info, X } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/route_protection/ProtectedRoute";
 import { Button } from "./Button";
 
 export type ModalSize = "sm" | "md" | "lg" | "xl" | "2xl" | "full";
