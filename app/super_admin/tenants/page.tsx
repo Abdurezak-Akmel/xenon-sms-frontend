@@ -2,13 +2,16 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
+import Link from "next/link";
 import {
+  ArrowRight,
   Check,
   ChevronDown,
   ChevronRight,
   CircleAlert,
   Clock3,
   Globe2,
+  LoaderCircle,
   Pencil,
   Plus,
   Search,
@@ -21,24 +24,31 @@ import { Footer } from "../../../components/ui/footer";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
-  FormLabel,
   FormMessage,
 } from "../../../components/forms/Form";
-import { Header } from "../../../components/ui/header";
+import {
+  createTenant,
+  deleteTenant,
+  listTenants,
+  updateTenant,
+} from "../../../services/tenant.service";
+import type {
+  CreateTenantInput,
+  Tenant,
+  TenantStatus,
+} from "../../../services/tenant.service";
+import styles from "./page.module.css";
 
-const statuses = [
+const statuses: TenantStatus[] = [
   "pending",
   "active",
   "suspended",
   "closed",
   "archived",
-] as const;
-type TenantStatus = (typeof statuses)[number];
+];
 
-type Tenant = {
-  id: string;
+type TenantForm = {
   code: string;
   legalName: string;
   displayName: string;
@@ -48,13 +58,8 @@ type Tenant = {
   countryCode: string;
   timezone: string;
   currencyCode: string;
-  dateFormat: string;
-  numberFormat: string;
   status: TenantStatus;
-  updatedAt: string;
 };
-
-type TenantForm = Omit<Tenant, "id" | "updatedAt">;
 
 const emptyTenant: TenantForm = {
   code: "",
@@ -66,67 +71,24 @@ const emptyTenant: TenantForm = {
   countryCode: "ET",
   timezone: "Africa/Addis_Ababa",
   currencyCode: "ETB",
-  dateFormat: "YYYY-MM-DD",
-  numberFormat: "#,##0.00",
   status: "active",
 };
-
-const demoTenants: Tenant[] = [
-  {
-    id: "tenant-adams-hill",
-    code: "ADAMS-HILL",
-    legalName: "Adams Hill Education Foundation",
-    displayName: "Adams Hill Academy",
-    email: "admin@adamshill.edu",
-    phone: "+251 11 555 0184",
-    address: "Bole, Addis Ababa",
-    countryCode: "ET",
-    timezone: "Africa/Addis_Ababa",
-    currencyCode: "ETB",
-    dateFormat: "YYYY-MM-DD",
-    numberFormat: "#,##0.00",
-    status: "active",
-    updatedAt: "Today, 09:42",
-  },
-  {
-    id: "tenant-northfield",
-    code: "NORTHFIELD",
-    legalName: "Northfield Preparatory School PLC",
-    displayName: "Northfield Prep",
-    email: "office@northfield.edu",
-    phone: "+251 11 555 0231",
-    address: "Kirkos, Addis Ababa",
-    countryCode: "ET",
-    timezone: "Africa/Addis_Ababa",
-    currencyCode: "ETB",
-    dateFormat: "DD/MM/YYYY",
-    numberFormat: "#,##0.00",
-    status: "pending",
-    updatedAt: "Yesterday, 16:18",
-  },
-  {
-    id: "tenant-lakeside",
-    code: "LAKESIDE",
-    legalName: "Lakeside International School",
-    displayName: "Lakeside International",
-    email: "hello@lakeside.edu",
-    phone: "+251 11 555 0310",
-    address: "Yeka, Addis Ababa",
-    countryCode: "ET",
-    timezone: "Africa/Addis_Ababa",
-    currencyCode: "ETB",
-    dateFormat: "YYYY-MM-DD",
-    numberFormat: "#,##0.00",
-    status: "suspended",
-    updatedAt: "Sep 08, 2026",
-  },
-];
 
 const inputClass =
   "w-full rounded-lg border border-(--line) bg-(--card) px-3 py-2.5 text-sm text-(--foreground) outline-none transition focus:border-(--blue) focus:ring-3 focus:ring-(--blue)/15";
 
 function statusClass(status: TenantStatus) {
   return `status ${status === "active" ? "paid" : status === "pending" ? "pending" : "neutral"}`;
+}
+
+function formatUpdatedAt(value: string) {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime())
+    ? value
+    : new Intl.DateTimeFormat(undefined, {
+        dateStyle: "medium",
+        timeStyle: "short",
+      }).format(date);
 }
 
 function TenantFormFields({
@@ -311,11 +273,12 @@ function TenantFormFields({
 }
 
 export default function TenantsCrudPage() {
-  const [dark, setDark] = useState(false);
-  const [profileOpen, setProfileOpen] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
-  const [tenants, setTenants] = useState<Tenant[]>(demoTenants);
+  const [tenants, setTenants] = useState<Tenant[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | TenantStatus>("all");
   const [formOpen, setFormOpen] = useState(false);
@@ -326,14 +289,35 @@ export default function TenantsCrudPage() {
   >({});
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
+  async function loadTenants() {
+    setLoading(true);
+    setLoadError(null);
+    try {
+      const response = await listTenants();
+      setTenants(response.tenants);
+    } catch (error) {
+      setLoadError(
+        error instanceof Error ? error.message : "Unable to load tenants.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
   useEffect(() => {
-    if (!searchOpen) return;
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setSearchOpen(false);
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [searchOpen]);
+    void loadTenants();
+  }, []);
+
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("create") === "1") {
+      setFormOpen(true);
+      window.history.replaceState(
+        window.history.state,
+        "",
+        window.location.pathname,
+      );
+    }
+  }, []);
 
   const filteredTenants = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -342,7 +326,12 @@ export default function TenantsCrudPage() {
         statusFilter === "all" || tenant.status === statusFilter;
       const matchesQuery =
         !normalizedQuery ||
-        [tenant.code, tenant.displayName, tenant.legalName, tenant.email].some(
+        [
+          tenant.code,
+          tenant.displayName,
+          tenant.legalName,
+          tenant.email ?? "",
+        ].some(
           (value) => value.toLowerCase().includes(normalizedQuery),
         );
       return matchesStatus && matchesQuery;
@@ -362,9 +351,19 @@ export default function TenantsCrudPage() {
   }
 
   function openEdit(tenant: Tenant) {
-    const { id: _id, updatedAt: _updatedAt, ...editableFields } = tenant;
     setEditingId(tenant.id);
-    setForm(editableFields);
+    setForm({
+      code: tenant.code,
+      legalName: tenant.legalName,
+      displayName: tenant.displayName,
+      email: tenant.email ?? "",
+      phone: tenant.phone ?? "",
+      address: tenant.address ?? "",
+      countryCode: tenant.countryCode ?? "",
+      timezone: tenant.timezone,
+      currencyCode: tenant.currencyCode,
+      status: tenant.status,
+    });
     setErrors({});
     setFormOpen(true);
   }
@@ -392,78 +391,101 @@ export default function TenantsCrudPage() {
     return Object.keys(nextErrors).length === 0;
   }
 
-  function submitForm(event: FormEvent<HTMLFormElement>) {
+  async function submitForm(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!validate()) return;
-    const now = "Just now";
-    if (editingId) {
-      setTenants((current) =>
-        current.map((tenant) =>
-          tenant.id === editingId
-            ? { ...tenant, ...form, updatedAt: now }
-            : tenant,
-        ),
+    setSaving(true);
+    setLoadError(null);
+    const input: CreateTenantInput = {
+      code: form.code.trim(),
+      legalName: form.legalName.trim(),
+      displayName: form.displayName.trim(),
+      email: form.email.trim() || null,
+      phone: form.phone.trim() || null,
+      address: form.address.trim() || null,
+      countryCode: form.countryCode.trim().toUpperCase(),
+      timezone: form.timezone.trim(),
+      currencyCode: form.currencyCode.trim().toUpperCase(),
+      status: form.status,
+    };
+    try {
+      if (editingId) {
+        const response = await updateTenant(editingId, input);
+        setTenants((current) =>
+          current.map((tenant) =>
+            tenant.id === editingId ? response.tenant : tenant,
+          ),
+        );
+        action(`${response.tenant.displayName} updated`);
+      } else {
+        const response = await createTenant(input);
+        setTenants((current) => [response.tenant, ...current]);
+        action(`${response.tenant.displayName} created`);
+      }
+      setFormOpen(false);
+    } catch (error) {
+      setLoadError(
+        error instanceof Error ? error.message : "Unable to save tenant.",
       );
-      action(`${form.displayName} updated`);
-    } else {
-      setTenants((current) => [
-        { ...form, id: `tenant-${Date.now()}`, updatedAt: now },
-        ...current,
-      ]);
-      action(`${form.displayName} created`);
+    } finally {
+      setSaving(false);
     }
-    setFormOpen(false);
   }
 
-  function confirmDelete() {
+  async function confirmDelete() {
     if (!deleteId) return;
     const tenant = tenants.find((item) => item.id === deleteId);
-    setTenants((current) => current.filter((item) => item.id !== deleteId));
-    setDeleteId(null);
-    if (tenant) action(`${tenant.displayName} deleted`);
+    setDeleting(true);
+    setLoadError(null);
+    try {
+      await deleteTenant(deleteId);
+      setTenants((current) => current.filter((item) => item.id !== deleteId));
+      setDeleteId(null);
+      if (tenant) action(`${tenant.displayName} deleted`);
+    } catch (error) {
+      setLoadError(
+        error instanceof Error ? error.message : "Unable to delete tenant.",
+      );
+    } finally {
+      setDeleting(false);
+    }
   }
 
   const deleteTarget = tenants.find((tenant) => tenant.id === deleteId);
 
   return (
-    <main className={dark ? "app dark" : "app"}>
-      <section className="workspace">
-        <Header
-          activeSection="Tenants"
-          dark={dark}
-          profileOpen={profileOpen}
-          onAction={action}
-          onMenuToggle={() =>
-            action("Navigation is available from the main dashboard")
-          }
-          onProfileToggle={() => setProfileOpen((current) => !current)}
-          onSearchOpen={() => setSearchOpen(true)}
-          onThemeToggle={() => setDark((current) => !current)}
-        />
-        <div className="content">
-          <div className="page-heading">
+    <div className={styles.tenantPage}>
+      <div className="content">
+          <div className={`page-heading ${styles.pageHeading}`}>
             <div>
-              <p className="eyebrow">Platform administration</p>
-              <h1>Tenant directory</h1>
+              <p className={`eyebrow ${styles.pageEyebrow}`}>
+                <Globe2 size={13} />
+                Platform administration <span>/</span> Schools
+              </p>
+              <h1>Schools &amp; tenants</h1>
               <p className="subheading">
-                Create and manage the school organizations connected to Xenon.
+                Manage school workspaces, organization details, and regional
+                settings from one place.
               </p>
             </div>
-            <Button onClick={openCreate}>
-              <Plus size={16} /> New tenant
+            <Button onClick={openCreate} className={styles.addButton}>
+              <Plus size={16} /> Add a school
             </Button>
           </div>
 
-          <section className="metrics-grid mb-4">
+          <section
+            className={`metrics-grid mb-4 ${styles.metricsGrid}`}
+            aria-label="School workspace summary"
+          >
             <article className="metric-card">
               <div className="metric-icon blue">
                 <Globe2 size={18} />
               </div>
               <div className="metric-copy">
-                <span>Total tenants</span>
-                <strong>{tenants.length}</strong>
+                <span>School workspaces</span>
+                <strong>{loading ? "—" : tenants.length}</strong>
                 <small className="positive">
-                  <Check size={12} /> Directory records
+                  <Check size={12} /> Connected to Xenon
                 </small>
               </div>
             </article>
@@ -474,10 +496,10 @@ export default function TenantsCrudPage() {
               <div className="metric-copy">
                 <span>Active</span>
                 <strong>
-                  {
-                    tenants.filter((tenant) => tenant.status === "active")
-                      .length
-                  }
+                  {loading
+                    ? "—"
+                    : tenants.filter((tenant) => tenant.status === "active")
+                        .length}
                 </strong>
                 <small className="positive">Ready for operations</small>
               </div>
@@ -489,10 +511,10 @@ export default function TenantsCrudPage() {
               <div className="metric-copy">
                 <span>Pending review</span>
                 <strong>
-                  {
-                    tenants.filter((tenant) => tenant.status === "pending")
-                      .length
-                  }
+                  {loading
+                    ? "—"
+                    : tenants.filter((tenant) => tenant.status === "pending")
+                        .length}
                 </strong>
                 <small className="negative">Needs attention</small>
               </div>
@@ -504,31 +526,53 @@ export default function TenantsCrudPage() {
               <div className="metric-copy">
                 <span>Restricted</span>
                 <strong>
-                  {
-                    tenants.filter(
-                      (tenant) =>
-                        tenant.status === "suspended" ||
-                        tenant.status === "closed",
-                    ).length
-                  }
+                  {loading
+                    ? "—"
+                    : tenants.filter(
+                        (tenant) =>
+                          tenant.status === "suspended" ||
+                          tenant.status === "closed",
+                      ).length}
                 </strong>
                 <small className="negative">Suspended or closed</small>
               </div>
             </article>
           </section>
 
-          <section className="panel">
+          <section className={`panel ${styles.directoryPanel}`}>
             <div className="panel-heading mb-5">
               <div>
-                <h2>All tenants</h2>
-                <p>Tenant identity, status, and regional configuration.</p>
+                <h2>
+                  School directory
+                  <span className={styles.directoryCount}>
+                    {loading ? "…" : tenants.length}
+                  </span>
+                </h2>
+                <p>Organization details, contact information, and status.</p>
               </div>
               <span className="text-xs text-(--muted)">
                 {filteredTenants.length} of {tenants.length} shown
               </span>
             </div>
+            {loadError && (
+              <div
+                className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-(--red)/25 bg-(--red)/5 px-4 py-3 text-sm text-(--red)"
+                role="alert"
+              >
+                <span>{loadError}</span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className={styles.retryButton}
+                  onClick={() => void loadTenants()}
+                  disabled={loading}
+                >
+                  {loading ? "Loading…" : "Try again"}
+                </Button>
+              </div>
+            )}
             <div className="mb-5 flex flex-col gap-3 md:flex-row">
-              <label className="relative flex-1">
+              <label className={`relative flex-1 ${styles.searchControl}`}>
                 <Search
                   size={16}
                   className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-(--muted)"
@@ -541,7 +585,7 @@ export default function TenantsCrudPage() {
                   aria-label="Search tenants"
                 />
               </label>
-              <label className="relative md:w-48">
+              <label className={`relative md:w-48 ${styles.filterControl}`}>
                 <select
                   className={`${inputClass} appearance-none pr-9`}
                   value={statusFilter}
@@ -564,12 +608,20 @@ export default function TenantsCrudPage() {
               </label>
             </div>
 
-            {filteredTenants.length > 0 ? (
+            {loading ? (
+              <div
+                className="grid justify-items-center gap-3 py-16 text-center text-sm text-(--muted)"
+                role="status"
+              >
+                <LoaderCircle size={22} className="animate-spin text-(--blue)" />
+                Loading school workspaces…
+              </div>
+            ) : filteredTenants.length > 0 ? (
               <div className="table-wrap">
                 <table>
                   <thead>
                     <tr>
-                      <th>Tenant</th>
+                      <th>School</th>
                       <th>Contact</th>
                       <th>Region</th>
                       <th>Status</th>
@@ -583,17 +635,28 @@ export default function TenantsCrudPage() {
                     {filteredTenants.map((tenant) => (
                       <tr key={tenant.id}>
                         <td>
-                          <div className="person">
-                            <div className="person-avatar teal">
-                              {tenant.code.slice(0, 2)}
+                          <Link
+                            href={`/super_admin/tenants/overview?tenantId=${encodeURIComponent(tenant.id)}`}
+                            className={styles.tenantIdentityLink}
+                            aria-label={`View ${tenant.displayName} overview`}
+                          >
+                            <div className="person">
+                              <div className="person-avatar teal">
+                                {tenant.code.slice(0, 2)}
+                              </div>
+                              <div>
+                                <strong>{tenant.displayName}</strong>
+                                <span>
+                                  {tenant.code} · {tenant.legalName}
+                                </span>
+                              </div>
+                              <ArrowRight
+                                size={15}
+                                className={styles.identityArrow}
+                                aria-hidden="true"
+                              />
                             </div>
-                            <div>
-                              <strong>{tenant.displayName}</strong>
-                              <span>
-                                {tenant.code} · {tenant.legalName}
-                              </span>
-                            </div>
-                          </div>
+                          </Link>
                         </td>
                         <td>
                           <div className="grid gap-1">
@@ -606,7 +669,8 @@ export default function TenantsCrudPage() {
                         <td>
                           <div className="grid gap-1">
                             <span>
-                              {tenant.countryCode} · {tenant.currencyCode}
+                              {tenant.countryCode || "No country"} ·{" "}
+                              {tenant.currencyCode}
                             </span>
                             <span className="text-xs text-(--muted)">
                               {tenant.timezone}
@@ -619,7 +683,7 @@ export default function TenantsCrudPage() {
                           </span>
                         </td>
                         <td className="text-xs text-(--muted)">
-                          {tenant.updatedAt}
+                          {formatUpdatedAt(tenant.updatedAt)}
                         </td>
                         <td>
                           <div className="flex justify-end gap-1">
@@ -649,19 +713,26 @@ export default function TenantsCrudPage() {
                 <div className="metric-icon blue">
                   <Search size={18} />
                 </div>
-                <h3 className="text-sm font-semibold">No tenants found</h3>
+                <h3 className="text-sm font-semibold">
+                  {tenants.length === 0
+                    ? "No schools yet"
+                    : "No schools found"}
+                </h3>
                 <p className="max-w-sm text-xs text-(--muted)">
-                  Try another search or create a new tenant record.
+                  {tenants.length === 0
+                    ? "Add your first school workspace to start building your platform directory."
+                    : "Try another search or status filter."}
                 </p>
-                <button className="text-button" onClick={openCreate}>
-                  Create tenant <ChevronRight size={15} />
-                </button>
+                {tenants.length === 0 ? (
+                  <button className="text-button" onClick={openCreate}>
+                    Add a school <ChevronRight size={15} />
+                  </button>
+                ) : null}
               </div>
             )}
           </section>
           <Footer year={2026} />
-        </div>
-      </section>
+      </div>
 
       {formOpen && (
         <div className="modal-backdrop" onClick={() => setFormOpen(false)}>
@@ -675,7 +746,7 @@ export default function TenantsCrudPage() {
                   {editingId ? "Update record" : "New record"}
                 </p>
                 <h2 className="text-lg font-semibold">
-                  {editingId ? "Edit tenant" : "Create tenant"}
+                  {editingId ? "Edit school workspace" : "Add a school"}
                 </h2>
                 <p className="mt-1 text-xs text-(--muted)">
                   Required fields are validated before saving.
@@ -690,7 +761,7 @@ export default function TenantsCrudPage() {
               </button>
             </div>
             <Form
-              className="max-h-[70vh] overflow-y-auto p-5"
+              className={`max-h-[70vh] overflow-y-auto p-5 ${styles.tenantForm}`}
               onSubmit={submitForm}
             >
               <TenantFormFields
@@ -707,12 +778,27 @@ export default function TenantsCrudPage() {
                 <Button
                   type="button"
                   variant="outline"
+                  className={styles.secondaryButton}
                   onClick={() => setFormOpen(false)}
+                  disabled={saving}
                 >
                   Cancel
                 </Button>
-                <Button type="submit">
-                  {editingId ? "Save changes" : "Create tenant"}
+                <Button
+                  type="submit"
+                  className={styles.modalSubmitButton}
+                  disabled={saving}
+                >
+                  {saving ? (
+                    <>
+                      <LoaderCircle size={15} className="animate-spin" />
+                      Saving…
+                    </>
+                  ) : editingId ? (
+                    "Save changes"
+                  ) : (
+                    "Create school"
+                  )}
                 </Button>
               </div>
             </Form>
@@ -733,60 +819,33 @@ export default function TenantsCrudPage() {
               Delete {deleteTarget.displayName}?
             </h2>
             <p className="mt-2 text-sm text-(--muted)">
-              This removes the record from the current workspace. Related school
-              data should be archived before deleting a production tenant.
+              This permanently removes the school workspace. Related records
+              may prevent deletion while they are still in use.
             </p>
             <div className="mt-6 flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setDeleteId(null)}>
+              <Button
+                variant="outline"
+                className={styles.secondaryButton}
+                onClick={() => setDeleteId(null)}
+                disabled={deleting}
+              >
                 Cancel
               </Button>
-              <Button variant="destructive" onClick={confirmDelete}>
-                Delete tenant
+              <Button
+                variant="destructive"
+                className={styles.deleteButton}
+                onClick={() => void confirmDelete()}
+                disabled={deleting}
+              >
+                {deleting ? "Deleting…" : "Delete school"}
               </Button>
             </div>
           </div>
         </div>
       )}
 
-      {searchOpen && (
-        <div className="modal-backdrop" onClick={() => setSearchOpen(false)}>
-          <div
-            className="search-modal"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="modal-search">
-              <Search size={19} />
-              <input
-                autoFocus
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="Search tenants..."
-              />
-              <kbd>ESC</kbd>
-            </div>
-            <div className="search-results">
-              <p>Tenant actions</p>
-              <button
-                onClick={() => {
-                  setSearchOpen(false);
-                  openCreate();
-                }}
-              >
-                <Plus size={16} />
-                Create tenant
-                <ChevronRight size={15} />
-              </button>
-              <button onClick={() => setSearchOpen(false)}>
-                <Globe2 size={16} />
-                View directory
-                <ChevronRight size={15} />
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
       {notice && (
-        <div className="toast">
+        <div className="toast" role="status">
           <Check size={16} />
           {notice}
           <button onClick={() => setNotice(null)} aria-label="Dismiss">
@@ -794,6 +853,6 @@ export default function TenantsCrudPage() {
           </button>
         </div>
       )}
-    </main>
+    </div>
   );
 }

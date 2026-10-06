@@ -1,0 +1,418 @@
+.shell {
+  min-height: 100vh;
+  background: #f8fafc;
+}
+
+.shell:global(.app.dark) {
+  --background: #07111f;
+  --foreground: #f1f5f9;
+  --card: #0f1d35;
+  --muted: #a4b3c9;
+  --line: #24354d;
+  --sidebar: #0b172b;
+  --blue-soft: #172c4d;
+  background: var(--background);
+}
+
+.shell :global(.sidebar) {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 40;
+  width: 248px;
+  height: 100vh;
+  overflow-y: auto;
+  box-shadow: 8px 0 28px rgb(15 41 77 / 3%);
+}
+
+.shell :global(.sidebar:not(.collapsed)) {
+  background: color-mix(in srgb, var(--sidebar) 97%, #e8f2ff);
+}
+
+.shell :global(.sidebar.collapsed) {
+  width: 78px;
+}
+
+.shell :global(.workspace) {
+  min-height: 100vh;
+  margin-left: 248px;
+}
+
+.shell :global(.topbar) {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 248px;
+  z-index: 30;
+}
+
+.navbar {
+  position: fixed;
+  z-index: 30;
+  top: 0;
+  right: 0;
+  left: 248px;
+  display: flex;
+  height: 70px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 30px;
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 85%, #7cb3ff);
+  background: color-mix(in srgb, var(--card) 95%, transparent);
+  box-shadow: 0 8px 28px rgb(15 41 77 / 4%);
+  backdrop-filter: blur(16px);
+  transition:
+    background 180ms ease,
+    border-color 180ms ease;
+}
+
+.navbarStart,
+.navbarActions {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+}
+
+.navbarStart {
+  gap: 12px;
+}
+
+.navbarActions {
+  gap: 9px;
+}
+
+.breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.breadcrumbs i {
+  color: var(--line);
+  font-style: normal;
+}
+
+.breadcrumbs strong {
+  color: var(--foreground);
+  font-weight: 650;
+}
+
+.searchBox {
+  display: flex;
+  width: 225px;
+  height: 36px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: var(--muted);
+  background: color-mix(in srgb, var(--card) 72%, var(--background));
+  text-align: left;
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease,
+    background 140ms ease;
+}
+
+.searchBox:hover,
+.searchBox:focus-visible {
+  border-color: #7cb3ff;
+  box-shadow: 0 0 0 4px rgb(50 103 214 / 9%);
+  outline: none;
+}
+
+.searchBox span {
+  flex: 1;
+  font-size: 11px;
+}
+
+.searchBox kbd {
+  flex: 0 0 auto;
+  padding: 2px 5px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  color: var(--muted);
+  background: var(--card);
+  font-family: inherit;
+  font-size: 9px;
+}
+
+.actionButton,
+.menuButton {
+  position: relative;
+  display: grid;
+  width: 35px;
+  height: 35px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 0;
+  border-radius: 8px;
+  color: var(--muted);
+  background: transparent;
+  transition: color 120ms ease, background 120ms ease;
+}
+
+.actionButton:hover,
+.menuButton:hover {
+  color: var(--blue);
+  background: var(--blue-soft);
+}
+
+.notificationButton i {
+  position: absolute;
+  top: 6px;
+  right: 7px;
+  width: 7px;
+  height: 7px;
+  border: 1px solid var(--card);
+  border-radius: 50%;
+  background: var(--red);
+}
+
+.navbarDivider {
+  width: 1px;
+  height: 28px;
+  margin: 0 2px;
+  background: var(--line);
+}
+
+.logoutButton {
+  display: inline-flex;
+  min-height: 34px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 11px;
+  border: 1px solid color-mix(in srgb, var(--red) 20%, var(--line));
+  border-radius: 9px;
+  color: var(--red);
+  background: color-mix(in srgb, var(--red) 5%, var(--card));
+  font: inherit;
+  font-size: 10px;
+  font-weight: 650;
+  transition:
+    border-color 140ms ease,
+    color 140ms ease,
+    background 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.logoutButton:hover:not(:disabled),
+.logoutButton:focus-visible {
+  border-color: color-mix(in srgb, var(--red) 40%, var(--line));
+  color: #b93838;
+  background: color-mix(in srgb, var(--red) 10%, var(--card));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--red) 10%, transparent);
+  outline: none;
+}
+
+.logoutButton:disabled {
+  cursor: wait;
+  opacity: .72;
+}
+
+.logoutSpinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid color-mix(in srgb, var(--red) 25%, transparent);
+  border-top-color: var(--red);
+  border-radius: 50%;
+  animation: logoutSpin 700ms linear infinite;
+}
+
+.logoutError {
+  border-color: color-mix(in srgb, var(--red) 40%, var(--line)) !important;
+  color: var(--red) !important;
+}
+
+@keyframes logoutSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.userMenu {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  color: var(--muted);
+  background: transparent;
+  text-align: left;
+  border-radius: 10px;
+  padding: 4px 7px;
+  transition: background 140ms ease;
+}
+
+.userMenu:hover {
+  background: var(--background);
+}
+
+.userAvatar {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border-radius: 50%;
+  color: #0f1d35;
+  background: #a9ceff;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.userCopy strong,
+.userCopy small {
+  display: block;
+}
+
+.userCopy strong {
+  color: var(--foreground);
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.userCopy small {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.menuButton {
+  display: none;
+}
+
+.pageBody {
+  min-height: 100vh;
+  padding-top: 70px;
+}
+
+.pageBody :global(.content) {
+  padding-top: 32px;
+}
+
+.searchResult {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: var(--foreground);
+  font-size: 13px;
+  text-decoration: none;
+}
+
+.searchResult:hover {
+  color: var(--blue);
+  background: var(--background);
+}
+
+@media (max-width: 1100px) {
+  .shell :global(.sidebar:not(.collapsed)) {
+    width: 220px;
+  }
+
+  .shell :global(.workspace) {
+    margin-left: 220px;
+  }
+
+  .shell :global(.topbar) {
+    left: 220px;
+  }
+
+  .navbar {
+    left: 220px;
+    padding-right: 22px;
+    padding-left: 22px;
+  }
+}
+
+@media (max-width: 720px) {
+  .shell :global(.sidebar),
+  .shell :global(.sidebar.collapsed),
+  .shell :global(.sidebar:not(.collapsed)) {
+    width: 248px;
+  }
+
+  .shell :global(.workspace) {
+    margin-left: 0;
+  }
+
+  .shell :global(.topbar) {
+    left: 0;
+  }
+
+  .navbar {
+    left: 0;
+    height: 62px;
+    padding: 0 15px;
+  }
+
+  .menuButton {
+    display: grid;
+  }
+
+  .navbarStart {
+    gap: 6px;
+  }
+
+  .navbarActions {
+    gap: 3px;
+  }
+
+  .searchBox {
+    width: 35px;
+    justify-content: center;
+    padding: 0;
+    border-color: transparent;
+    background: transparent;
+  }
+
+  .searchBox:hover,
+  .searchBox:focus-visible {
+    box-shadow: none;
+    background: var(--background);
+  }
+
+  .searchBox span,
+  .searchBox kbd,
+  .navbarDivider,
+  .userCopy,
+  .userMenu > svg {
+    display: none;
+  }
+
+  .logoutButton {
+    width: 35px;
+    min-height: 35px;
+    padding: 0;
+    border-color: transparent;
+    background: transparent;
+  }
+
+  .logoutButton:hover:not(:disabled),
+  .logoutButton:focus-visible {
+    border-color: transparent;
+    background: color-mix(in srgb, var(--red) 9%, var(--card));
+    box-shadow: none;
+  }
+
+  .logoutButton > span:last-child {
+    display: none;
+  }
+
+  .pageBody {
+    padding-top: 62px;
+  }
+
+  .pageBody :global(.content) {
+    padding-top: 24px;
+  }
+}

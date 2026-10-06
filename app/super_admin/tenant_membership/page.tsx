@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import type { FormEvent } from "react";
 import {
   Check,
@@ -26,7 +26,6 @@ import {
   FormField,
   FormMessage,
 } from "../../../components/forms/Form";
-import { Header } from "../../../components/ui/header";
 
 const roles = [
   { code: "school-admin", label: "School Admin", scope: "tenant" },
@@ -345,9 +344,6 @@ function MembershipFormFields({
 }
 
 export default function TenantMembershipCrudPage() {
-  const [dark, setDark] = useState(false);
-  const [profileOpen, setProfileOpen] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [memberships, setMemberships] = useState<Membership[]>(demoMemberships);
   const [query, setQuery] = useState("");
@@ -362,15 +358,6 @@ export default function TenantMembershipCrudPage() {
     Partial<Record<keyof MembershipForm, string>>
   >({});
   const [deleteId, setDeleteId] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!searchOpen) return;
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setSearchOpen(false);
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [searchOpen]);
 
   const filteredMemberships = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -492,22 +479,8 @@ export default function TenantMembershipCrudPage() {
   );
 
   return (
-    <main className={dark ? "app dark" : "app"}>
-      <section className="workspace">
-        <Header
-          activeSection="Tenant memberships"
-          dark={dark}
-          profileOpen={profileOpen}
-          schoolName="Xenon Platform"
-          onAction={action}
-          onMenuToggle={() =>
-            action("Navigation is available from the platform dashboard")
-          }
-          onProfileToggle={() => setProfileOpen((current) => !current)}
-          onSearchOpen={() => setSearchOpen(true)}
-          onThemeToggle={() => setDark((current) => !current)}
-        />
-        <div className="content">
+    <>
+      <div className="content">
           <div className="page-heading">
             <div>
               <p className="eyebrow">Super admin · Access control</p>
@@ -751,8 +724,7 @@ export default function TenantMembershipCrudPage() {
             )}
           </section>
           <Footer year={2026} />
-        </div>
-      </section>
+      </div>
 
       {formOpen && (
         <div className="modal-backdrop" onClick={() => setFormOpen(false)}>
@@ -837,43 +809,6 @@ export default function TenantMembershipCrudPage() {
           </div>
         </div>
       )}
-      {searchOpen && (
-        <div className="modal-backdrop" onClick={() => setSearchOpen(false)}>
-          <div
-            className="search-modal"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="modal-search">
-              <Search size={19} />
-              <input
-                autoFocus
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="Search memberships..."
-              />
-              <kbd>ESC</kbd>
-            </div>
-            <div className="search-results">
-              <p>Membership actions</p>
-              <button
-                onClick={() => {
-                  setSearchOpen(false);
-                  openCreate();
-                }}
-              >
-                <Plus size={16} />
-                Create membership
-                <ChevronRight size={15} />
-              </button>
-              <button onClick={() => setSearchOpen(false)}>
-                <KeyRound size={16} />
-                View access directory
-                <ChevronRight size={15} />
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
       {notice && (
         <div className="toast">
           <Check size={16} />
@@ -883,6 +818,6 @@ export default function TenantMembershipCrudPage() {
           </button>
         </div>
       )}
-    </main>
+    </>
   );
 }

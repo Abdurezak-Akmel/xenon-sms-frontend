@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import {
   Activity,
   Bell,
@@ -206,20 +207,38 @@ export function Sidebar({
             {group.items.map((item) => {
               const Icon = item.icon;
               const isActive = activeItem === item.label;
-              return (
-                <button
-                  key={item.label}
-                  type="button"
-                  className={cn("nav-item", isActive && "active")}
-                  onClick={() => onSelectItem?.(item.label)}
-                  title={item.label}
-                >
+              const itemContent = (
+                <>
                   <Icon size={18} />
                   <span>{isOpen && item.label}</span>
                   {isOpen && item.badge && (
                     <b className="nav-badge">{item.badge}</b>
                   )}
-                </button>
+                </>
+              );
+
+              return (
+                item.href ? (
+                  <Link
+                    key={item.label}
+                    href={item.href}
+                    className={cn("nav-item", isActive && "active")}
+                    onClick={() => onSelectItem?.(item.label)}
+                    title={item.label}
+                  >
+                    {itemContent}
+                  </Link>
+                ) : (
+                  <button
+                    key={item.label}
+                    type="button"
+                    className={cn("nav-item", isActive && "active")}
+                    onClick={() => onSelectItem?.(item.label)}
+                    title={item.label}
+                  >
+                    {itemContent}
+                  </button>
+                )
               );
             })}
           </div>
