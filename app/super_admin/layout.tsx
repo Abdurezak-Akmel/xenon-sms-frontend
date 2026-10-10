@@ -18,14 +18,18 @@ import {
 } from "lucide-react";
 import { Sidebar, type NavGroupDef } from "@/components/layout/Sidebar";
 import { Modal, ModalBody } from "@/components/ui/Modal";
-import { logoutUser } from "@/services/auth.service";
+import { logoutUser } from "@/services/auth/auth.service";
 import styles from "./layout.module.css";
 
 const navGroups: NavGroupDef[] = [
   {
     label: "Workspace",
     items: [
-      { label: "Overview", icon: LayoutDashboard, href: "/super_admin" },
+      {
+        label: "Overview",
+        icon: LayoutDashboard,
+        href: "/super_admin",
+      },
       {
         label: "Schools & tenants",
         icon: Building2,
@@ -59,7 +63,7 @@ export default function SuperAdminLayout({
   const [logoutError, setLogoutError] = React.useState(false);
   const activeSection = pathname.startsWith("/super_admin/tenants")
     ? "Schools & tenants"
-    : sectionByPath[pathname] ?? "Overview";
+    : (sectionByPath[pathname] ?? "Overview");
 
   React.useEffect(() => {
     if (window.matchMedia("(max-width: 720px)").matches) {

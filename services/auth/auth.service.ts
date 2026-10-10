@@ -1,4 +1,4 @@
-import { apiFetch } from "../lib/api";
+import { apiFetch } from "../../lib/api";
 
 const AUTH_ENDPOINT = "/auth";
 
@@ -16,9 +16,12 @@ export type LoginInput = {
   password: string;
 };
 
-export type ForgotPasswordInput = {
+export type EmailAuthInput = {
   email: string;
 };
+
+export type ForgotPasswordInput = EmailAuthInput;
+export type ResendVerificationInput = EmailAuthInput;
 
 export type ResetPasswordInput = {
   email: string;
@@ -28,6 +31,7 @@ export type ResetPasswordInput = {
 
 export type AuthUser = {
   id: string;
+  globalRoleId: string | null;
   email: string;
   firstName: string;
   middleName: string | null;
@@ -99,11 +103,11 @@ export async function verifyEmail(token: string) {
   });
 }
 
-export async function resendVerificationEmail(email: string) {
+export async function resendVerificationEmail(input: ResendVerificationInput) {
   return apiFetch<AuthMessageResponse>(`${AUTH_ENDPOINT}/resend-verification`, {
     method: "POST",
     auth: false,
-    body: JSON.stringify({ email }),
+    body: JSON.stringify(input),
   });
 }
 

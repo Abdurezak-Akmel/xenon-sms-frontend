@@ -15,7 +15,7 @@ import {
   Sparkles,
   SunMedium,
 } from "lucide-react";
-import { loginUser } from "../../../services/auth.service";
+import { loginUser } from "../../../services/auth/auth.service";
 
 export default function LoginPage() {
   const [isDark, setIsDark] = useState(true);

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+
 import Link from "next/link";
 import {
   Activity,
@@ -17,8 +18,10 @@ import {
 } from "lucide-react";
 import { Chart } from "@/components/dashboard/Chart";
 import { StatsCard } from "@/components/dashboard/StatsCard";
-import { listTenants } from "@/services/tenant.service";
-import type { Tenant } from "@/services/tenant.service";
+
+import { listTenants } from "@/services/tenancy/tenant.service";
+import type { Tenant } from "@/services/tenancy/tenant.service";
+
 import styles from "./page.module.css";
 
 const recentActivity = [
@@ -35,13 +38,6 @@ const recentActivity = [
     title: "Annual plan renewed",
     detail: "Northwood Academy · Enterprise",
     time: "48 min ago",
-  },
-  {
-    icon: ShieldCheck,
-    tone: "violet",
-    title: "Administrator access updated",
-    detail: "Brookside Preparatory · 2 members",
-    time: "2 hours ago",
   },
 ];
 
@@ -132,7 +128,7 @@ function SchoolsTable({
     <section className={`panel ${styles.contentPanel}`}>
       <div className={styles.panelHeading}>
         <div>
-          <h2>Schools &amp; tenants</h2>
+          <h2>Schools</h2>
           <p>A quick look at your school workspaces</p>
         </div>
         <Link href="/super_admin/tenants" className={styles.textLink}>
@@ -166,9 +162,7 @@ function SchoolsTable({
                 <td>
                   <span className={styles.planBadge}>{tenant.code}</span>
                 </td>
-                <td>
-                  {tenant.address || tenant.countryCode || "Not set"}
-                </td>
+                <td>{tenant.address || tenant.countryCode || "Not set"}</td>
                 <td>
                   <span
                     className={`${styles.schoolStatus} ${tenant.status === "active" ? styles.statusActive : styles.statusReview}`}
@@ -221,10 +215,7 @@ function RecentActivity() {
           <h2>Recent activity</h2>
           <p>Latest updates across your platform</p>
         </div>
-        <Link
-          href="/super_admin/tenant_membership"
-          className={styles.textLink}
-        >
+        <Link href="/super_admin/tenant_membership" className={styles.textLink}>
           View log <ArrowRight size={14} />
         </Link>
       </div>

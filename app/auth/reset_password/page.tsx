@@ -14,6 +14,7 @@ import {
   Sparkles,
   SunMedium,
 } from "lucide-react";
+import { resetPassword } from "../../../services/auth/auth.service";
 
 export default function ResetPasswordPage() {
   const [isDark, setIsDark] = useState(true);
@@ -22,6 +23,8 @@ export default function ResetPasswordPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [isReset, setIsReset] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     try {
@@ -52,9 +55,49 @@ export default function ResetPasswordPage() {
     }
   }, [isDark]);
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setIsReset(true);
+    setError(null);
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters.");
+      return;
+    }
+
+    const query = new URLSearchParams(window.location.search);
+    const token = query.get("token")?.trim();
+    const email = query.get("email")?.trim();
+    if (!token || !email) {
+      setError(
+        "This password reset link is incomplete. Request a new reset link and try again.",
+      );
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await resetPassword({
+        email,
+        token,
+        newPassword: password,
+      });
+      setIsReset(true);
+      setPassword("");
+      setConfirmPassword("");
+    } catch (requestError) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Unable to reset your password. Please try again.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -160,6 +203,15 @@ export default function ResetPasswordPage() {
                 </div>
               </div>
 
+              {error && (
+                <p
+                  role="alert"
+                  className="mb-5 rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900/70 dark:bg-red-950/40 dark:text-red-300"
+                >
+                  {error}
+                </p>
+              )}
+
               {isReset ? (
                 <div className="space-y-4 text-center">
                   <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">
@@ -200,6 +252,7 @@ export default function ResetPasswordPage() {
                         onChange={(event) => setPassword(event.target.value)}
                         placeholder="Create a new password"
                         autoComplete="new-password"
+                        minLength={8}
                         required
                         className="w-full rounded-xl border border-slate-200 bg-slate-50/80 py-3 pl-10 pr-11 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-cyan-400 focus:ring-4 focus:ring-cyan-500/10 dark:border-slate-700 dark:bg-slate-950/60 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-cyan-400"
                       />
@@ -264,10 +317,11 @@ export default function ResetPasswordPage() {
 
                   <button
                     type="submit"
+                    disabled={isSubmitting}
                     className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#3267d6] px-4 py-3 text-sm font-semibold text-white shadow-[0_18px_30px_rgba(50,103,214,0.28)] transition hover:bg-[#2957c0] focus:outline-none focus:ring-4 focus:ring-cyan-500/20"
                   >
-                    Reset password
-                    <ArrowRight size={16} />
+                    {isSubmitting ? "Resetting password..." : "Reset password"}
+                    {!isSubmitting && <ArrowRight size={16} />}
                   </button>
                 </form>
               )}

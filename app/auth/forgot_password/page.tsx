@@ -15,11 +15,14 @@ import {
   Sparkles,
   SunMedium,
 } from "lucide-react";
+import { forgotPassword } from "../../../services/auth/auth.service";
 
 export default function ForgotPasswordPage() {
   const [isDark, setIsDark] = useState(true);
   const [email, setEmail] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     try {
@@ -50,9 +53,22 @@ export default function ForgotPasswordPage() {
     }
   }, [isDark]);
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setShowSuccess(true);
+    setError(null);
+    setIsSubmitting(true);
+    try {
+      await forgotPassword({ email: email.trim() });
+      setShowSuccess(true);
+    } catch (requestError) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Unable to send a password reset link. Please try again.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -158,6 +174,15 @@ export default function ForgotPasswordPage() {
                 </div>
               </div>
 
+              {error && (
+                <p
+                  role="alert"
+                  className="mb-5 rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900/70 dark:bg-red-950/40 dark:text-red-300"
+                >
+                  {error}
+                </p>
+              )}
+
               {showSuccess ? (
                 <div className="space-y-4 text-center">
                   <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">
@@ -206,10 +231,11 @@ export default function ForgotPasswordPage() {
 
                   <button
                     type="submit"
+                    disabled={isSubmitting}
                     className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#3267d6] px-4 py-3 text-sm font-semibold text-white shadow-[0_18px_30px_rgba(50,103,214,0.28)] transition hover:bg-[#2957c0] focus:outline-none focus:ring-4 focus:ring-cyan-500/20"
                   >
-                    Send reset link
-                    <ArrowRight size={16} />
+                    {isSubmitting ? "Sending reset link..." : "Send reset link"}
+                    {!isSubmitting && <ArrowRight size={16} />}
                   </button>
                 </form>
               )}

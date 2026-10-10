@@ -11,18 +11,21 @@ import {
   Lock,
   Mail,
   MoonStar,
+  Phone,
   ShieldCheck,
   Sparkles,
   SunMedium,
   User,
 } from "lucide-react";
-import { registerUser } from "../../../services/auth.service";
+import { registerUser } from "../../../services/auth/auth.service";
 
 export default function RegisterPage() {
   const [isDark, setIsDark] = useState(true);
   const [firstName, setFirstName] = useState("");
+  const [middleName, setMiddleName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -75,8 +78,10 @@ export default function RegisterPage() {
     try {
       const response = await registerUser({
         firstName,
+        middleName: middleName.trim() || null,
         lastName,
         email,
+        phone: phone.trim() || null,
         password,
       });
       setSuccessMessage(response.message);
@@ -268,23 +273,67 @@ export default function RegisterPage() {
 
                 <div className="space-y-2">
                   <label
-                    htmlFor="register-email"
+                    htmlFor="middleName"
                     className="text-sm font-medium text-slate-700 dark:text-slate-200"
                   >
-                    Email address
+                    Middle name <span className="text-slate-400">(optional)</span>
                   </label>
                   <div className="relative">
-                    <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+                    <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
                     <input
-                      id="register-email"
-                      type="email"
-                      required
-                      value={email}
-                      onChange={(event) => setEmail(event.target.value)}
-                      placeholder="name@school.edu"
-                      autoComplete="email"
+                      id="middleName"
+                      type="text"
+                      value={middleName}
+                      onChange={(event) => setMiddleName(event.target.value)}
+                      placeholder="Taylor"
+                      autoComplete="additional-name"
                       className="w-full rounded-xl border border-slate-200 bg-slate-50/80 py-3 pl-10 pr-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-cyan-400 focus:ring-4 focus:ring-cyan-500/10 dark:border-slate-700 dark:bg-slate-950/60 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-cyan-400"
                     />
+                  </div>
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <label
+                      htmlFor="register-email"
+                      className="text-sm font-medium text-slate-700 dark:text-slate-200"
+                    >
+                      Email address
+                    </label>
+                    <div className="relative">
+                      <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+                      <input
+                        id="register-email"
+                        type="email"
+                        required
+                        value={email}
+                        onChange={(event) => setEmail(event.target.value)}
+                        placeholder="name@school.edu"
+                        autoComplete="email"
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50/80 py-3 pl-10 pr-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-cyan-400 focus:ring-4 focus:ring-cyan-500/10 dark:border-slate-700 dark:bg-slate-950/60 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-cyan-400"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label
+                      htmlFor="register-phone"
+                      className="text-sm font-medium text-slate-700 dark:text-slate-200"
+                    >
+                      Phone number <span className="text-slate-400">(optional)</span>
+                    </label>
+                    <div className="relative">
+                      <Phone className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+                      <input
+                        id="register-phone"
+                        type="tel"
+                        value={phone}
+                        onChange={(event) => setPhone(event.target.value)}
+                        placeholder="+1 555 123 4567"
+                        autoComplete="tel"
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50/80 py-3 pl-10 pr-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-cyan-400 focus:ring-4 focus:ring-cyan-500/10 dark:border-slate-700 dark:bg-slate-950/60 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-cyan-400"
+                      />
+                    </div>
                   </div>
                 </div>
 
