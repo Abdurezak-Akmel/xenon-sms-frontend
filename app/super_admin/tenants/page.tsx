@@ -27,17 +27,20 @@ import {
   FormField,
   FormMessage,
 } from "../../../components/forms/Form";
+
 import {
   createTenant,
   deleteTenant,
   listTenants,
   updateTenant,
-} from "../../../services/tenant.service";
+} from "../../../services/tenancy/tenant.service";
+
 import type {
   CreateTenantInput,
   Tenant,
   TenantStatus,
-} from "../../../services/tenant.service";
+} from "../../../services/tenancy/tenant.service";
+
 import styles from "./page.module.css";
 
 const statuses: TenantStatus[] = [
@@ -331,9 +334,7 @@ export default function TenantsCrudPage() {
           tenant.displayName,
           tenant.legalName,
           tenant.email ?? "",
-        ].some(
-          (value) => value.toLowerCase().includes(normalizedQuery),
-        );
+        ].some((value) => value.toLowerCase().includes(normalizedQuery));
       return matchesStatus && matchesQuery;
     });
   }, [query, statusFilter, tenants]);
@@ -456,282 +457,280 @@ export default function TenantsCrudPage() {
   return (
     <div className={styles.tenantPage}>
       <div className="content">
-          <div className={`page-heading ${styles.pageHeading}`}>
-            <div>
-              <p className={`eyebrow ${styles.pageEyebrow}`}>
-                <Globe2 size={13} />
-                Platform administration <span>/</span> Schools
-              </p>
-              <h1>Schools &amp; tenants</h1>
-              <p className="subheading">
-                Manage school workspaces, organization details, and regional
-                settings from one place.
-              </p>
+        <div className={`page-heading ${styles.pageHeading}`}>
+          <div>
+            <p className={`eyebrow ${styles.pageEyebrow}`}>
+              <Globe2 size={13} />
+              Platform administration <span>/</span> Schools
+            </p>
+            <h1>Schools &amp; tenants</h1>
+            <p className="subheading">
+              Manage school workspaces, organization details, and regional
+              settings from one place.
+            </p>
+          </div>
+          <Button onClick={openCreate} className={styles.addButton}>
+            <Plus size={16} /> Add a school
+          </Button>
+        </div>
+
+        <section
+          className={`metrics-grid mb-4 ${styles.metricsGrid}`}
+          aria-label="School workspace summary"
+        >
+          <article className="metric-card">
+            <div className="metric-icon blue">
+              <Globe2 size={18} />
             </div>
-            <Button onClick={openCreate} className={styles.addButton}>
-              <Plus size={16} /> Add a school
-            </Button>
+            <div className="metric-copy">
+              <span>School workspaces</span>
+              <strong>{loading ? "—" : tenants.length}</strong>
+              <small className="positive">
+                <Check size={12} /> Connected to Xenon
+              </small>
+            </div>
+          </article>
+          <article className="metric-card">
+            <div className="metric-icon green">
+              <Check size={18} />
+            </div>
+            <div className="metric-copy">
+              <span>Active</span>
+              <strong>
+                {loading
+                  ? "—"
+                  : tenants.filter((tenant) => tenant.status === "active")
+                      .length}
+              </strong>
+              <small className="positive">Ready for operations</small>
+            </div>
+          </article>
+          <article className="metric-card">
+            <div className="metric-icon orange">
+              <Clock3 size={18} />
+            </div>
+            <div className="metric-copy">
+              <span>Pending review</span>
+              <strong>
+                {loading
+                  ? "—"
+                  : tenants.filter((tenant) => tenant.status === "pending")
+                      .length}
+              </strong>
+              <small className="negative">Needs attention</small>
+            </div>
+          </article>
+          <article className="metric-card">
+            <div className="metric-icon red">
+              <CircleAlert size={18} />
+            </div>
+            <div className="metric-copy">
+              <span>Restricted</span>
+              <strong>
+                {loading
+                  ? "—"
+                  : tenants.filter(
+                      (tenant) =>
+                        tenant.status === "suspended" ||
+                        tenant.status === "closed",
+                    ).length}
+              </strong>
+              <small className="negative">Suspended or closed</small>
+            </div>
+          </article>
+        </section>
+
+        <section className={`panel ${styles.directoryPanel}`}>
+          <div className="panel-heading mb-5">
+            <div>
+              <h2>
+                School directory
+                <span className={styles.directoryCount}>
+                  {loading ? "…" : tenants.length}
+                </span>
+              </h2>
+              <p>Organization details, contact information, and status.</p>
+            </div>
+            <span className="text-xs text-(--muted)">
+              {filteredTenants.length} of {tenants.length} shown
+            </span>
+          </div>
+          {loadError && (
+            <div
+              className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-(--red)/25 bg-(--red)/5 px-4 py-3 text-sm text-(--red)"
+              role="alert"
+            >
+              <span>{loadError}</span>
+              <Button
+                type="button"
+                variant="outline"
+                className={styles.retryButton}
+                onClick={() => void loadTenants()}
+                disabled={loading}
+              >
+                {loading ? "Loading…" : "Try again"}
+              </Button>
+            </div>
+          )}
+          <div className="mb-5 flex flex-col gap-3 md:flex-row">
+            <label className={`relative flex-1 ${styles.searchControl}`}>
+              <Search
+                size={16}
+                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-(--muted)"
+              />
+              <input
+                className={`${inputClass} pl-9`}
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Search by code, name, or email"
+                aria-label="Search tenants"
+              />
+            </label>
+            <label className={`relative md:w-48 ${styles.filterControl}`}>
+              <select
+                className={`${inputClass} appearance-none pr-9`}
+                value={statusFilter}
+                onChange={(event) =>
+                  setStatusFilter(event.target.value as "all" | TenantStatus)
+                }
+                aria-label="Filter tenants by status"
+              >
+                <option value="all">All statuses</option>
+                {statuses.map((status) => (
+                  <option key={status} value={status}>
+                    {status[0].toUpperCase() + status.slice(1)}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown
+                size={15}
+                className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-(--muted)"
+              />
+            </label>
           </div>
 
-          <section
-            className={`metrics-grid mb-4 ${styles.metricsGrid}`}
-            aria-label="School workspace summary"
-          >
-            <article className="metric-card">
-              <div className="metric-icon blue">
-                <Globe2 size={18} />
-              </div>
-              <div className="metric-copy">
-                <span>School workspaces</span>
-                <strong>{loading ? "—" : tenants.length}</strong>
-                <small className="positive">
-                  <Check size={12} /> Connected to Xenon
-                </small>
-              </div>
-            </article>
-            <article className="metric-card">
-              <div className="metric-icon green">
-                <Check size={18} />
-              </div>
-              <div className="metric-copy">
-                <span>Active</span>
-                <strong>
-                  {loading
-                    ? "—"
-                    : tenants.filter((tenant) => tenant.status === "active")
-                        .length}
-                </strong>
-                <small className="positive">Ready for operations</small>
-              </div>
-            </article>
-            <article className="metric-card">
-              <div className="metric-icon orange">
-                <Clock3 size={18} />
-              </div>
-              <div className="metric-copy">
-                <span>Pending review</span>
-                <strong>
-                  {loading
-                    ? "—"
-                    : tenants.filter((tenant) => tenant.status === "pending")
-                        .length}
-                </strong>
-                <small className="negative">Needs attention</small>
-              </div>
-            </article>
-            <article className="metric-card">
-              <div className="metric-icon red">
-                <CircleAlert size={18} />
-              </div>
-              <div className="metric-copy">
-                <span>Restricted</span>
-                <strong>
-                  {loading
-                    ? "—"
-                    : tenants.filter(
-                        (tenant) =>
-                          tenant.status === "suspended" ||
-                          tenant.status === "closed",
-                      ).length}
-                </strong>
-                <small className="negative">Suspended or closed</small>
-              </div>
-            </article>
-          </section>
-
-          <section className={`panel ${styles.directoryPanel}`}>
-            <div className="panel-heading mb-5">
-              <div>
-                <h2>
-                  School directory
-                  <span className={styles.directoryCount}>
-                    {loading ? "…" : tenants.length}
-                  </span>
-                </h2>
-                <p>Organization details, contact information, and status.</p>
-              </div>
-              <span className="text-xs text-(--muted)">
-                {filteredTenants.length} of {tenants.length} shown
-              </span>
+          {loading ? (
+            <div
+              className="grid justify-items-center gap-3 py-16 text-center text-sm text-(--muted)"
+              role="status"
+            >
+              <LoaderCircle size={22} className="animate-spin text-(--blue)" />
+              Loading school workspaces…
             </div>
-            {loadError && (
-              <div
-                className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-(--red)/25 bg-(--red)/5 px-4 py-3 text-sm text-(--red)"
-                role="alert"
-              >
-                <span>{loadError}</span>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className={styles.retryButton}
-                  onClick={() => void loadTenants()}
-                  disabled={loading}
-                >
-                  {loading ? "Loading…" : "Try again"}
-                </Button>
-              </div>
-            )}
-            <div className="mb-5 flex flex-col gap-3 md:flex-row">
-              <label className={`relative flex-1 ${styles.searchControl}`}>
-                <Search
-                  size={16}
-                  className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-(--muted)"
-                />
-                <input
-                  className={`${inputClass} pl-9`}
-                  value={query}
-                  onChange={(event) => setQuery(event.target.value)}
-                  placeholder="Search by code, name, or email"
-                  aria-label="Search tenants"
-                />
-              </label>
-              <label className={`relative md:w-48 ${styles.filterControl}`}>
-                <select
-                  className={`${inputClass} appearance-none pr-9`}
-                  value={statusFilter}
-                  onChange={(event) =>
-                    setStatusFilter(event.target.value as "all" | TenantStatus)
-                  }
-                  aria-label="Filter tenants by status"
-                >
-                  <option value="all">All statuses</option>
-                  {statuses.map((status) => (
-                    <option key={status} value={status}>
-                      {status[0].toUpperCase() + status.slice(1)}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown
-                  size={15}
-                  className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-(--muted)"
-                />
-              </label>
-            </div>
-
-            {loading ? (
-              <div
-                className="grid justify-items-center gap-3 py-16 text-center text-sm text-(--muted)"
-                role="status"
-              >
-                <LoaderCircle size={22} className="animate-spin text-(--blue)" />
-                Loading school workspaces…
-              </div>
-            ) : filteredTenants.length > 0 ? (
-              <div className="table-wrap">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>School</th>
-                      <th>Contact</th>
-                      <th>Region</th>
-                      <th>Status</th>
-                      <th>Updated</th>
-                      <th>
-                        <span className="sr-only">Actions</span>
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredTenants.map((tenant) => (
-                      <tr key={tenant.id}>
-                        <td>
-                          <Link
-                            href={`/super_admin/tenants/overview?tenantId=${encodeURIComponent(tenant.id)}`}
-                            className={styles.tenantIdentityLink}
-                            aria-label={`View ${tenant.displayName} overview`}
-                          >
-                            <div className="person">
-                              <div className="person-avatar teal">
-                                {tenant.code.slice(0, 2)}
-                              </div>
-                              <div>
-                                <strong>{tenant.displayName}</strong>
-                                <span>
-                                  {tenant.code} · {tenant.legalName}
-                                </span>
-                              </div>
-                              <ArrowRight
-                                size={15}
-                                className={styles.identityArrow}
-                                aria-hidden="true"
-                              />
+          ) : filteredTenants.length > 0 ? (
+            <div className="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>School</th>
+                    <th>Contact</th>
+                    <th>Region</th>
+                    <th>Status</th>
+                    <th>Updated</th>
+                    <th>
+                      <span className="sr-only">Actions</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredTenants.map((tenant) => (
+                    <tr key={tenant.id}>
+                      <td>
+                        <Link
+                          href={`/super_admin/tenants/overview?tenantId=${encodeURIComponent(tenant.id)}`}
+                          className={styles.tenantIdentityLink}
+                          aria-label={`View ${tenant.displayName} overview`}
+                        >
+                          <div className="person">
+                            <div className="person-avatar teal">
+                              {tenant.code.slice(0, 2)}
                             </div>
-                          </Link>
-                        </td>
-                        <td>
-                          <div className="grid gap-1">
-                            <span>{tenant.email || "No email"}</span>
-                            <span className="text-xs text-(--muted)">
-                              {tenant.phone || "No phone"}
-                            </span>
+                            <div>
+                              <strong>{tenant.displayName}</strong>
+                              <span>
+                                {tenant.code} · {tenant.legalName}
+                              </span>
+                            </div>
+                            <ArrowRight
+                              size={15}
+                              className={styles.identityArrow}
+                              aria-hidden="true"
+                            />
                           </div>
-                        </td>
-                        <td>
-                          <div className="grid gap-1">
-                            <span>
-                              {tenant.countryCode || "No country"} ·{" "}
-                              {tenant.currencyCode}
-                            </span>
-                            <span className="text-xs text-(--muted)">
-                              {tenant.timezone}
-                            </span>
-                          </div>
-                        </td>
-                        <td>
-                          <span className={statusClass(tenant.status)}>
-                            {tenant.status}
+                        </Link>
+                      </td>
+                      <td>
+                        <div className="grid gap-1">
+                          <span>{tenant.email || "No email"}</span>
+                          <span className="text-xs text-(--muted)">
+                            {tenant.phone || "No phone"}
                           </span>
-                        </td>
-                        <td className="text-xs text-(--muted)">
-                          {formatUpdatedAt(tenant.updatedAt)}
-                        </td>
-                        <td>
-                          <div className="flex justify-end gap-1">
-                            <button
-                              className="icon-button subtle"
-                              onClick={() => openEdit(tenant)}
-                              aria-label={`Edit ${tenant.displayName}`}
-                            >
-                              <Pencil size={15} />
-                            </button>
-                            <button
-                              className="icon-button subtle text-(--red)"
-                              onClick={() => setDeleteId(tenant.id)}
-                              aria-label={`Delete ${tenant.displayName}`}
-                            >
-                              <Trash2 size={15} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="grid gap-1">
+                          <span>
+                            {tenant.countryCode || "No country"} ·{" "}
+                            {tenant.currencyCode}
+                          </span>
+                          <span className="text-xs text-(--muted)">
+                            {tenant.timezone}
+                          </span>
+                        </div>
+                      </td>
+                      <td>
+                        <span className={statusClass(tenant.status)}>
+                          {tenant.status}
+                        </span>
+                      </td>
+                      <td className="text-xs text-(--muted)">
+                        {formatUpdatedAt(tenant.updatedAt)}
+                      </td>
+                      <td>
+                        <div className="flex justify-end gap-1">
+                          <button
+                            className="icon-button subtle"
+                            onClick={() => openEdit(tenant)}
+                            aria-label={`Edit ${tenant.displayName}`}
+                          >
+                            <Pencil size={15} />
+                          </button>
+                          <button
+                            className="icon-button subtle text-(--red)"
+                            onClick={() => setDeleteId(tenant.id)}
+                            aria-label={`Delete ${tenant.displayName}`}
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="grid justify-items-center gap-2 py-14 text-center">
+              <div className="metric-icon blue">
+                <Search size={18} />
               </div>
-            ) : (
-              <div className="grid justify-items-center gap-2 py-14 text-center">
-                <div className="metric-icon blue">
-                  <Search size={18} />
-                </div>
-                <h3 className="text-sm font-semibold">
-                  {tenants.length === 0
-                    ? "No schools yet"
-                    : "No schools found"}
-                </h3>
-                <p className="max-w-sm text-xs text-(--muted)">
-                  {tenants.length === 0
-                    ? "Add your first school workspace to start building your platform directory."
-                    : "Try another search or status filter."}
-                </p>
-                {tenants.length === 0 ? (
-                  <button className="text-button" onClick={openCreate}>
-                    Add a school <ChevronRight size={15} />
-                  </button>
-                ) : null}
-              </div>
-            )}
-          </section>
-          <Footer year={2026} />
+              <h3 className="text-sm font-semibold">
+                {tenants.length === 0 ? "No schools yet" : "No schools found"}
+              </h3>
+              <p className="max-w-sm text-xs text-(--muted)">
+                {tenants.length === 0
+                  ? "Add your first school workspace to start building your platform directory."
+                  : "Try another search or status filter."}
+              </p>
+              {tenants.length === 0 ? (
+                <button className="text-button" onClick={openCreate}>
+                  Add a school <ChevronRight size={15} />
+                </button>
+              ) : null}
+            </div>
+          )}
+        </section>
+        <Footer year={2026} />
       </div>
 
       {formOpen && (
@@ -819,8 +818,8 @@ export default function TenantsCrudPage() {
               Delete {deleteTarget.displayName}?
             </h2>
             <p className="mt-2 text-sm text-(--muted)">
-              This permanently removes the school workspace. Related records
-              may prevent deletion while they are still in use.
+              This permanently removes the school workspace. Related records may
+              prevent deletion while they are still in use.
             </p>
             <div className="mt-6 flex justify-end gap-2">
               <Button

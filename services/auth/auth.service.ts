@@ -155,6 +155,12 @@ export async function logoutUser() {
   try {
     return await apiFetch<AuthMessageResponse>(`${AUTH_ENDPOINT}/logout`, {
       method: "POST",
+      body: JSON.stringify({
+        refreshToken:
+          typeof window === "undefined"
+            ? undefined
+            : localStorage.getItem("refreshToken"),
+      }),
     });
   } finally {
     if (typeof window !== "undefined") {

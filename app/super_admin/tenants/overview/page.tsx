@@ -17,8 +17,11 @@ import {
   ShieldCheck,
   Wallet,
 } from "lucide-react";
-import { getTenant } from "@/services/tenant.service";
-import type { Tenant } from "@/services/tenant.service";
+
+import { getTenant } from "@/services/tenancy/tenant.service";
+
+import type { Tenant } from "@/services/tenancy/tenant.service";
+
 import styles from "./page.module.css";
 
 function initials(value: string) {
@@ -100,7 +103,7 @@ function DataPanel({
               <dd>
                 {typeof value === "string"
                   ? value
-                  : JSON.stringify(value) ?? "—"}
+                  : (JSON.stringify(value) ?? "—")}
               </dd>
             </div>
           ))}
@@ -270,9 +273,21 @@ export default function TenantOverviewPage() {
                   <DetailItem label="Display name" value={tenant.displayName} />
                   <DetailItem label="Legal name" value={tenant.legalName} />
                   <DetailItem label="Tenant code" value={tenant.code} />
-                  <DetailItem label="Email address" value={tenant.email} icon={Mail} />
-                  <DetailItem label="Phone number" value={tenant.phone} icon={Phone} />
-                  <DetailItem label="Address" value={tenant.address} icon={MapPin} />
+                  <DetailItem
+                    label="Email address"
+                    value={tenant.email}
+                    icon={Mail}
+                  />
+                  <DetailItem
+                    label="Phone number"
+                    value={tenant.phone}
+                    icon={Phone}
+                  />
+                  <DetailItem
+                    label="Address"
+                    value={tenant.address}
+                    icon={MapPin}
+                  />
                 </div>
               </section>
 

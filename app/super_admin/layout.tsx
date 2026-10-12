@@ -184,9 +184,9 @@ export default function SuperAdminLayout({
               <span>{loggingOut ? "Signing out…" : "Log out"}</span>
             </button>
             <button type="button" className={styles.userMenu}>
-              <span className={styles.userAvatar}>JM</span>
+              <span className={styles.userAvatar}>AA</span>
               <span className={styles.userCopy}>
-                <strong>Jordan Miller</strong>
+                <strong>Abdurezak Akmel</strong>
                 <small>Super admin</small>
               </span>
               <ChevronDown size={15} />

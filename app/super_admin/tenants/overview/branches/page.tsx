@@ -16,20 +16,26 @@ import {
   Plus,
   X,
 } from "lucide-react";
+
 import { Button } from "@/components/ui/Button";
-import { getTenant } from "@/services/tenant.service";
-import type { Tenant } from "@/services/tenant.service";
+
+import { getTenant } from "@/services/tenancy/tenant.service";
+
+import type { Tenant } from "@/services/tenancy/tenant.service";
+
 import {
   createBranch,
   listBranches,
   updateBranch,
-} from "@/services/branch.service";
+} from "@/services/tenancy/branch.service";
+
 import type {
   Branch,
   BranchStatus,
   CreateBranchInput,
   UpdateBranchInput,
-} from "@/services/branch.service";
+} from "@/services/tenancy/branch.service";
+
 import styles from "./page.module.css";
 
 type BranchForm = {
@@ -170,7 +176,9 @@ export default function TenantBranchesPage() {
   async function submitForm(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!tenantId) {
-      setFormError("The school could not be identified. Return to the overview and try again.");
+      setFormError(
+        "The school could not be identified. Return to the overview and try again.",
+      );
       return;
     }
 
@@ -196,7 +204,7 @@ export default function TenantBranchesPage() {
     try {
       if (editingBranchId) {
         const changes: UpdateBranchInput = fields;
-        const response = await updateBranch(editingBranchId, changes);
+        const response = await updateBranch(editingBranchId, changes, tenantId);
         setBranches((current) =>
           current.map((branch) =>
             branch.id === editingBranchId ? response.branch : branch,
@@ -264,7 +272,11 @@ export default function TenantBranchesPage() {
                 </p>
                 <div className={styles.headingRow}>
                   <span className={styles.tenantAvatar}>
-                    {tenant ? initials(tenant.displayName) : <Building2 size={22} />}
+                    {tenant ? (
+                      initials(tenant.displayName)
+                    ) : (
+                      <Building2 size={22} />
+                    )}
                   </span>
                   <div>
                     <p className={styles.tenantLabel}>Branches</p>
@@ -350,7 +362,9 @@ export default function TenantBranchesPage() {
                         </div>
                       </div>
                       <h3>{branch.name}</h3>
-                      <p className={styles.branchCode}>Branch code · {branch.code}</p>
+                      <p className={styles.branchCode}>
+                        Branch code · {branch.code}
+                      </p>
                       <div className={styles.branchDetails}>
                         <span>
                           <MapPin size={14} />
@@ -381,7 +395,11 @@ export default function TenantBranchesPage() {
                     Add the first branch to organize this school into campuses
                     and locations.
                   </p>
-                  <Button type="button" className={styles.createButton} onClick={openCreateForm}>
+                  <Button
+                    type="button"
+                    className={styles.createButton}
+                    onClick={openCreateForm}
+                  >
                     <Plus size={15} />
                     Create first branch
                   </Button>
@@ -412,7 +430,11 @@ export default function TenantBranchesPage() {
                 <GitBranch size={18} />
               </span>
               <div>
-                <p>{editingBranchId ? "Update workspace location" : "Create workspace location"}</p>
+                <p>
+                  {editingBranchId
+                    ? "Update workspace location"
+                    : "Create workspace location"}
+                </p>
                 <h2 id="branch-form-title">
                   {editingBranchId ? "Edit branch" : "Create a branch"}
                 </h2>
@@ -469,7 +491,9 @@ export default function TenantBranchesPage() {
                   <input
                     type="tel"
                     value={form.phone}
-                    onChange={(event) => updateForm("phone", event.target.value)}
+                    onChange={(event) =>
+                      updateForm("phone", event.target.value)
+                    }
                     placeholder="+251 …"
                   />
                 </label>
@@ -478,7 +502,9 @@ export default function TenantBranchesPage() {
                   <input
                     type="email"
                     value={form.email}
-                    onChange={(event) => updateForm("email", event.target.value)}
+                    onChange={(event) =>
+                      updateForm("email", event.target.value)
+                    }
                     placeholder="branch@school.edu"
                   />
                 </label>

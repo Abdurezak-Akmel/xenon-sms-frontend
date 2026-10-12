@@ -18,28 +18,37 @@ import {
 } from "lucide-react";
 
 import { Button } from "../../../components/ui/Button";
+
 import { Footer } from "../../../components/ui/footer";
+
 import {
   createTenantMembership,
   deleteTenantMembership,
   listTenantMembershipRoles,
   listTenantMemberships,
   updateTenantMembership,
-} from "../../../services/ten_mem.service";
+} from "../../../services/auth/ten_mem.service";
+
 import type {
   CreateTenantMembershipInput,
   TenantMembership,
   TenantMembershipRole,
   TenantMembershipStatus,
   UpdateTenantMembershipInput,
-  
-} from "../../../services/ten_mem.service";
-import { listBranches } from "../../../services/branch.service";
-import type { Branch } from "../../../services/branch.service";
-import { listTenants } from "../../../services/tenant.service";
-import type { Tenant } from "../../../services/tenant.service";
-import { listUsers } from "../../../services/user.service";
-import type { User } from "../../../services/user.service";
+} from "../../../services/auth/ten_mem.service";
+
+import { listBranches } from "../../../services/tenancy/branch.service";
+
+import type { Branch } from "../../../services/tenancy/branch.service";
+
+import { listTenants } from "../../../services/tenancy/tenant.service";
+
+import type { Tenant } from "../../../services/tenancy/tenant.service";
+
+import { listUsers } from "../../../services/auth/user.service";
+
+import type { User } from "../../../services/auth/user.service";
+
 import styles from "./page.module.css";
 
 const statuses: TenantMembershipStatus[] = [
@@ -104,34 +113,46 @@ export default function TenantMembershipCrudPage() {
   const [notice, setNotice] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [userQuery, setUserQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"all" | TenantMembershipStatus>("all");
+  const [statusFilter, setStatusFilter] = useState<
+    "all" | TenantMembershipStatus
+  >("all");
   const [tenantFilter, setTenantFilter] = useState("all");
   const [formOpen, setFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<MembershipForm>(emptyForm);
-  const [errors, setErrors] = useState<Partial<Record<keyof MembershipForm, string>>>({});
-  const [deleteTarget, setDeleteTarget] = useState<TenantMembership | null>(null);
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof MembershipForm, string>>
+  >({});
+  const [deleteTarget, setDeleteTarget] = useState<TenantMembership | null>(
+    null,
+  );
 
   const loadData = useCallback(async () => {
     setLoading(true);
     setLoadError(null);
     try {
-      const [membershipResult, userResult, tenantResult, branchResult, roleResult] =
+      const [membershipResult, userResult, tenantResult, roleResult] =
         await Promise.all([
           listTenantMemberships(),
           listUsers(),
           listTenants(),
-          listBranches(),
           listTenantMembershipRoles(),
         ]);
+      const branchResults = await Promise.all(
+        tenantResult.tenants.map((tenant) =>
+          listBranches({ tenantId: tenant.id }),
+        ),
+      );
       setMemberships(membershipResult.memberships);
       setUsers(userResult.users);
       setTenants(tenantResult.tenants);
-      setBranches(branchResult.branches);
+      setBranches(branchResults.flatMap((result) => result.branches));
       setRoles(roleResult.roles.filter((role) => role.scope !== "platform"));
     } catch (error) {
       setLoadError(
-        error instanceof Error ? error.message : "Unable to load tenant memberships.",
+        error instanceof Error
+          ? error.message
+          : "Unable to load tenant memberships.",
       );
     } finally {
       setLoading(false);
@@ -162,23 +183,41 @@ export default function TenantMembershipCrudPage() {
       ];
       const matchesQuery =
         !normalizedQuery ||
-        searchable.some((value) => value.toLowerCase().includes(normalizedQuery));
+        searchable.some((value) =>
+          value.toLowerCase().includes(normalizedQuery),
+        );
       return matchesTenant && matchesStatus && matchesQuery;
     });
-  }, [branches, memberships, query, roles, statusFilter, tenantFilter, tenants, users]);
+  }, [
+    branches,
+    memberships,
+    query,
+    roles,
+    statusFilter,
+    tenantFilter,
+    tenants,
+    users,
+  ]);
 
   const visibleUsers = useMemo(() => {
     const normalizedQuery = userQuery.trim().toLowerCase();
     if (!normalizedQuery) return users;
     return users.filter((user) =>
-      [userLabel(user), user.email, user.status]
-        .some((value) => value.toLowerCase().includes(normalizedQuery)),
+      [userLabel(user), user.email, user.status].some((value) =>
+        value.toLowerCase().includes(normalizedQuery),
+      ),
     );
   }, [userQuery, users]);
 
-  const activeCount = memberships.filter((item) => item.status === "active").length;
-  const invitedCount = memberships.filter((item) => item.status === "invited").length;
-  const branchScopedCount = memberships.filter((item) => item.branchId !== null).length;
+  const activeCount = memberships.filter(
+    (item) => item.status === "active",
+  ).length;
+  const invitedCount = memberships.filter(
+    (item) => item.status === "invited",
+  ).length;
+  const branchScopedCount = memberships.filter(
+    (item) => item.branchId !== null,
+  ).length;
 
   function showNotice(message: string) {
     setNotice(message);
@@ -242,7 +281,8 @@ export default function TenantMembershipCrudPage() {
         membership.roleId === form.roleId &&
         (membership.branchId ?? "") === form.branchId,
     );
-    if (duplicate) nextErrors.userId = "This user already has this role assignment.";
+    if (duplicate)
+      nextErrors.userId = "This user already has this role assignment.";
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
   }
@@ -274,7 +314,9 @@ export default function TenantMembershipCrudPage() {
       await loadData();
     } catch (error) {
       setLoadError(
-        error instanceof Error ? error.message : "Unable to save this membership.",
+        error instanceof Error
+          ? error.message
+          : "Unable to save this membership.",
       );
     } finally {
       setSaving(false);
@@ -294,7 +336,9 @@ export default function TenantMembershipCrudPage() {
       setDeleteTarget(null);
     } catch (error) {
       setLoadError(
-        error instanceof Error ? error.message : "Unable to delete this membership.",
+        error instanceof Error
+          ? error.message
+          : "Unable to delete this membership.",
       );
     } finally {
       setDeleting(false);
@@ -342,7 +386,9 @@ export default function TenantMembershipCrudPage() {
 
         <section className={`metrics-grid mb-4 ${styles.metricsGrid}`}>
           <article className="metric-card">
-            <div className="metric-icon blue"><UserRound size={18} /></div>
+            <div className="metric-icon blue">
+              <UserRound size={18} />
+            </div>
             <div className="metric-copy">
               <span>Total assignments</span>
               <strong>{loading ? "—" : memberships.length}</strong>
@@ -350,7 +396,9 @@ export default function TenantMembershipCrudPage() {
             </div>
           </article>
           <article className="metric-card">
-            <div className="metric-icon green"><Check size={18} /></div>
+            <div className="metric-icon green">
+              <Check size={18} />
+            </div>
             <div className="metric-copy">
               <span>Active memberships</span>
               <strong>{loading ? "—" : activeCount}</strong>
@@ -358,7 +406,9 @@ export default function TenantMembershipCrudPage() {
             </div>
           </article>
           <article className="metric-card">
-            <div className="metric-icon orange"><Clock3 size={18} /></div>
+            <div className="metric-icon orange">
+              <Clock3 size={18} />
+            </div>
             <div className="metric-copy">
               <span>Invitations</span>
               <strong>{loading ? "—" : invitedCount}</strong>
@@ -366,7 +416,9 @@ export default function TenantMembershipCrudPage() {
             </div>
           </article>
           <article className="metric-card">
-            <div className="metric-icon red"><KeyRound size={18} /></div>
+            <div className="metric-icon red">
+              <KeyRound size={18} />
+            </div>
             <div className="metric-copy">
               <span>Branch assignments</span>
               <strong>{loading ? "—" : branchScopedCount}</strong>
@@ -384,7 +436,9 @@ export default function TenantMembershipCrudPage() {
                   {loading ? "…" : memberships.length}
                 </span>
               </h2>
-              <p>People, workspace, branch access, role, and membership status.</p>
+              <p>
+                People, workspace, branch access, role, and membership status.
+              </p>
             </div>
             <Button
               variant="outline"
@@ -426,7 +480,9 @@ export default function TenantMembershipCrudPage() {
               aria-label="Filter by status"
               value={statusFilter}
               onChange={(event) =>
-                setStatusFilter(event.target.value as "all" | TenantMembershipStatus)
+                setStatusFilter(
+                  event.target.value as "all" | TenantMembershipStatus,
+                )
               }
             >
               <option value="all">All statuses</option>
@@ -449,7 +505,9 @@ export default function TenantMembershipCrudPage() {
                   <th>Status</th>
                   <th>Billing</th>
                   <th>Updated</th>
-                  <th><span className="sr-only">Actions</span></th>
+                  <th>
+                    <span className="sr-only">Actions</span>
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -463,9 +521,13 @@ export default function TenantMembershipCrudPage() {
                 ) : visibleMemberships.length === 0 ? (
                   <tr>
                     <td colSpan={8} className={styles.emptyState}>
-                      <div className={styles.emptyIcon}><UserRound size={20} /></div>
+                      <div className={styles.emptyIcon}>
+                        <UserRound size={20} />
+                      </div>
                       <strong>
-                        {memberships.length ? "No matching assignments" : "No memberships yet"}
+                        {memberships.length
+                          ? "No matching assignments"
+                          : "No memberships yet"}
                       </strong>
                       <span>
                         {memberships.length
@@ -476,12 +538,18 @@ export default function TenantMembershipCrudPage() {
                   </tr>
                 ) : (
                   visibleMemberships.map((membership) => {
-                    const user = users.find((item) => item.id === membership.userId);
-                    const tenant = tenants.find((item) => item.id === membership.tenantId);
+                    const user = users.find(
+                      (item) => item.id === membership.userId,
+                    );
+                    const tenant = tenants.find(
+                      (item) => item.id === membership.tenantId,
+                    );
                     const branch = branches.find(
                       (item) => item.id === membership.branchId,
                     );
-                    const role = roles.find((item) => item.id === membership.roleId);
+                    const role = roles.find(
+                      (item) => item.id === membership.roleId,
+                    );
                     const displayName = user ? userLabel(user) : "Unknown user";
                     return (
                       <tr key={membership.id}>
@@ -511,10 +579,15 @@ export default function TenantMembershipCrudPage() {
                         </td>
                         <td>
                           <span className={styles.primaryCell}>
-                            {branch?.name ?? (membership.branchId ? "Unknown branch" : "All branches")}
+                            {branch?.name ??
+                              (membership.branchId
+                                ? "Unknown branch"
+                                : "All branches")}
                           </span>
                           {branch && (
-                            <span className={styles.secondaryCell}>{branch.code}</span>
+                            <span className={styles.secondaryCell}>
+                              {branch.code}
+                            </span>
                           )}
                         </td>
                         <td>
@@ -524,16 +597,26 @@ export default function TenantMembershipCrudPage() {
                           </span>
                         </td>
                         <td>
-                          <span className={membershipStatusClass(membership.status)}>
+                          <span
+                            className={membershipStatusClass(membership.status)}
+                          >
                             {membership.status}
                           </span>
                         </td>
                         <td>
-                          <span className={membership.billingEligible ? styles.billingOn : styles.billingOff}>
+                          <span
+                            className={
+                              membership.billingEligible
+                                ? styles.billingOn
+                                : styles.billingOff
+                            }
+                          >
                             {membership.billingEligible ? "Eligible" : "Exempt"}
                           </span>
                         </td>
-                        <td className={styles.dateCell}>{formatDate(membership.updatedAt)}</td>
+                        <td className={styles.dateCell}>
+                          {formatDate(membership.updatedAt)}
+                        </td>
                         <td>
                           <div className={styles.rowActions}>
                             <Button
@@ -569,7 +652,9 @@ export default function TenantMembershipCrudPage() {
               Showing {loading ? "—" : visibleMemberships.length} of{" "}
               {loading ? "—" : memberships.length} assignments
             </span>
-            <span>Membership status and scope are enforced by the platform.</span>
+            <span>
+              Membership status and scope are enforced by the platform.
+            </span>
           </div>
         </section>
 
@@ -651,7 +736,8 @@ export default function TenantMembershipCrudPage() {
         <div
           className={styles.modalBackdrop}
           onMouseDown={(event) => {
-            if (event.target === event.currentTarget && !saving) setFormOpen(false);
+            if (event.target === event.currentTarget && !saving)
+              setFormOpen(false);
           }}
         >
           <section
@@ -663,7 +749,9 @@ export default function TenantMembershipCrudPage() {
             <header className={styles.modalHeader}>
               <div>
                 <p className={styles.modalEyebrow}>
-                  {editingId ? "Update access assignment" : "New access assignment"}
+                  {editingId
+                    ? "Update access assignment"
+                    : "New access assignment"}
                 </p>
                 <h2 id="membership-form-title">
                   {editingId ? "Edit membership" : "Add membership"}
@@ -685,14 +773,18 @@ export default function TenantMembershipCrudPage() {
             </header>
             <form className={styles.membershipForm} onSubmit={submitForm}>
               <div className={styles.formSection}>
-                <h3><UserRound size={15} /> Who receives access?</h3>
+                <h3>
+                  <UserRound size={15} /> Who receives access?
+                </h3>
                 <div className={styles.formGrid}>
                   <label className={styles.field}>
                     <span>User</span>
                     <select
                       className={inputClass}
                       value={form.userId}
-                      onChange={(event) => updateForm("userId", event.target.value)}
+                      onChange={(event) =>
+                        updateForm("userId", event.target.value)
+                      }
                       aria-invalid={Boolean(errors.userId)}
                     >
                       <option value="">Select a user</option>
@@ -702,7 +794,11 @@ export default function TenantMembershipCrudPage() {
                         </option>
                       ))}
                     </select>
-                    {errors.userId && <small className={styles.fieldError}>{errors.userId}</small>}
+                    {errors.userId && (
+                      <small className={styles.fieldError}>
+                        {errors.userId}
+                      </small>
+                    )}
                   </label>
                   <label className={styles.field}>
                     <span>Tenant / school</span>
@@ -722,13 +818,19 @@ export default function TenantMembershipCrudPage() {
                         </option>
                       ))}
                     </select>
-                    {errors.tenantId && <small className={styles.fieldError}>{errors.tenantId}</small>}
+                    {errors.tenantId && (
+                      <small className={styles.fieldError}>
+                        {errors.tenantId}
+                      </small>
+                    )}
                   </label>
                 </div>
               </div>
 
               <div className={styles.formSection}>
-                <h3><KeyRound size={15} /> Define access scope</h3>
+                <h3>
+                  <KeyRound size={15} /> Define access scope
+                </h3>
                 <div className={styles.formGrid}>
                   <label className={styles.field}>
                     <span>Role</span>
@@ -736,9 +838,12 @@ export default function TenantMembershipCrudPage() {
                       className={inputClass}
                       value={form.roleId}
                       onChange={(event) => {
-                        const nextRole = roles.find((role) => role.id === event.target.value);
+                        const nextRole = roles.find(
+                          (role) => role.id === event.target.value,
+                        );
                         updateForm("roleId", event.target.value);
-                        if (nextRole?.scope !== "branch") updateForm("branchId", "");
+                        if (nextRole?.scope !== "branch")
+                          updateForm("branchId", "");
                       }}
                       aria-invalid={Boolean(errors.roleId)}
                     >
@@ -749,19 +854,34 @@ export default function TenantMembershipCrudPage() {
                         </option>
                       ))}
                     </select>
-                    {errors.roleId && <small className={styles.fieldError}>{errors.roleId}</small>}
+                    {errors.roleId && (
+                      <small className={styles.fieldError}>
+                        {errors.roleId}
+                      </small>
+                    )}
                   </label>
                   <label className={styles.field}>
-                    <span>Branch {selectedRole?.scope === "branch" ? "(required)" : "(not applicable)"}</span>
+                    <span>
+                      Branch{" "}
+                      {selectedRole?.scope === "branch"
+                        ? "(required)"
+                        : "(not applicable)"}
+                    </span>
                     <select
                       className={inputClass}
                       value={form.branchId}
-                      onChange={(event) => updateForm("branchId", event.target.value)}
-                      disabled={selectedRole?.scope !== "branch" || !form.tenantId}
+                      onChange={(event) =>
+                        updateForm("branchId", event.target.value)
+                      }
+                      disabled={
+                        selectedRole?.scope !== "branch" || !form.tenantId
+                      }
                       aria-invalid={Boolean(errors.branchId)}
                     >
                       <option value="">
-                        {selectedRole?.scope === "branch" ? "Select a branch" : "Tenant-wide access"}
+                        {selectedRole?.scope === "branch"
+                          ? "Select a branch"
+                          : "Tenant-wide access"}
                       </option>
                       {availableBranches.map((branch) => (
                         <option key={branch.id} value={branch.id}>
@@ -769,7 +889,11 @@ export default function TenantMembershipCrudPage() {
                         </option>
                       ))}
                     </select>
-                    {errors.branchId && <small className={styles.fieldError}>{errors.branchId}</small>}
+                    {errors.branchId && (
+                      <small className={styles.fieldError}>
+                        {errors.branchId}
+                      </small>
+                    )}
                   </label>
                 </div>
                 {selectedRole && (
@@ -790,7 +914,10 @@ export default function TenantMembershipCrudPage() {
                     className={inputClass}
                     value={form.status}
                     onChange={(event) =>
-                      updateForm("status", event.target.value as TenantMembershipStatus)
+                      updateForm(
+                        "status",
+                        event.target.value as TenantMembershipStatus,
+                      )
                     }
                   >
                     {statuses.map((status) => (
@@ -804,7 +931,9 @@ export default function TenantMembershipCrudPage() {
                   <input
                     type="checkbox"
                     checked={form.billingEligible}
-                    onChange={(event) => updateForm("billingEligible", event.target.checked)}
+                    onChange={(event) =>
+                      updateForm("billingEligible", event.target.checked)
+                    }
                   />
                   <span>
                     <strong>Billing eligible</strong>
@@ -813,7 +942,11 @@ export default function TenantMembershipCrudPage() {
                 </label>
               </div>
 
-              {loadError && <p className={styles.formError} role="alert">{loadError}</p>}
+              {loadError && (
+                <p className={styles.formError} role="alert">
+                  {loadError}
+                </p>
+              )}
 
               <footer className={styles.modalFooter}>
                 <Button
@@ -824,9 +957,22 @@ export default function TenantMembershipCrudPage() {
                 >
                   Cancel
                 </Button>
-                <Button type="submit" disabled={saving || !users.length || !tenants.length || !roles.length}>
-                  {saving ? <LoaderCircle size={15} className={styles.spinning} /> : <Check size={15} />}
-                  {saving ? "Saving…" : editingId ? "Save changes" : "Create membership"}
+                <Button
+                  type="submit"
+                  disabled={
+                    saving || !users.length || !tenants.length || !roles.length
+                  }
+                >
+                  {saving ? (
+                    <LoaderCircle size={15} className={styles.spinning} />
+                  ) : (
+                    <Check size={15} />
+                  )}
+                  {saving
+                    ? "Saving…"
+                    : editingId
+                      ? "Save changes"
+                      : "Create membership"}
                 </Button>
               </footer>
             </form>
@@ -847,10 +993,12 @@ export default function TenantMembershipCrudPage() {
                 <p className={styles.modalEyebrow}>Remove access</p>
                 <h2 id="delete-membership-title">Delete membership?</h2>
                 <p>
-                  This will remove {deleteUser ? userLabel(deleteUser) : "this user"}&apos;s
+                  This will remove{" "}
+                  {deleteUser ? userLabel(deleteUser) : "this user"}&apos;s
                   assignment from{" "}
-                  {tenants.find((tenant) => tenant.id === deleteTarget.tenantId)?.displayName ??
-                    "this tenant"}.
+                  {tenants.find((tenant) => tenant.id === deleteTarget.tenantId)
+                    ?.displayName ?? "this tenant"}
+                  .
                 </p>
               </div>
               <Button
@@ -863,7 +1011,11 @@ export default function TenantMembershipCrudPage() {
                 <X size={18} />
               </Button>
             </header>
-            {loadError && <p className={styles.formError} role="alert">{loadError}</p>}
+            {loadError && (
+              <p className={styles.formError} role="alert">
+                {loadError}
+              </p>
+            )}
             <footer className={styles.modalFooter}>
               <Button
                 variant="outline"
@@ -877,7 +1029,11 @@ export default function TenantMembershipCrudPage() {
                 onClick={() => void confirmDelete()}
                 disabled={deleting}
               >
-                {deleting ? <LoaderCircle size={15} className={styles.spinning} /> : <Trash2 size={15} />}
+                {deleting ? (
+                  <LoaderCircle size={15} className={styles.spinning} />
+                ) : (
+                  <Trash2 size={15} />
+                )}
                 {deleting ? "Removing…" : "Remove membership"}
               </Button>
             </footer>

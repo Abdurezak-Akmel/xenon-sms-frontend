@@ -60,11 +60,20 @@ export async function listBranches(filters: BranchListFilters = {}) {
   );
 }
 
-export async function getBranch(id: string) {
+export async function getBranch(id: string, tenantId?: string) {
   return apiFetch<BranchResponse>(
-    `${BRANCHES_ENDPOINT}/${encodeURIComponent(id)}`,
+    withTenantScope(
+      `${BRANCHES_ENDPOINT}/${encodeURIComponent(id)}`,
+      tenantId,
+    ),
   );
 }
+
+const withTenantScope = (path: string, tenantId?: string) => {
+  if (!tenantId) return path;
+  const query = new URLSearchParams({ tenantId });
+  return `${path}?${query.toString()}`;
+};
 
 export async function createBranch(input: CreateBranchInput) {
   return apiFetch<BranchResponse>(BRANCHES_ENDPOINT, {
@@ -73,9 +82,16 @@ export async function createBranch(input: CreateBranchInput) {
   });
 }
 
-export async function updateBranch(id: string, input: UpdateBranchInput) {
+export async function updateBranch(
+  id: string,
+  input: UpdateBranchInput,
+  tenantId?: string,
+) {
   return apiFetch<BranchResponse>(
-    `${BRANCHES_ENDPOINT}/${encodeURIComponent(id)}`,
+    withTenantScope(
+      `${BRANCHES_ENDPOINT}/${encodeURIComponent(id)}`,
+      tenantId,
+    ),
     {
       method: "PATCH",
       body: JSON.stringify(input),
@@ -83,9 +99,12 @@ export async function updateBranch(id: string, input: UpdateBranchInput) {
   );
 }
 
-export async function deleteBranch(id: string) {
+export async function deleteBranch(id: string, tenantId?: string) {
   return apiFetch<BranchResponse>(
-    `${BRANCHES_ENDPOINT}/${encodeURIComponent(id)}`,
+    withTenantScope(
+      `${BRANCHES_ENDPOINT}/${encodeURIComponent(id)}`,
+      tenantId,
+    ),
     { method: "DELETE" },
   );
 }

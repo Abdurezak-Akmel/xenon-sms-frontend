@@ -16,6 +16,7 @@ import {
   SunMedium,
 } from "lucide-react";
 import { loginUser } from "../../../services/auth/auth.service";
+import { getRoleHomePath } from "../../../route_protection/ProtectedRoute";
 
 export default function LoginPage() {
   const [isDark, setIsDark] = useState(true);
@@ -64,21 +65,22 @@ export default function LoginPage() {
       const response = await loginUser({ email, password });
       const roleCode = response.user.metadata?.roleCode;
 
-      if (roleCode === "guest") {
-        window.location.assign("/guest");
+      if (typeof roleCode === "string") {
+        const roleHome = getRoleHomePath(roleCode);
+        if (roleHome) {
+          window.location.assign(roleHome);
+          return;
+        }
+      }
+
+      if (typeof roleCode === "string") {
+        setError(
+          `The ${roleCode} role does not have a login destination configured.`,
+        );
         return;
       }
 
-      if (roleCode === "super-admin") {
-        window.location.assign("/super_admin");
-        return;
-      }
-
-      setError(
-        typeof roleCode === "string"
-          ? `The ${roleCode} role does not have a login destination configured.`
-          : "Your account does not have a role assigned. Contact your administrator.",
-      );
+      setError("Your account does not have a role assigned. Contact your administrator.");
     } catch (loginError) {
       setError(
         loginError instanceof Error
