@@ -1,15 +1,24 @@
 "use client";
 
 import * as React from "react";
-import { Check, Mail, Phone, Save, User, X } from "lucide-react";
+import { Check, Mail, Phone, Save, User } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/Card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/Card";
 import type { UserProfileData } from "./ProfileCard";
 
 export interface EditProfileFormProps {
   initialData?: Partial<UserProfileData>;
-  onSave?: (data: Partial<UserProfileData>) => void;
+  onSave: (data: Partial<UserProfileData>) => Promise<void>;
+  saving?: boolean;
+  error?: string | null;
   onCancel?: () => void;
   className?: string;
 }
@@ -17,80 +26,102 @@ export interface EditProfileFormProps {
 export function EditProfileForm({
   initialData,
   onSave,
+  saving = false,
+  error,
   onCancel,
   className,
 }: EditProfileFormProps) {
   const [formData, setFormData] = React.useState({
-    name: initialData?.name ?? "Dr. Jordan Miller",
+    firstName: initialData?.firstName ?? "",
+    middleName: initialData?.middleName ?? "",
+    lastName: initialData?.lastName ?? "",
     email: initialData?.email ?? "admin@adamshill.edu",
-    phone: initialData?.phone ?? "+251 11 555 0184",
+    phone: initialData?.phone ?? "",
     role: initialData?.role ?? "School Administrator",
-    department: initialData?.department ?? "Executive Management",
-    campus: initialData?.campus ?? "Main Campus, Addis Ababa",
-    emailNotifications: true,
-    smsAlerts: false,
   });
 
-  const [saving, setSaving] = React.useState(false);
   const [savedSuccess, setSavedSuccess] = React.useState(false);
 
-  const handleChange = (field: string, value: any) => {
+  const handleChange = (field: keyof typeof formData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSaving(true);
-    setTimeout(() => {
-      setSaving(false);
+    setSavedSuccess(false);
+    try {
+      await onSave({
+        firstName: formData.firstName.trim(),
+        middleName: formData.middleName.trim() || null,
+        lastName: formData.lastName.trim(),
+        phone: formData.phone.trim() || null,
+      });
       setSavedSuccess(true);
-      onSave?.(formData);
-      setTimeout(() => setSavedSuccess(false), 2500);
-    }, 600);
+      window.setTimeout(() => setSavedSuccess(false), 2500);
+    } catch {
+      // The parent owns and displays the request error.
+    }
   };
 
   return (
     <Card className={className} variant="default" padding="default">
-      <CardHeader>
+      <CardHeader className="mb-7">
         <CardTitle className="text-lg">Edit Personal Information</CardTitle>
         <CardDescription>
-          Update your public contact details, emergency notifications, and institutional title.
+          Update your personal contact information. Your email is managed by
+          your administrator.
         </CardDescription>
       </CardHeader>
 
       <form onSubmit={handleSubmit}>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-7">
           {savedSuccess && (
-            <div className="rounded-lg bg-[#e8f6ee] dark:bg-[#183929] border border-(--green)/30 p-3 text-xs text-(--green) flex items-center gap-2">
+            <div className="flex items-center gap-3 rounded-lg border border-(--green)/30 bg-[#e8f6ee] p-4 text-sm text-(--green) dark:bg-[#183929]">
               <Check className="size-4 shrink-0" />
-              <span>Your profile details have been successfully synchronized.</span>
+              <span>
+                Your profile details have been successfully synchronized.
+              </span>
             </div>
           )}
 
-          <div className="grid sm:grid-cols-2 gap-4">
+          {error && (
+            <div
+              className="rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-700 dark:text-red-300"
+              role="alert"
+            >
+              {error}
+            </div>
+          )}
+
+          <div className="grid gap-5 sm:grid-cols-3">
             <Input
-              label="Full Name"
+              label="First name"
               required
-              value={formData.name}
-              onChange={(e) => handleChange("name", e.target.value)}
+              value={formData.firstName}
+              onChange={(e) => handleChange("firstName", e.target.value)}
               startIcon={<User className="size-4" />}
             />
-
             <Input
-              label="Official Institutional Role"
-              value={formData.role}
-              disabled
-              helperText="Assigned by Tenant Super-Administrator"
+              label="Middle name"
+              value={formData.middleName}
+              onChange={(e) => handleChange("middleName", e.target.value)}
+              placeholder="Optional"
+            />
+            <Input
+              label="Last name"
+              required
+              value={formData.lastName}
+              onChange={(e) => handleChange("lastName", e.target.value)}
             />
           </div>
 
-          <div className="grid sm:grid-cols-2 gap-4">
+          <div className="grid gap-6 sm:grid-cols-2">
             <Input
-              label="Official Email"
+              label="Email address"
               type="email"
-              required
               value={formData.email}
-              onChange={(e) => handleChange("email", e.target.value)}
+              disabled
+              helperText="Email changes require administrator support."
               startIcon={<Mail className="size-4" />}
             />
 
@@ -103,50 +134,9 @@ export function EditProfileForm({
             />
           </div>
 
-          <div className="grid sm:grid-cols-2 gap-4">
-            <Input
-              label="Department / Faculty"
-              value={formData.department}
-              onChange={(e) => handleChange("department", e.target.value)}
-            />
-
-            <Input
-              label="Assigned Campus Location"
-              value={formData.campus}
-              onChange={(e) => handleChange("campus", e.target.value)}
-            />
-          </div>
-
-          {/* Preferences */}
-          <div className="pt-2 border-t border-(--line)">
-            <label className="text-xs font-semibold text-(--foreground) block mb-2">
-              Communication & Alert Preferences
-            </label>
-            <div className="space-y-2">
-              <label className="flex items-center gap-2.5 text-xs text-(--muted) cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={formData.emailNotifications}
-                  onChange={(e) => handleChange("emailNotifications", e.target.checked)}
-                  className="rounded border-(--line) text-(--blue)"
-                />
-                <span>Receive daily academic attendance summaries & emergency memos via email</span>
-              </label>
-
-              <label className="flex items-center gap-2.5 text-xs text-(--muted) cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={formData.smsAlerts}
-                  onChange={(e) => handleChange("smsAlerts", e.target.checked)}
-                  className="rounded border-(--line) text-(--blue)"
-                />
-                <span>Receive instant SMS alerts for payment settlement & visitor entry passes</span>
-              </label>
-            </div>
-          </div>
         </CardContent>
 
-        <CardFooter className="justify-end gap-2.5">
+        <CardFooter className="mt-7 justify-end gap-3 pt-6">
           {onCancel && (
             <Button type="button" variant="outline" size="sm" onClick={onCancel}>
               Cancel

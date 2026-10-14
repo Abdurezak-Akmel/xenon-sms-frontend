@@ -24,6 +24,8 @@ export interface ModalProps {
   backdropClassName?: string;
   /** Extra classname for modal card container */
   className?: string;
+  /** ID of the element that labels the dialog */
+  ariaLabelledBy?: string;
   /** Optional title to automatically render in header */
   title?: React.ReactNode;
   /** Optional subtitle or description */
@@ -50,6 +52,7 @@ export function Modal({
   closeOnEscape = true,
   backdropClassName,
   className,
+  ariaLabelledBy,
   title,
   description,
   showCloseButton = true,
@@ -86,6 +89,7 @@ export function Modal({
     <div
       role="dialog"
       aria-modal="true"
+      aria-labelledby={ariaLabelledBy}
       className={cn(
         "modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6",
         "bg-[#0f1b2e]/45 backdrop-blur-[2px] animate-in fade-in duration-150",

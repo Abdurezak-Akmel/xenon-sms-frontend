@@ -4,49 +4,47 @@ import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import Link from "next/link";
 import {
+  Archive,
   ArrowLeft,
-  ArrowRight,
   Building2,
-  Check,
-  Clock3,
+  CircleAlert,
+  CircleCheck,
+  CircleMinus,
   GitBranch,
-  LoaderCircle,
-  MapPin,
-  Pencil,
   Plus,
   X,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
+import { ConfirmModal } from "@/components/ui/Modal";
+
+import { TenantBranchDirectory } from "@/components/tenants/TenantBranchDirectory";
+
+import {
+  TenantBranchFormDialog,
+  type BranchForm,
+} from "@/components/tenants/TenantBranchFormDialog";
+
+import { TenantPageHeader } from "@/components/tenants/TenantPageHeader";
+
+import { TenantStatsCards } from "@/components/tenants/TenantStatsCards";
 
 import { getTenant } from "@/services/tenancy/tenant.service";
-
 import type { Tenant } from "@/services/tenancy/tenant.service";
 
 import {
   createBranch,
+  deleteBranch,
   listBranches,
   updateBranch,
 } from "@/services/tenancy/branch.service";
-
 import type {
   Branch,
-  BranchStatus,
   CreateBranchInput,
   UpdateBranchInput,
 } from "@/services/tenancy/branch.service";
 
 import styles from "./page.module.css";
-
-type BranchForm = {
-  code: string;
-  name: string;
-  address: string;
-  phone: string;
-  email: string;
-  timezone: string;
-  status: BranchStatus;
-};
 
 const initialForm: BranchForm = {
   code: "",
@@ -57,25 +55,6 @@ const initialForm: BranchForm = {
   timezone: "",
   status: "active",
 };
-
-const branchStatuses: BranchStatus[] = ["active", "inactive", "archived"];
-
-function formatDate(value: string) {
-  const date = new Date(value);
-  return Number.isNaN(date.getTime())
-    ? value
-    : new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(date);
-}
-
-function initials(value: string) {
-  return value
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((part) => part[0])
-    .join("")
-    .toUpperCase();
-}
 
 export default function TenantBranchesPage() {
   const [tenantId, setTenantId] = useState<string | null>(null);
@@ -89,6 +68,8 @@ export default function TenantBranchesPage() {
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [branchToDelete, setBranchToDelete] = useState<Branch | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   async function loadPage(id: string) {
     setLoading(true);
@@ -232,6 +213,45 @@ export default function TenantBranchesPage() {
     }
   }
 
+  async function confirmDeleteBranch() {
+    if (!branchToDelete) return;
+    if (!tenantId) {
+      setBranchToDelete(null);
+      setLoadError("The school could not be identified. Try reloading the page.");
+      return;
+    }
+
+    const target = branchToDelete;
+    setDeleting(true);
+    setLoadError(null);
+    try {
+      await deleteBranch(target.id, tenantId);
+      setBranches((current) =>
+        current.filter((branch) => branch.id !== target.id),
+      );
+      setBranchToDelete(null);
+      setNotice(`${target.name} branch deleted`);
+      window.setTimeout(() => setNotice(null), 3000);
+    } catch (error) {
+      setBranchToDelete(null);
+      setLoadError(
+        error instanceof Error ? error.message : "Unable to delete branch.",
+      );
+    } finally {
+      setDeleting(false);
+    }
+  }
+
+  const activeBranches = branches.filter(
+    (branch) => branch.status === "active",
+  ).length;
+  const inactiveBranches = branches.filter(
+    (branch) => branch.status === "inactive",
+  ).length;
+  const archivedBranches = branches.filter(
+    (branch) => branch.status === "archived",
+  ).length;
+
   return (
     <main className={styles.page}>
       <div className={styles.content}>
@@ -249,7 +269,9 @@ export default function TenantBranchesPage() {
 
         {loadError && !tenant ? (
           <section className={styles.statePanel} role="alert">
-            <span className={styles.errorMark}>!</span>
+            <span className={styles.errorMark}>
+              <CircleAlert size={20} />
+            </span>
             <h1>Branches unavailable</h1>
             <p>{loadError}</p>
             {tenantId && (
@@ -264,330 +286,139 @@ export default function TenantBranchesPage() {
           </section>
         ) : (
           <>
-            <header className={styles.hero}>
-              <div className={styles.heroContent}>
-                <p className={styles.eyebrow}>
-                  <GitBranch size={14} />
-                  School workspace
-                </p>
-                <div className={styles.headingRow}>
-                  <span className={styles.tenantAvatar}>
-                    {tenant ? (
-                      initials(tenant.displayName)
-                    ) : (
-                      <Building2 size={22} />
-                    )}
-                  </span>
-                  <div>
-                    <p className={styles.tenantLabel}>Branches</p>
-                    <h1>{tenant?.displayName ?? "School branches"}</h1>
-                    <p className={styles.tenantLegal}>
-                      {tenant
-                        ? `${tenant.code} · ${tenant.legalName}`
-                        : "Manage campuses and school locations."}
-                    </p>
-                  </div>
+            <TenantPageHeader
+              styles={styles}
+              className={styles.hero}
+              contentClassName={styles.heroContent}
+              eyebrowClassName={styles.eyebrow}
+              eyebrow="Platform administration / Schools / Branches"
+              icon={Building2}
+              title={tenant?.displayName ?? "School branches"}
+              subtitle="Manage campus locations, contact details, and branch status."
+              details={
+                <div className={styles.heroMeta}>
+                  {tenant && (
+                    <>
+                      <span className={styles.codeBadge}>{tenant.code}</span>
+                      <span className={styles.tenantLegal}>
+                        {tenant.legalName}
+                      </span>
+                    </>
+                  )}
                 </div>
-              </div>
-              <Button
-                type="button"
-                className={styles.createButton}
-                onClick={openCreateForm}
-                disabled={!tenant}
-              >
-                <Plus size={16} />
-                Create branch
-              </Button>
-              <div className={styles.heroDecoration} aria-hidden="true">
-                <GitBranch size={100} strokeWidth={1} />
-              </div>
-            </header>
+              }
+              action={
+                <Button
+                  type="button"
+                  className={styles.createButton}
+                  onClick={openCreateForm}
+                  disabled={!tenant}
+                >
+                  <Plus size={16} />
+                  Create branch
+                </Button>
+              }
+              decoration={
+                <div className={styles.heroDecoration} aria-hidden="true">
+                  <GitBranch size={100} strokeWidth={1} />
+                </div>
+              }
+            />
 
-            {loadError && (
-              <div className={styles.errorBanner} role="alert">
-                <span>{loadError}</span>
-                {tenantId && (
-                  <button
-                    type="button"
-                    onClick={() => void loadPage(tenantId)}
-                    disabled={loading}
-                  >
-                    {loading ? "Loading…" : "Try again"}
-                  </button>
-                )}
-              </div>
-            )}
+            <TenantStatsCards
+              className={styles.summaryGrid}
+              loading={loading}
+              stats={[
+                {
+                  label: "Total branches",
+                  value: branches.length,
+                  helper: "School locations",
+                  tone: "blue",
+                  icon: GitBranch,
+                },
+                {
+                  label: "Active",
+                  value: activeBranches,
+                  helper: "Operational locations",
+                  tone: "green",
+                  icon: CircleCheck,
+                },
+                {
+                  label: "Inactive",
+                  value: inactiveBranches,
+                  helper: "Temporarily unavailable",
+                  tone: "orange",
+                  icon: CircleMinus,
+                },
+                {
+                  label: "Archived",
+                  value: archivedBranches,
+                  helper: "Retired locations",
+                  tone: "red",
+                  icon: Archive,
+                },
+              ]}
+            />
 
-            <section className={styles.listPanel}>
-              <div className={styles.listHeading}>
-                <div>
-                  <h2>Branch directory</h2>
-                  <p>Locations connected to this school workspace.</p>
-                </div>
-                <span className={styles.countBadge}>
-                  {loading ? "…" : branches.length}
-                  <small>{branches.length === 1 ? "branch" : "branches"}</small>
-                </span>
-              </div>
-
-              {loading ? (
-                <div className={styles.loadingState} role="status">
-                  <span className={styles.spinner} />
-                  Loading branches…
-                </div>
-              ) : branches.length ? (
-                <div className={styles.branchGrid}>
-                  {branches.map((branch) => (
-                    <article className={styles.branchCard} key={branch.id}>
-                      <div className={styles.branchTop}>
-                        <span className={styles.branchAvatar}>
-                          {initials(branch.name)}
-                        </span>
-                        <div className={styles.branchActions}>
-                          <span
-                            className={`${styles.branchStatus} ${styles[`branchStatus_${branch.status}`]}`}
-                          >
-                            <i />
-                            {branch.status}
-                          </span>
-                          <button
-                            type="button"
-                            className={styles.editButton}
-                            onClick={() => openEditForm(branch)}
-                            aria-label={`Edit ${branch.name} branch`}
-                            title={`Edit ${branch.name}`}
-                          >
-                            <Pencil size={14} />
-                          </button>
-                        </div>
-                      </div>
-                      <h3>{branch.name}</h3>
-                      <p className={styles.branchCode}>
-                        Branch code · {branch.code}
-                      </p>
-                      <div className={styles.branchDetails}>
-                        <span>
-                          <MapPin size={14} />
-                          {branch.address || "Address not provided"}
-                        </span>
-                        <span>
-                          <Clock3 size={14} />
-                          {branch.timezone || "Timezone not set"}
-                        </span>
-                      </div>
-                      <div className={styles.branchFooter}>
-                        <span>
-                          <Check size={13} />
-                          Added {formatDate(branch.createdAt)}
-                        </span>
-                        <ArrowRight size={15} aria-hidden="true" />
-                      </div>
-                    </article>
-                  ))}
-                </div>
-              ) : (
-                <div className={styles.emptyState}>
-                  <span className={styles.emptyIcon}>
-                    <GitBranch size={21} />
-                  </span>
-                  <h3>No branches yet</h3>
-                  <p>
-                    Add the first branch to organize this school into campuses
-                    and locations.
-                  </p>
-                  <Button
-                    type="button"
-                    className={styles.createButton}
-                    onClick={openCreateForm}
-                  >
-                    <Plus size={15} />
-                    Create first branch
-                  </Button>
-                </div>
-              )}
-            </section>
+            <TenantBranchDirectory
+              branches={branches}
+              loading={loading}
+              error={tenant ? loadError : null}
+              styles={styles}
+              onCreate={openCreateForm}
+              onEdit={openEditForm}
+              onDelete={setBranchToDelete}
+              onRetry={() => {
+                if (tenantId) void loadPage(tenantId);
+              }}
+            />
           </>
         )}
       </div>
 
-      {formOpen && (
-        <div
-          className={styles.modalBackdrop}
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget && !saving) {
-              setFormOpen(false);
-            }
-          }}
-        >
-          <section
-            className={styles.modal}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="branch-form-title"
-          >
-            <header className={styles.modalHeader}>
-              <span className={styles.modalIcon}>
-                <GitBranch size={18} />
-              </span>
-              <div>
-                <p>
-                  {editingBranchId
-                    ? "Update workspace location"
-                    : "Create workspace location"}
-                </p>
-                <h2 id="branch-form-title">
-                  {editingBranchId ? "Edit branch" : "Create a branch"}
-                </h2>
-                <small>
-                  {tenant?.displayName ?? "School"} · Required fields marked *
-                </small>
-              </div>
-              <button
-                type="button"
-                className={styles.closeButton}
-                onClick={() => setFormOpen(false)}
-                disabled={saving}
-                aria-label="Close branch form"
-              >
-                <X size={18} />
-              </button>
-            </header>
+      <TenantBranchFormDialog
+        isOpen={formOpen}
+        editing={Boolean(editingBranchId)}
+        tenantName={tenant?.displayName ?? "School"}
+        timezonePlaceholder={tenant?.timezone}
+        form={form}
+        error={formError}
+        saving={saving}
+        styles={styles}
+        onClose={() => setFormOpen(false)}
+        onChange={updateForm}
+        onSubmit={submitForm}
+      />
 
-            <form className={styles.form} onSubmit={submitForm}>
-              <div className={styles.formGrid}>
-                <label>
-                  Branch name *
-                  <input
-                    autoFocus
-                    value={form.name}
-                    onChange={(event) => updateForm("name", event.target.value)}
-                    placeholder="e.g. Bole Campus"
-                    required
-                  />
-                </label>
-                <label>
-                  Branch code *
-                  <input
-                    value={form.code}
-                    onChange={(event) =>
-                      updateForm("code", event.target.value.toUpperCase())
-                    }
-                    placeholder="e.g. BOLE-01"
-                    required
-                  />
-                </label>
-                <label className={styles.fullWidth}>
-                  Address
-                  <input
-                    value={form.address}
-                    onChange={(event) =>
-                      updateForm("address", event.target.value)
-                    }
-                    placeholder="City, neighborhood, street"
-                  />
-                </label>
-                <label>
-                  Phone
-                  <input
-                    type="tel"
-                    value={form.phone}
-                    onChange={(event) =>
-                      updateForm("phone", event.target.value)
-                    }
-                    placeholder="+251 …"
-                  />
-                </label>
-                <label>
-                  Email
-                  <input
-                    type="email"
-                    value={form.email}
-                    onChange={(event) =>
-                      updateForm("email", event.target.value)
-                    }
-                    placeholder="branch@school.edu"
-                  />
-                </label>
-                <label>
-                  Timezone
-                  <input
-                    value={form.timezone}
-                    onChange={(event) =>
-                      updateForm("timezone", event.target.value)
-                    }
-                    placeholder={tenant?.timezone ?? "Africa/Addis_Ababa"}
-                  />
-                </label>
-                <label>
-                  Status
-                  <select
-                    value={form.status}
-                    onChange={(event) =>
-                      updateForm("status", event.target.value as BranchStatus)
-                    }
-                  >
-                    {branchStatuses.map((status) => (
-                      <option value={status} key={status}>
-                        {status[0].toUpperCase() + status.slice(1)}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </div>
-
-              {formError && (
-                <p className={styles.formError} role="alert">
-                  {formError}
-                </p>
-              )}
-
-              <footer className={styles.formFooter}>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setFormOpen(false)}
-                  disabled={saving}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  className={styles.submitButton}
-                  disabled={saving}
-                >
-                  {saving ? (
-                    <>
-                      <LoaderCircle size={15} className="animate-spin" />
-                      {editingBranchId ? "Saving…" : "Creating…"}
-                    </>
-                  ) : (
-                    <>
-                      {editingBranchId ? (
-                        <Check size={15} />
-                      ) : (
-                        <Plus size={15} />
-                      )}
-                      {editingBranchId ? "Save changes" : "Create branch"}
-                    </>
-                  )}
-                </Button>
-              </footer>
-            </form>
-          </section>
-        </div>
-      )}
+      <ConfirmModal
+        isOpen={branchToDelete !== null}
+        onClose={() => {
+          if (!deleting) setBranchToDelete(null);
+        }}
+        onConfirm={() => void confirmDeleteBranch()}
+        title="Delete branch?"
+        description={
+          branchToDelete
+            ? `This will permanently delete ${branchToDelete.name} (${branchToDelete.code}). This action cannot be undone.`
+            : ""
+        }
+        confirmText="Delete branch"
+        isLoading={deleting}
+      />
 
       {notice && (
         <div className={styles.toast} role="status">
-          <Check size={15} />
+          <CircleCheck size={15} />
           {notice}
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="icon-xs"
             onClick={() => setNotice(null)}
             aria-label="Dismiss"
           >
             <X size={14} />
-          </button>
+          </Button>
         </div>
       )}
     </main>

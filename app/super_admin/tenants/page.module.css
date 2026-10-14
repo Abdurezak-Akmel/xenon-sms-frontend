@@ -390,43 +390,6 @@
   backdrop-filter: blur(5px);
 }
 
-.tenantPage :global(.search-modal) {
-  overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--line) 75%, white);
-  border-radius: 18px;
-  box-shadow: 0 24px 80px rgb(7 17 31 / 28%);
-}
-
-.tenantForm {
-  gap: 22px !important;
-  scrollbar-color: var(--line) transparent;
-}
-
-.tenantForm :global(fieldset) {
-  min-width: 0;
-}
-
-.tenantForm :global(label) {
-  font-size: 11px;
-  font-weight: 650;
-}
-
-.tenantForm input,
-.tenantForm select,
-.tenantForm textarea {
-  min-height: 41px;
-  border-radius: 9px !important;
-  font-size: 12px !important;
-}
-
-.tenantForm textarea {
-  min-height: 82px;
-}
-
-.tenantForm :global(.border-t) {
-  border-color: var(--line);
-}
-
 .tenantPage :global(.toast) {
   z-index: 100;
   border: 1px solid var(--line);
@@ -434,10 +397,7 @@
   box-shadow: 0 14px 36px rgb(7 17 31 / 15%);
 }
 
-.retryButton,
-.secondaryButton,
-.modalSubmitButton,
-.deleteButton {
+.retryButton {
   min-height: 36px;
   padding: 0 13px !important;
   border-radius: 9px !important;
@@ -451,34 +411,10 @@
     transform 140ms ease !important;
 }
 
-.retryButton:hover,
-.secondaryButton:hover {
+.retryButton:hover {
   border-color: color-mix(in srgb, var(--blue) 30%, var(--line)) !important;
   color: var(--blue) !important;
   background: var(--blue-soft) !important;
-}
-
-.modalSubmitButton {
-  color: #fff !important;
-  background: var(--blue) !important;
-  box-shadow: 0 5px 13px rgb(50 103 214 / 18%);
-}
-
-.modalSubmitButton:hover {
-  background: #2957c0 !important;
-  box-shadow: 0 8px 18px rgb(50 103 214 / 23%);
-}
-
-.deleteButton:hover {
-  box-shadow: 0 6px 15px rgb(217 87 87 / 16%);
-}
-
-.tenantPage :global(.modal-backdrop) h2 {
-  letter-spacing: -.35px;
-}
-
-.tenantPage :global(.modal-backdrop) p {
-  line-height: 1.65;
 }
 
 :global(.app.dark) .pageHeading {
@@ -596,15 +532,6 @@
     padding-right: 14px;
   }
 
-  .tenantPage :global(.modal-backdrop) {
-    align-items: flex-end;
-    padding: 10px;
-  }
-
-  .tenantPage :global(.search-modal) {
-    max-height: calc(100dvh - 20px);
-    border-radius: 16px;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {

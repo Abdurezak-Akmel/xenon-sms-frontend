@@ -9,7 +9,7 @@
   width: 100%;
   max-width: 1440px;
   margin: 0 auto;
-  padding: 30px 36px 28px;
+  padding: 30px 36px 22px;
 }
 
 .backLink {
@@ -30,10 +30,15 @@
 }
 
 .hero {
+  display: flex;
   position: relative;
-  min-height: 204px;
+  min-height: 188px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
   overflow: hidden;
   padding: 27px 30px;
+  margin-bottom: 20px;
   border: 1px solid rgb(124 179 255 / 20%);
   border-radius: 22px;
   color: #fff;
@@ -69,6 +74,7 @@
 }
 
 .heroContent {
+  min-width: 0;
   position: relative;
   z-index: 1;
 }
@@ -77,7 +83,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  margin: 0 0 15px;
+  margin: 0 0 8px;
   color: #a8c8f7;
   font-size: 10px;
   font-weight: 650;
@@ -85,47 +91,29 @@
   text-transform: uppercase;
 }
 
-.schoolHeading {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.avatar {
-  display: grid;
-  width: 53px;
-  height: 53px;
-  flex: 0 0 auto;
-  place-items: center;
-  border: 1px solid rgb(255 255 255 / 22%);
-  border-radius: 15px;
-  color: #e8f2ff;
-  background: rgb(255 255 255 / 12%);
-  box-shadow: inset 0 1px rgb(255 255 255 / 13%);
-  font-size: 16px;
-  font-weight: 700;
-}
-
-.schoolHeading h1 {
+.hero h1 {
+  max-width: min(700px, 65vw);
   margin: 0;
   color: #fff;
-  font-size: clamp(22px, 3vw, 30px);
+  font-size: clamp(25px, 2.4vw, 32px);
   font-weight: 650;
-  letter-spacing: -1px;
-  line-height: 1.2;
+  letter-spacing: -1px !important;
+  line-height: 1.2 !important;
 }
 
-.schoolHeading p {
-  margin: 6px 0 0;
+.hero :global(.subheading) {
+  max-width: 540px;
+  margin: 7px 0 0;
   color: rgb(226 235 249 / 74%);
-  font-size: 12px;
+  font-size: 13px;
+  line-height: 1.6;
 }
 
 .heroMeta {
   display: flex;
   align-items: center;
   gap: 9px;
-  margin: 17px 0 0 67px;
+  margin: 13px 0 0;
 }
 
 .branchesButton {
@@ -133,7 +121,10 @@
   min-height: 36px;
   align-items: center;
   gap: 8px;
-  margin: 16px 0 0 67px;
+  position: relative;
+  z-index: 1;
+  flex: 0 0 auto;
+  margin: 0;
   padding: 0 12px;
   border: 1px solid rgb(255 255 255 / 24%);
   border-radius: 9px;
@@ -203,6 +194,7 @@
   border: 1px solid rgb(255 255 255 / 9%);
   border-radius: 34px;
   color: rgb(220 235 255 / 14%);
+  pointer-events: none;
   transform: rotate(-9deg);
 }
 
@@ -211,22 +203,17 @@
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 13px;
   margin-top: 16px;
+  margin-bottom: 18px;
 }
 
-.summaryCard {
-  display: flex;
-  min-width: 0;
-  min-height: 87px;
+.summaryGrid :global(.metric-card) {
+  min-height: 116px;
   align-items: center;
-  gap: 12px;
-  padding: 16px;
-  border: 1px solid var(--line);
-  border-radius: 13px;
-  background: var(--card);
-  box-shadow: 0 8px 24px rgb(15 41 77 / 4%);
+  padding: 19px;
+  border-radius: 14px;
+  box-shadow: 0 5px 18px rgb(35 61 98 / 3%);
 }
 
-.summaryIcon,
 .panelIcon,
 .detailIcon {
   display: grid;
@@ -235,52 +222,28 @@
   border-radius: 10px;
 }
 
-.summaryIcon {
-  width: 38px;
-  height: 38px;
+.summaryGrid :global(.metric-icon) {
+  width: 41px;
+  height: 41px;
+  border-radius: 12px;
 }
 
-.blue {
-  color: var(--blue);
-  background: var(--blue-soft);
+.summaryGrid :global(.metric-copy > span) {
+  font-size: 11px;
+  font-weight: 550;
 }
 
-.green {
-  color: var(--green);
-  background: rgb(47 154 103 / 10%);
-}
-
-.violet {
-  color: var(--violet);
-  background: rgb(121 87 199 / 10%);
-}
-
-.orange {
-  color: var(--orange);
-  background: rgb(217 129 40 / 12%);
-}
-
-.summaryCard small,
-.summaryCard strong {
-  display: block;
-}
-
-.summaryCard small {
-  margin-bottom: 5px;
-  color: var(--muted);
-  font-size: 9px;
-  font-weight: 650;
-  letter-spacing: .06em;
-  text-transform: uppercase;
-}
-
-.summaryCard strong {
+.summaryGrid :global(.metric-copy > strong) {
+  margin: 5px 0 3px;
   overflow: hidden;
-  color: var(--foreground);
-  font-size: 12px;
-  font-weight: 650;
+  font-size: 15px;
+  letter-spacing: -.35px;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.summaryGrid :global(.metric-copy > small) {
+  font-size: 9px;
 }
 
 .detailsGrid {
@@ -292,11 +255,11 @@
 
 .panel {
   min-width: 0;
-  padding: 21px;
+  padding: 22px;
   border: 1px solid var(--line);
-  border-radius: 15px;
+  border-radius: 16px;
   background: var(--card);
-  box-shadow: 0 10px 30px rgb(15 41 77 / 4%);
+  box-shadow: 0 8px 26px rgb(35 61 98 / 4%);
 }
 
 .panelHeading {
@@ -496,16 +459,16 @@
     linear-gradient(115deg, #0b1629 0%, #102442 58%, #153257 100%);
 }
 
-:global(.app.dark) .green {
+:global(.app.dark) .summaryGrid :global(.metric-icon.green) {
   background: rgb(47 154 103 / 16%);
 }
 
-:global(.app.dark) .violet {
-  background: rgb(121 87 199 / 17%);
+:global(.app.dark) .summaryGrid :global(.metric-icon.orange) {
+  background: rgb(217 129 40 / 16%);
 }
 
-:global(.app.dark) .orange {
-  background: rgb(217 129 40 / 16%);
+:global(.app.dark) .summaryGrid :global(.metric-icon.red) {
+  background: rgb(217 87 87 / 16%);
 }
 
 @media (max-width: 1000px) {
@@ -524,9 +487,12 @@
   }
 
   .hero {
-    min-height: 190px;
+    min-height: 0;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 18px;
     padding: 22px 19px;
-    border-radius: 16px;
+    border-radius: 14px;
   }
 
   .heroMark {
@@ -540,35 +506,24 @@
     width: 72px;
   }
 
-  .schoolHeading {
-    gap: 10px;
-  }
-
-  .avatar {
-    width: 45px;
-    height: 45px;
-    border-radius: 12px;
-  }
-
-  .schoolHeading h1 {
-    max-width: calc(100vw - 115px);
+  .hero h1 {
+    max-width: calc(100vw - 80px);
     font-size: 22px;
   }
 
-  .schoolHeading p {
-    max-width: calc(100vw - 115px);
-    overflow: hidden;
+  .hero :global(.subheading) {
+    max-width: calc(100vw - 80px);
     font-size: 10px;
-    text-overflow: ellipsis;
-    white-space: nowrap;
   }
 
   .heroMeta {
-    margin-left: 55px;
+    margin-top: 12px;
   }
 
   .branchesButton {
-    margin-left: 55px;
+    width: 100%;
+    justify-content: center;
+    min-height: 40px;
   }
 
   .summaryGrid {
@@ -576,20 +531,25 @@
     margin-top: 11px;
   }
 
-  .summaryCard {
-    min-height: 75px;
+  .summaryGrid :global(.metric-card) {
+    min-height: 103px;
     gap: 9px;
-    padding: 11px;
-    border-radius: 11px;
+    padding: 12px;
+    border-radius: 12px;
   }
 
-  .summaryIcon {
-    width: 32px;
-    height: 32px;
+  .summaryGrid :global(.metric-icon) {
+    width: 34px;
+    height: 34px;
   }
 
-  .summaryCard strong {
-    font-size: 10px;
+  .summaryGrid :global(.metric-copy > span),
+  .summaryGrid :global(.metric-copy > small) {
+    font-size: 9px;
+  }
+
+  .summaryGrid :global(.metric-copy > strong) {
+    font-size: 17px;
   }
 
   .detailsGrid {
@@ -600,7 +560,7 @@
 
   .panel {
     padding: 17px;
-    border-radius: 13px;
+    border-radius: 14px;
   }
 }
 

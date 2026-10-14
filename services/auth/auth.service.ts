@@ -14,6 +14,7 @@ export type RegisterInput = {
 export type LoginInput = {
   email: string;
   password: string;
+  mfaCode?: string;
 };
 
 export type EmailAuthInput = {

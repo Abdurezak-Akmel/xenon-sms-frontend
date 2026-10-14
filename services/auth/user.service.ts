@@ -1,6 +1,9 @@
 import { apiFetch } from "../../lib/api";
 
 const USERS_ENDPOINT = "/users";
+const API_ORIGIN = new URL(
+  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api/v1",
+).origin;
 
 export type UserStatus =
   | "pending"
@@ -27,6 +30,13 @@ export type User = {
   updatedAt: string;
 };
 
+export type UpdateUserProfileInput = {
+  firstName: string;
+  middleName: string | null;
+  lastName: string;
+  phone: string | null;
+};
+
 export type CreateUserInput = {
   firstName: string;
   middleName?: string | null;
@@ -40,6 +50,8 @@ export type CreateUserInput = {
 export type UpdateUserInput = Partial<Omit<CreateUserInput, "password">> & {
   status?: UserStatus;
 };
+
+export type UpdateUserWithAvatarInput = Omit<UpdateUserInput, "avatarUrl">;
 
 export type UserListFilters = {
   status?: UserStatus;
@@ -55,6 +67,51 @@ export type UserResponse = {
   message?: string;
   user: User;
 };
+
+function getAuthenticatedUserId() {
+  if (typeof window === "undefined") {
+    throw new Error("The signed-in user is only available in the browser.");
+  }
+
+  const token = localStorage.getItem("token");
+  if (!token) throw new Error("You must be signed in to view your profile.");
+
+  const encodedPayload = token.split(".")[1];
+  if (!encodedPayload) throw new Error("Unable to identify the signed-in user.");
+
+  let payload: unknown;
+  try {
+    const base64 = encodedPayload.replace(/-/g, "+").replace(/_/g, "/");
+    const binary = atob(base64.padEnd(Math.ceil(base64.length / 4) * 4, "="));
+    const bytes = Uint8Array.from(binary, (character) =>
+      character.charCodeAt(0),
+    );
+    payload = JSON.parse(new TextDecoder().decode(bytes));
+  } catch {
+    throw new Error("Unable to identify the signed-in user.");
+  }
+
+  if (
+    typeof payload !== "object" ||
+    payload === null ||
+    !("id" in payload) ||
+    typeof payload.id !== "string" ||
+    !payload.id
+  ) {
+    throw new Error("The access token does not contain a user ID.");
+  }
+  return payload.id;
+}
+
+export function getUserAvatarSrc(avatarUrl: string | null) {
+  if (!avatarUrl) return undefined;
+  if (/^https?:\/\//i.test(avatarUrl)) return avatarUrl;
+  return new URL(avatarUrl, API_ORIGIN).toString();
+}
+
+export async function getCurrentUser() {
+  return getUser(getAuthenticatedUserId());
+}
 
 export async function listUsers(filters: UserListFilters = {}) {
   const query = new URLSearchParams();
@@ -83,6 +140,30 @@ export async function updateUser(id: string, input: UpdateUserInput) {
   return apiFetch<UserResponse>(`${USERS_ENDPOINT}/${encodeURIComponent(id)}`, {
     method: "PATCH",
     body: JSON.stringify(input),
+  });
+}
+
+export async function updateCurrentUserProfile(input: UpdateUserProfileInput) {
+  return updateUser(getAuthenticatedUserId(), input);
+}
+
+export async function updateUserAvatar(
+  id: string,
+  avatar: File,
+  input: UpdateUserWithAvatarInput = {},
+) {
+  const formData = new FormData();
+  formData.append("avatar", avatar);
+
+  for (const [field, value] of Object.entries(input)) {
+    if (value !== undefined) {
+      formData.append(field, value ?? "");
+    }
+  }
+
+  return apiFetch<UserResponse>(`${USERS_ENDPOINT}/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    body: formData,
   });
 }
 

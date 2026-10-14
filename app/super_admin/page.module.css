@@ -401,6 +401,8 @@
   width: 100%;
   max-width: 1440px;
   margin: 0 auto;
+  box-sizing: border-box;
+  padding: 24px 30px 22px;
 }
 
 .pageHeading {
@@ -426,11 +428,6 @@
   font-weight: 650;
   letter-spacing: -.7px;
   line-height: 1.2;
-}
-
-.pageHeading h1 span {
-  color: var(--blue);
-  font-size: 18px;
 }
 
 .pageSubtitle {
@@ -1092,10 +1089,6 @@
   letter-spacing: -1px;
 }
 
-.pageHeading h1 span {
-  color: #7cb3ff;
-}
-
 .pageSubtitle {
   color: rgb(226 235 249 / 76%);
   font-size: 13px;
@@ -1224,6 +1217,10 @@
 }
 
 @media (max-width: 700px) {
+  .dashboardContent {
+    padding: 20px 15px 19px;
+  }
+
   .pageHeading {
     min-height: 0;
     align-items: flex-start;

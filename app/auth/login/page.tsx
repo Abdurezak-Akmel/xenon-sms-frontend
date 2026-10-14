@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   Eye,
   EyeOff,
+  KeyRound,
   Lock,
   Mail,
   MoonStar,
@@ -17,11 +18,14 @@ import {
 } from "lucide-react";
 import { loginUser } from "../../../services/auth/auth.service";
 import { getRoleHomePath } from "../../../route_protection/ProtectedRoute";
+import { ApiError } from "../../../lib/api";
 
 export default function LoginPage() {
   const [isDark, setIsDark] = useState(true);
   const [email, setEmail] = useState("admin@school1.com");
   const [password, setPassword] = useState("password123");
+  const [mfaCode, setMfaCode] = useState("");
+  const [mfaRequired, setMfaRequired] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -62,7 +66,11 @@ export default function LoginPage() {
     setIsSubmitting(true);
 
     try {
-      const response = await loginUser({ email, password });
+      const response = await loginUser({
+        email,
+        password,
+        ...(mfaCode ? { mfaCode } : {}),
+      });
       const roleCode = response.user.metadata?.roleCode;
 
       if (typeof roleCode === "string") {
@@ -82,6 +90,14 @@ export default function LoginPage() {
 
       setError("Your account does not have a role assigned. Contact your administrator.");
     } catch (loginError) {
+      if (
+        loginError instanceof ApiError &&
+        (loginError.code === "MFA_REQUIRED" ||
+          loginError.code === "MFA_INVALID")
+      ) {
+        setMfaRequired(true);
+        if (loginError.code === "MFA_INVALID") setMfaCode("");
+      }
       setError(
         loginError instanceof Error
           ? loginError.message
@@ -268,6 +284,47 @@ export default function LoginPage() {
                     </button>
                   </div>
                 </div>
+
+                {mfaRequired && (
+                  <div className="space-y-2">
+                    <label
+                      htmlFor="mfa-code"
+                      className="text-sm font-medium text-slate-700 dark:text-slate-200"
+                    >
+                      Authenticator code
+                    </label>
+                    <div className="relative">
+                      <KeyRound className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+                      <input
+                        id="mfa-code"
+                        type="text"
+                        inputMode="numeric"
+                        autoComplete="one-time-code"
+                        maxLength={6}
+                        required
+                        value={mfaCode}
+                        onChange={(event) =>
+                          setMfaCode(
+                            event.target.value.replace(/\D/g, "").slice(0, 6),
+                          )
+                        }
+                        placeholder="Enter the 6-digit code"
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50/80 py-3 pl-10 pr-3 text-sm tracking-[0.25em] text-slate-900 outline-none transition placeholder:tracking-normal placeholder:text-slate-400 focus:border-cyan-400 focus:ring-4 focus:ring-cyan-500/10 dark:border-slate-700 dark:bg-slate-950/60 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-cyan-400"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMfaRequired(false);
+                        setMfaCode("");
+                        setError(null);
+                      }}
+                      className="text-xs font-medium text-cyan-600 hover:text-cyan-500 dark:text-cyan-300"
+                    >
+                      Use a different account
+                    </button>
+                  </div>
+                )}
 
                 <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5 dark:border-slate-700 dark:bg-slate-950/50">
                   <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-600 dark:text-slate-300">

@@ -1,25 +1,27 @@
 "use client";
 
 import * as React from "react";
+import { useRef } from "react";
 import {
   Building2,
   Calendar,
   Camera,
-  CheckCircle2,
-  Clock,
   Edit,
   Mail,
   MapPin,
   Phone,
-  ShieldCheck,
-  User,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { Card, CardContent, CardFooter } from "@/components/ui/Card";
+import { Card, CardContent } from "@/components/ui/Card";
+import { getUserAvatarSrc } from "@/services/auth/user.service";
+import styles from "../../app/super_admin/profile/page.module.css";
 
 export interface UserProfileData {
   id: string;
   name: string;
+  firstName: string;
+  middleName: string | null;
+  lastName: string;
   email: string;
   phone?: string;
   role: string;
@@ -28,20 +30,23 @@ export interface UserProfileData {
   campus?: string;
   avatarUrl?: string;
   joinDate?: string;
-  status?: "active" | "on_leave" | "archived";
+  status?: "pending" | "active" | "inactive" | "locked" | "archived";
   metrics?: Array<{ label: string; value: string | number }>;
 }
 
 export interface ProfileCardProps {
   user?: UserProfileData;
   onEdit?: () => void;
-  onSecurityClick?: () => void;
+  onAvatarUpload?: (file: File) => void;
   className?: string;
 }
 
 const defaultUser: UserProfileData = {
   id: "USR-0042",
   name: "Dr. Jordan Miller",
+  firstName: "Jordan",
+  middleName: null,
+  lastName: "Miller",
   email: "admin@adamshill.edu",
   phone: "+251 11 555 0184",
   role: "School Administrator",
@@ -60,9 +65,10 @@ const defaultUser: UserProfileData = {
 export function ProfileCard({
   user = defaultUser,
   onEdit,
-  onSecurityClick,
+  onAvatarUpload,
   className,
 }: ProfileCardProps) {
+  const avatarInputRef = useRef<HTMLInputElement>(null);
   const initials = user.name
     .split(" ")
     .map((p) => p[0])
@@ -73,69 +79,82 @@ export function ProfileCard({
   return (
     <Card className={className} variant="default" padding="none">
       {/* Decorative gradient banner */}
-      <div className="h-28 bg-gradient-to-r from-(--blue) via-[#2e5ebf] to-(--violet) rounded-t-xl relative overflow-hidden">
+      <div className={styles.profileBanner}>
         <div className="absolute inset-0 bg-black/10" />
-        <div className="absolute right-4 top-4">
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-white/20 text-white backdrop-blur">
+        <div className={styles.accountStatusPosition}>
+          <span className={styles.accountStatus}>
             <span className="size-1.5 rounded-full bg-(--green)" />
-            {user.status === "active" ? "Active Account" : "Staff"}
+            {user.status === "active"
+              ? "Active Account"
+              : user.status ?? "Account"}
           </span>
         </div>
       </div>
 
-      <CardContent className="px-6 pb-6 pt-0">
+      <CardContent className={styles.profileContent}>
         {/* Avatar & Header actions */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between -mt-12 mb-4 gap-4">
+        <div className={styles.profileActions}>
           <div className="relative inline-block">
-            <div className="size-24 rounded-2xl border-4 border-(--card) bg-[#d9efe5] dark:bg-[#153e2d] text-(--blue) flex items-center justify-center text-2xl font-bold shadow-md overflow-hidden">
+            <div className={styles.profileAvatar}>
               {user.avatarUrl ? (
                 <img
-                  src={user.avatarUrl}
+                  src={getUserAvatarSrc(user.avatarUrl)}
                   alt={user.name}
                   className="size-full object-cover"
                 />
               ) : (
-                <span className="text-[#267a52] dark:text-[#52c98d]">{initials}</span>
+                <span className="text-[#267a52] dark:text-[#52c98d]">
+                  {initials}
+                </span>
               )}
             </div>
-            {onEdit && (
-              <button
-                type="button"
-                onClick={onEdit}
-                className="absolute bottom-0 right-0 p-1.5 rounded-lg bg-(--blue) text-white shadow-sm hover:bg-(--blue)/90 transition"
-                aria-label="Update avatar"
-              >
-                <Camera className="size-3.5" />
-              </button>
+            {onAvatarUpload && (
+              <>
+                <input
+                  ref={avatarInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  className="sr-only"
+                  onChange={(event) => {
+                    const file = event.currentTarget.files?.[0];
+                    if (file) onAvatarUpload(file);
+                    event.currentTarget.value = "";
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => avatarInputRef.current?.click()}
+                  className="absolute bottom-0 right-0 rounded-lg bg-(--blue) p-2.5 text-white shadow-sm transition hover:bg-(--blue)/90"
+                  aria-label="Update avatar"
+                >
+                  <Camera className="size-4" />
+                </button>
+              </>
             )}
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className={styles.profileButtons}>
             {onEdit && (
-              <Button size="sm" variant="outline" onClick={onEdit} className="gap-1.5">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={onEdit}
+                className="gap-1.5"
+              >
                 <Edit className="size-3.5" /> Edit Profile
-              </Button>
-            )}
-            {onSecurityClick && (
-              <Button size="sm" variant="outline" onClick={onSecurityClick} className="gap-1.5">
-                <ShieldCheck className="size-3.5" /> Security
               </Button>
             )}
           </div>
         </div>
 
         {/* User Identity */}
-        <div>
-          <div className="flex flex-wrap items-center gap-2">
-            <h2 className="text-xl font-bold text-(--foreground) tracking-tight">
-              {user.name}
-            </h2>
-            <span className="rounded-md bg-(--blue-soft) px-2 py-0.5 text-xs font-semibold text-(--blue)">
-              {user.role}
-            </span>
+        <div className={styles.profileIdentity}>
+          <div className={styles.profileNameRow}>
+            <h2 className={styles.profileName}>{user.name}</h2>
+            <span className={styles.profileRole}>{user.role}</span>
           </div>
 
-          <p className="text-xs text-(--muted) mt-1 flex items-center gap-1.5">
+          <p className={styles.profileOrganization}>
             <Building2 className="size-3.5 text-(--muted)" />
             <span>{user.schoolName}</span>
             {user.department && (
@@ -148,7 +167,7 @@ export function ProfileCard({
         </div>
 
         {/* Contact details grid */}
-        <div className="mt-5 grid sm:grid-cols-2 gap-3 border-t border-(--line) pt-4 text-xs text-(--muted)">
+        <div className={styles.contactGrid}>
           <div className="flex items-center gap-2">
             <Mail className="size-4 text-(--muted)" />
             <span className="text-(--foreground) font-medium truncate">{user.email}</span>
@@ -178,11 +197,11 @@ export function ProfileCard({
 
         {/* Metrics summary */}
         {user.metrics && user.metrics.length > 0 && (
-          <div className="mt-5 grid grid-cols-3 gap-2 border-t border-(--line) pt-4">
+          <div className={styles.metricsGrid}>
             {user.metrics.map((m) => (
-              <div key={m.label} className="rounded-lg bg-(--background) p-2.5 text-center">
-                <span className="block text-base font-bold text-(--foreground)">{m.value}</span>
-                <span className="block text-[10px] text-(--muted) mt-0.5">{m.label}</span>
+              <div key={m.label} className={styles.metric}>
+                <span className={styles.metricValue}>{m.value}</span>
+                <span className={styles.metricLabel}>{m.label}</span>
               </div>
             ))}
           </div>

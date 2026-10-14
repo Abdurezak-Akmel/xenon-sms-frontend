@@ -10,18 +10,32 @@ import {
   Wallet,
 } from "lucide-react";
 
+// Dashboard Components
 import { DashboardFooter } from "@/components/dashboard/DashboardFooter";
+
 import { PlatformGrowth } from "@/components/dashboard/PlatformGrowth";
+
 import type { PlatformGrowthData } from "@/components/dashboard/PlatformGrowth";
+
 import { PlatformStats } from "@/components/dashboard/PlatformStats";
+
 import type { PlatformStat } from "@/components/dashboard/PlatformStats";
+
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
+
 import type { ActivityItem } from "@/components/dashboard/RecentActivity";
+
 import { SchoolsTable } from "@/components/dashboard/SchoolsTable";
+
 import { SubscriptionOverview } from "@/components/dashboard/SubscriptionOverview";
+
 import type { SubscriptionPlan } from "@/components/dashboard/SubscriptionOverview";
-import { SuperAdminDashboardHeader } from "@/components/dashboard/SuperAdminDashboardHeader";
+
+import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
+
+// Service Functions
 import { listTenants } from "@/services/tenancy/tenant.service";
+
 import type { Tenant } from "@/services/tenancy/tenant.service";
 
 import styles from "./page.module.css";
@@ -46,21 +60,21 @@ const platformStats: PlatformStat[] = [
     changeLabel: "vs last month",
   },
   {
-    title: "Platform members",
-    value: "2,840",
-    icon: Users,
-    tone: "green",
-    trend: "up",
-    change: "6.2%",
-    changeLabel: "vs last month",
-  },
-  {
     title: "Monthly revenue",
-    value: "$42,680",
+    value: "30,000 ETB",
     icon: Wallet,
     tone: "orange",
     trend: "down",
     change: "2.1%",
+    changeLabel: "vs last month",
+  },
+  {
+    title: " System Up-time",
+    value: "99.99%",
+    icon: Users,
+    tone: "green",
+    trend: "up",
+    change: "0.01%",
     changeLabel: "vs last month",
   },
 ];
@@ -128,7 +142,16 @@ export default function SuperAdminPage() {
 
   return (
     <div className={styles.dashboardContent}>
-      <SuperAdminDashboardHeader styles={styles} />
+      <DashboardHeader
+        title="Super Admin Dashboard"
+        subtitle="Here's what’s happening across your platform today."
+        action={{
+          href: "/super_admin/tenants?create=1",
+          label: "Add a school",
+        }}
+        styles={styles}
+      />
+
       <PlatformStats
         stats={platformStats.map((stat) =>
           stat.title === "Schools"
@@ -140,11 +163,13 @@ export default function SuperAdminPage() {
         )}
         styles={styles}
       />
+
       <section className={styles.analyticsGrid} id="analytics">
         <PlatformGrowth
           className={styles.growthChart}
           growth={platformGrowth}
         />
+
         <SubscriptionOverview
           total={subscriptionPlans.reduce(
             (total, plan) => total + plan.count,
@@ -154,6 +179,7 @@ export default function SuperAdminPage() {
           styles={styles}
         />
       </section>
+
       <section className={styles.bottomGrid}>
         <SchoolsTable
           tenants={tenants}
@@ -161,8 +187,10 @@ export default function SuperAdminPage() {
           error={tenantsError}
           styles={styles}
         />
+
         <RecentActivity activities={recentActivity} styles={styles} />
       </section>
+
       <DashboardFooter styles={styles} />
     </div>
   );
