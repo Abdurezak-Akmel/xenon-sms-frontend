@@ -1,0 +1,161 @@
+.shell {
+  min-height: 100vh;
+  background: #f8fafc;
+}
+
+.shell:global(.app.dark) {
+  --background: #07111f;
+  --foreground: #f1f5f9;
+  --card: #0f1d35;
+  --muted: #a4b3c9;
+  --line: #24354d;
+  --sidebar: #0b172b;
+  --blue-soft: #172c4d;
+  background: var(--background);
+}
+
+.shell :global(.sidebar) {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 40;
+  width: 248px;
+  height: 100vh;
+  overflow-y: auto;
+  box-shadow: 8px 0 28px rgb(15 41 77 / 3%);
+}
+
+.shell :global(.sidebar:not(.collapsed)) {
+  background: color-mix(in srgb, var(--sidebar) 97%, #e8f2ff);
+}
+
+.shell :global(.sidebar.collapsed) {
+  width: 78px;
+}
+
+.shell :global(.workspace) {
+  min-height: 100vh;
+  margin-left: 248px;
+}
+
+.shell :global(.topbar) {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 248px;
+  z-index: 30;
+}
+
+.navbar {
+  position: fixed;
+  z-index: 30;
+  top: 0;
+  right: 0;
+  left: 248px;
+  width: auto;
+  display: flex;
+  height: 70px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 30px;
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 85%, #7cb3ff);
+  background: color-mix(in srgb, var(--card) 95%, transparent);
+  box-shadow: 0 8px 28px rgb(15 41 77 / 4%);
+  backdrop-filter: blur(16px);
+  transition:
+    background 180ms ease,
+    border-color 180ms ease;
+}
+
+.sidebarCollapsed :global(.workspace) {
+  margin-left: 78px;
+}
+
+.sidebarCollapsed :global(.topbar),
+.sidebarCollapsed .navbar {
+  left: 78px;
+}
+
+.logoutError {
+  border-color: color-mix(in srgb, var(--red) 40%, var(--line)) !important;
+  color: var(--red) !important;
+}
+
+.pageBody {
+  min-height: 100vh;
+  padding-top: 70px;
+}
+
+.pageBody :global(.content) {
+  padding-top: 32px;
+}
+
+@media (max-width: 1100px) {
+  .shell :global(.sidebar:not(.collapsed)) {
+    width: 220px;
+  }
+
+  .shell :global(.workspace) {
+    margin-left: 220px;
+  }
+
+  .sidebarCollapsed :global(.workspace) {
+    margin-left: 78px;
+  }
+
+  .shell :global(.topbar) {
+    left: 220px;
+  }
+
+  .sidebarCollapsed :global(.topbar),
+  .sidebarCollapsed .navbar {
+    left: 78px;
+  }
+
+  .navbar {
+    left: 220px;
+    padding-right: 22px;
+    padding-left: 22px;
+  }
+}
+
+@media (max-width: 720px) {
+  .shell :global(.sidebar),
+  .shell :global(.sidebar.collapsed),
+  .shell :global(.sidebar:not(.collapsed)) {
+    width: 248px;
+  }
+
+  .shell :global(.workspace) {
+    margin-left: 0;
+  }
+
+  .sidebarCollapsed :global(.workspace) {
+    margin-left: 0;
+  }
+
+  .shell :global(.topbar) {
+    left: 0;
+  }
+
+  .sidebarCollapsed :global(.topbar),
+  .sidebarCollapsed .navbar {
+    left: 0;
+  }
+
+  .navbar {
+    left: 0;
+    height: 62px;
+    padding: 0 15px;
+  }
+
+  .pageBody {
+    padding-top: 62px;
+  }
+
+  .pageBody :global(.content) {
+    padding-top: 24px;
+  }
+}

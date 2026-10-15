@@ -19,17 +19,33 @@ import {
 import { loginUser } from "../../../services/auth/auth.service";
 import { getRoleHomePath } from "../../../route_protection/ProtectedRoute";
 import { ApiError } from "../../../lib/api";
+import {
+  listTenantMembershipRoles,
+  listTenantMemberships,
+} from "../../../services/auth/ten_mem.service";
+import { selectTenantMembership } from "../../../services/auth/auth.service";
+
+type DashboardChoice = {
+  membershipId: string;
+  roleName: string;
+  tenantId: string;
+  branchId: string | null;
+  homePath: string;
+};
 
 export default function LoginPage() {
   const [isDark, setIsDark] = useState(true);
-  const [email, setEmail] = useState("admin@school1.com");
-  const [password, setPassword] = useState("password123");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [mfaCode, setMfaCode] = useState("");
   const [mfaRequired, setMfaRequired] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [dashboardChoices, setDashboardChoices] = useState<DashboardChoice[]>(
+    [],
+  );
 
   useEffect(() => {
     try {
@@ -63,6 +79,7 @@ export default function LoginPage() {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
+    setDashboardChoices([]);
     setIsSubmitting(true);
 
     try {
@@ -71,6 +88,52 @@ export default function LoginPage() {
         password,
         ...(mfaCode ? { mfaCode } : {}),
       });
+
+      if (response.user.globalRoleId === null) {
+        const [{ memberships }, { roles }] = await Promise.all([
+          listTenantMemberships({
+            userId: response.user.id,
+            status: "active",
+          }),
+          listTenantMembershipRoles(),
+        ]);
+        const rolesById = new Map(roles.map((role) => [role.id, role]));
+        const choices = memberships.flatMap((membership) => {
+          const role = rolesById.get(membership.roleId);
+          const homePath =
+            role && role.scope !== "platform"
+              ? getRoleHomePath(role.code)
+              : null;
+
+          return role && homePath
+            ? [
+                {
+                  membershipId: membership.id,
+                  roleName: role.name,
+                  tenantId: membership.tenantId,
+                  branchId: membership.branchId,
+                  homePath,
+                },
+              ]
+            : [];
+        });
+
+        if (choices.length === 1) {
+          await selectTenantMembership(choices[0].membershipId);
+          window.location.assign(choices[0].homePath);
+          return;
+        }
+        if (choices.length > 1) {
+          setDashboardChoices(choices);
+          return;
+        }
+
+        setError(
+          "Your account does not have an active tenant membership with a configured role. Contact your administrator.",
+        );
+        return;
+      }
+
       const roleCode = response.user.metadata?.roleCode;
 
       if (typeof roleCode === "string") {
@@ -88,7 +151,9 @@ export default function LoginPage() {
         return;
       }
 
-      setError("Your account does not have a role assigned. Contact your administrator.");
+      setError(
+        "Your account does not have a role assigned. Contact your administrator.",
+      );
     } catch (loginError) {
       if (
         loginError instanceof ApiError &&
@@ -102,6 +167,23 @@ export default function LoginPage() {
         loginError instanceof Error
           ? loginError.message
           : "Unable to sign in. Please try again.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDashboardSelection = async (choice: DashboardChoice) => {
+    setError(null);
+    setIsSubmitting(true);
+    try {
+      await selectTenantMembership(choice.membershipId);
+      window.location.assign(choice.homePath);
+    } catch (selectionError) {
+      setError(
+        selectionError instanceof Error
+          ? selectionError.message
+          : "Unable to select this tenant dashboard. Please try again.",
       );
     } finally {
       setIsSubmitting(false);
@@ -223,6 +305,36 @@ export default function LoginPage() {
                   >
                     {error}
                   </p>
+                )}
+
+                {dashboardChoices.length > 0 && (
+                  <div
+                    className="space-y-3 rounded-xl border border-cyan-200 bg-cyan-50/70 p-4 dark:border-cyan-900/70 dark:bg-cyan-950/30"
+                    aria-label="Choose a tenant dashboard"
+                  >
+                    <p className="text-sm font-medium text-slate-800 dark:text-slate-100">
+                      Choose a role and tenant to continue
+                    </p>
+                    {dashboardChoices.map((choice) => (
+                      <button
+                        key={choice.membershipId}
+                        type="button"
+                        disabled={isSubmitting}
+                        onClick={() => {
+                          void handleDashboardSelection(choice);
+                        }}
+                        className="flex w-full items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-left text-sm transition hover:border-cyan-400 dark:border-slate-700 dark:bg-slate-900"
+                      >
+                        <span className="font-medium text-slate-800 dark:text-slate-100">
+                          {choice.roleName}
+                        </span>
+                        <span className="max-w-[60%] truncate text-xs text-slate-500 dark:text-slate-400">
+                          Tenant {choice.tenantId}
+                          {choice.branchId && ` · Branch ${choice.branchId}`}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
                 )}
 
                 <div className="space-y-2">

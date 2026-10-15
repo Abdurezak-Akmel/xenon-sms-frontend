@@ -31,7 +31,16 @@ export function EditProfileForm({
   onCancel,
   className,
 }: EditProfileFormProps) {
-  const [formData, setFormData] = React.useState({
+  type FormData = {
+    firstName: string;
+    middleName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+    role: string;
+  };
+
+  const [formData, setFormData] = React.useState<FormData>({
     firstName: initialData?.firstName ?? "",
     middleName: initialData?.middleName ?? "",
     lastName: initialData?.lastName ?? "",
@@ -42,7 +51,7 @@ export function EditProfileForm({
 
   const [savedSuccess, setSavedSuccess] = React.useState(false);
 
-  const handleChange = (field: keyof typeof formData, value: string) => {
+  const handleChange = (field: keyof FormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -54,7 +63,7 @@ export function EditProfileForm({
         firstName: formData.firstName.trim(),
         middleName: formData.middleName.trim() || null,
         lastName: formData.lastName.trim(),
-        phone: formData.phone.trim() || null,
+        phone: formData.phone.trim() || undefined,
       });
       setSavedSuccess(true);
       window.setTimeout(() => setSavedSuccess(false), 2500);
@@ -133,12 +142,16 @@ export function EditProfileForm({
               placeholder="+251 ..."
             />
           </div>
-
         </CardContent>
 
         <CardFooter className="mt-7 justify-end gap-3 pt-6">
           {onCancel && (
-            <Button type="button" variant="outline" size="sm" onClick={onCancel}>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={onCancel}
+            >
               Cancel
             </Button>
           )}

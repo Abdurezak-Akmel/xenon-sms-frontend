@@ -1,0 +1,548 @@
+.tenantPage {
+  --tenant-accent: #3267d6;
+  --tenant-accent-soft: #edf3ff;
+  min-height: 100%;
+  background:
+    radial-gradient(ellipse at 8% 0%, rgb(50 103 214 / 5%), transparent 32rem),
+    var(--background);
+}
+
+.tenantPage :global(.content) {
+  padding-top: 30px;
+}
+
+.pageHeading {
+  position: relative;
+  min-height: 188px;
+  overflow: hidden;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 27px 30px;
+  border: 1px solid rgb(124 179 255 / 20%);
+  border-radius: 22px;
+  color: #fff;
+  background:
+    radial-gradient(ellipse at 80% 5%, rgb(96 165 250 / 30%), transparent 39%),
+    radial-gradient(ellipse at 100% 100%, rgb(34 211 238 / 12%), transparent 35%),
+    linear-gradient(115deg, #0f1d35 0%, #172c4d 58%, #1c3c67 100%);
+  box-shadow: 0 18px 44px rgb(15 41 77 / 16%);
+}
+
+.pageHeading::before,
+.pageHeading::after {
+  position: absolute;
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 50%;
+  content: "";
+  pointer-events: none;
+}
+
+.pageHeading::before {
+  top: -116px;
+  right: 13%;
+  width: 280px;
+  height: 280px;
+}
+
+.pageHeading::after {
+  right: -62px;
+  bottom: -184px;
+  width: 320px;
+  height: 320px;
+  border-color: rgb(124 179 255 / 20%);
+}
+
+.pageHeading > div,
+.pageHeading > button {
+  position: relative;
+  z-index: 1;
+}
+
+.pageHeading h1 {
+  color: #fff;
+  font-size: clamp(25px, 2.4vw, 32px);
+  font-weight: 650;
+  letter-spacing: -1px;
+}
+
+.pageHeading :global(.eyebrow) {
+  color: #a8c8f7;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+}
+
+.pageHeading :global(.subheading) {
+  max-width: 520px;
+  color: rgb(226 235 249 / 76%);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.pageEyebrow {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #a8c8f7 !important;
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.pageEyebrow span {
+  color: rgb(255 255 255 / 36%);
+}
+
+.addButton {
+  min-height: 40px;
+  padding-inline: 15px;
+  border: 1px solid rgb(255 255 255 / 25%) !important;
+  border-radius: 10px !important;
+  color: #0f1d35 !important;
+  background: #fff !important;
+  box-shadow: 0 8px 20px rgb(3 15 34 / 18%);
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  transition: background 150ms ease, transform 150ms ease, box-shadow 150ms ease;
+}
+
+.addButton:hover {
+  color: #0f1d35 !important;
+  background: #eaf3ff !important;
+  box-shadow: 0 10px 24px rgb(3 15 34 / 25%);
+}
+
+.addButton:active {
+  transform: translateY(1px);
+}
+
+.metricsGrid {
+  gap: 12px;
+  margin-bottom: 18px !important;
+}
+
+.metricsGrid :global(.metric-card) {
+  min-height: 116px;
+  align-items: center;
+  padding: 19px;
+  border-radius: 14px;
+  box-shadow: 0 5px 18px rgb(35 61 98 / 3%);
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.metricsGrid :global(.metric-card:hover) {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 25px rgb(35 61 98 / 8%);
+}
+
+.metricsGrid :global(.metric-icon) {
+  width: 41px;
+  height: 41px;
+  border-radius: 12px;
+}
+
+.metricsGrid :global(.metric-copy > span) {
+  font-size: 11px;
+  font-weight: 550;
+}
+
+.metricsGrid :global(.metric-copy > strong) {
+  margin: 5px 0 3px;
+  font-size: 25px;
+  letter-spacing: -.8px;
+}
+
+.directoryPanel {
+  overflow: hidden;
+  padding: 22px;
+  border-radius: 16px;
+  box-shadow: 0 8px 26px rgb(35 61 98 / 4%);
+}
+
+.directoryPanel :global(.panel-heading) {
+  align-items: center;
+  margin-bottom: 20px !important;
+}
+
+.directoryPanel :global(.panel-heading h2) {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--foreground);
+  font-size: 14px;
+  font-weight: 650;
+  letter-spacing: -.2px;
+}
+
+.directoryPanel :global(.panel-heading p) {
+  margin-top: 6px;
+  font-size: 11px;
+}
+
+.directoryPanel > :global(.panel-heading) > span {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 550;
+}
+
+.directoryCount {
+  display: inline-flex;
+  min-width: 25px;
+  height: 23px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 7px;
+  border: 1px solid color-mix(in srgb, var(--blue) 13%, var(--line));
+  border-radius: 7px;
+  color: var(--blue);
+  background: var(--blue-soft);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.searchControl input,
+.filterControl select {
+  min-height: 42px;
+  border-radius: 10px !important;
+  background: var(--background) !important;
+  font-size: 12px !important;
+}
+
+.searchControl input {
+  padding-left: 39px;
+}
+
+.filterControl select {
+  cursor: pointer;
+}
+
+.searchControl input:focus,
+.filterControl select:focus {
+  border-color: color-mix(in srgb, var(--blue) 60%, var(--line));
+  box-shadow: 0 0 0 4px rgb(50 103 214 / 9%);
+}
+
+.directoryPanel :global(.table-wrap) {
+  overflow-x: auto;
+  margin: 0 -22px -22px;
+  border-top: 1px solid var(--line);
+}
+
+.directoryPanel table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  text-align: left;
+}
+
+.directoryPanel thead {
+  background: color-mix(in srgb, var(--background) 75%, var(--card));
+}
+
+.directoryPanel th {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.directoryPanel th:first-child,
+.directoryPanel td:first-child {
+  padding-left: 22px;
+}
+
+.directoryPanel th:last-child,
+.directoryPanel td:last-child {
+  padding-right: 22px;
+}
+
+.directoryPanel td {
+  padding: 14px 16px;
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 75%, transparent);
+  color: var(--foreground);
+  font-size: 11px;
+  vertical-align: middle;
+}
+
+.directoryPanel tbody tr {
+  transition: background 120ms ease;
+}
+
+.directoryPanel tbody tr:hover {
+  background: color-mix(in srgb, var(--blue-soft) 42%, transparent);
+}
+
+.directoryPanel tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.directoryPanel :global(.person) {
+  gap: 11px;
+}
+
+.tenantIdentityLink {
+  display: block;
+  border-radius: 10px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.tenantIdentityLink:focus-visible {
+  outline: 3px solid rgb(50 103 214 / 30%);
+  outline-offset: 4px;
+}
+
+.tenantIdentityLink :global(.person) {
+  min-width: 255px;
+  gap: 12px;
+}
+
+.directoryPanel :global(.person-avatar) {
+  width: 37px;
+  height: 37px;
+  border: 1px solid rgb(50 103 214 / 9%);
+  border-radius: 11px;
+  font-size: 11px;
+}
+
+.directoryPanel :global(.person strong) {
+  font-size: 11px;
+  font-weight: 650;
+  transition: color 140ms ease;
+}
+
+.directoryPanel :global(.person span) {
+  max-width: 310px;
+  margin-top: 4px;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.identityArrow {
+  flex: 0 0 auto;
+  margin-left: auto;
+  color: var(--muted);
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: opacity 140ms ease, transform 140ms ease, color 140ms ease;
+}
+
+.tenantIdentityLink:hover :global(.person strong),
+.tenantIdentityLink:focus-visible :global(.person strong) {
+  color: var(--blue);
+}
+
+.tenantIdentityLink:hover .identityArrow,
+.tenantIdentityLink:focus-visible .identityArrow {
+  color: var(--blue);
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.directoryPanel :global(.status) {
+  padding: 5px 9px;
+  border-radius: 20px;
+  font-size: 9px;
+  font-weight: 650;
+  text-transform: capitalize;
+}
+
+.directoryPanel :global(.status.paid) {
+  color: #218454;
+  background: rgb(47 154 103 / 10%);
+}
+
+.directoryPanel :global(.status.pending) {
+  color: #a96616;
+  background: rgb(217 129 40 / 12%);
+}
+
+.directoryPanel :global(.status.neutral) {
+  color: var(--muted);
+  background: color-mix(in srgb, var(--line) 48%, transparent);
+}
+
+.directoryPanel :global(.icon-button.subtle) {
+  width: 31px;
+  height: 31px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  transition: color 120ms ease, border-color 120ms ease, background 120ms ease;
+}
+
+.directoryPanel :global(.icon-button.subtle:hover) {
+  border-color: var(--line);
+  background: var(--card);
+}
+
+.tenantPage :global(.modal-backdrop) {
+  z-index: 80;
+  padding: 18px;
+  background: rgb(9 18 34 / 54%);
+  backdrop-filter: blur(5px);
+}
+
+.tenantPage :global(.toast) {
+  z-index: 100;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 14px 36px rgb(7 17 31 / 15%);
+}
+
+.retryButton {
+  min-height: 36px;
+  padding: 0 13px !important;
+  border-radius: 9px !important;
+  font-size: 11px !important;
+  font-weight: 650 !important;
+  transition:
+    color 140ms ease,
+    background 140ms ease,
+    border-color 140ms ease,
+    box-shadow 140ms ease,
+    transform 140ms ease !important;
+}
+
+.retryButton:hover {
+  border-color: color-mix(in srgb, var(--blue) 30%, var(--line)) !important;
+  color: var(--blue) !important;
+  background: var(--blue-soft) !important;
+}
+
+:global(.app.dark) .pageHeading {
+  border-color: rgb(124 179 255 / 18%);
+  background:
+    radial-gradient(ellipse at 80% 5%, rgb(96 165 250 / 19%), transparent 39%),
+    radial-gradient(ellipse at 100% 100%, rgb(34 211 238 / 9%), transparent 35%),
+    linear-gradient(115deg, #0b1629 0%, #102442 58%, #153257 100%);
+}
+
+:global(.app.dark) .addButton {
+  border-color: rgb(124 179 255 / 35%) !important;
+  color: #07111f !important;
+  background: #a9ceff !important;
+}
+
+:global(.app.dark) .addButton:hover {
+  background: #c3ddff !important;
+}
+
+:global(.app.dark) .metricsGrid :global(.metric-icon.green) {
+  background: rgb(47 154 103 / 16%);
+}
+
+:global(.app.dark) .metricsGrid :global(.metric-icon.orange) {
+  background: rgb(217 129 40 / 16%);
+}
+
+:global(.app.dark) .metricsGrid :global(.metric-icon.red) {
+  background: rgb(217 87 87 / 16%);
+}
+
+@media (max-width: 900px) {
+  .pageHeading {
+    padding: 24px;
+  }
+
+  .metricsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .tenantPage :global(.content) {
+    padding: 20px 15px 18px;
+  }
+
+  .pageHeading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 18px;
+    min-height: 0;
+    padding: 22px 19px;
+    border-radius: 14px;
+  }
+
+  .pageHeading :global(.subheading) {
+    font-size: 12px;
+  }
+
+  .addButton {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .metricsGrid {
+    gap: 9px;
+  }
+
+  .metricsGrid :global(.metric-card) {
+    min-height: 103px;
+    gap: 9px;
+    padding: 12px;
+    border-radius: 12px;
+  }
+
+  .metricsGrid :global(.metric-icon) {
+    width: 34px;
+    height: 34px;
+  }
+
+  .metricsGrid :global(.metric-copy > span) {
+    font-size: 10px;
+  }
+
+  .metricsGrid :global(.metric-copy > strong) {
+    font-size: 21px;
+  }
+
+  .metricsGrid :global(.metric-copy > small) {
+    font-size: 9px;
+  }
+
+  .directoryPanel {
+    padding: 17px 14px;
+    border-radius: 14px;
+  }
+
+  .directoryPanel :global(.panel-heading) {
+    align-items: flex-start;
+  }
+
+  .directoryPanel :global(.table-wrap) {
+    margin-right: -14px;
+    margin-left: -14px;
+  }
+
+  .directoryPanel th:first-child,
+  .directoryPanel td:first-child {
+    padding-left: 14px;
+  }
+
+  .directoryPanel th:last-child,
+  .directoryPanel td:last-child {
+    padding-right: 14px;
+  }
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .addButton,
+  .metricsGrid :global(.metric-card),
+  .directoryPanel tbody tr {
+    transition: none;
+  }
+
+  .addButton:hover,
+  .metricsGrid :global(.metric-card:hover) {
+    transform: none;
+  }
+}

@@ -68,6 +68,10 @@ export type RefreshTokenResponse = AuthMessageResponse & {
   user: AuthUser;
 };
 
+export type TenantMembershipSelectionResponse = AuthMessageResponse & {
+  accessToken: string;
+};
+
 const saveTokens = (accessToken: string, refreshToken?: string) => {
   if (typeof window === "undefined") return;
 
@@ -92,7 +96,26 @@ export async function loginUser(input: LoginInput) {
     body: JSON.stringify(input),
   });
 
+  if (typeof window !== "undefined") {
+    localStorage.removeItem("activeMembershipId");
+  }
   saveTokens(response.accessToken, response.refreshToken);
+  return response;
+}
+
+export async function selectTenantMembership(membershipId: string) {
+  const response = await apiFetch<TenantMembershipSelectionResponse>(
+    `${AUTH_ENDPOINT}/select-tenant-membership`,
+    {
+      method: "POST",
+      body: JSON.stringify({ membershipId }),
+    },
+  );
+
+  if (typeof window !== "undefined") {
+    localStorage.setItem("token", response.accessToken);
+    localStorage.setItem("activeMembershipId", membershipId);
+  }
   return response;
 }
 
@@ -139,12 +162,19 @@ export async function refreshAuthToken(refreshToken?: string) {
     throw new Error("Refresh token is required.");
   }
 
+  const activeMembershipId =
+    typeof window !== "undefined"
+      ? localStorage.getItem("activeMembershipId")
+      : null;
   const response = await apiFetch<RefreshTokenResponse>(
     `${AUTH_ENDPOINT}/refresh-token`,
     {
       method: "POST",
       auth: false,
-      body: JSON.stringify({ refreshToken: storedRefreshToken }),
+      body: JSON.stringify({
+        refreshToken: storedRefreshToken,
+        ...(activeMembershipId ? { membershipId: activeMembershipId } : {}),
+      }),
     },
   );
 
@@ -167,6 +197,7 @@ export async function logoutUser() {
     if (typeof window !== "undefined") {
       localStorage.removeItem("token");
       localStorage.removeItem("refreshToken");
+      localStorage.removeItem("activeMembershipId");
     }
   }
 }
