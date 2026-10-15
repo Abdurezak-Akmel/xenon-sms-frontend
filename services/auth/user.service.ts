@@ -14,6 +14,7 @@ export type UserStatus =
 
 export type User = {
   id: string;
+  globalRoleId: string | null;
   email: string;
   firstName: string;
   middleName: string | null;
@@ -48,6 +49,7 @@ export type CreateUserInput = {
 };
 
 export type UpdateUserInput = Partial<Omit<CreateUserInput, "password">> & {
+  globalRoleId?: string | null;
   status?: UserStatus;
 };
 

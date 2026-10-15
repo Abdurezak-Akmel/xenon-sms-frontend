@@ -69,6 +69,15 @@
     border-color 180ms ease;
 }
 
+.sidebarCollapsed :global(.workspace) {
+  margin-left: 78px;
+}
+
+.sidebarCollapsed :global(.topbar),
+.sidebarCollapsed .navbar {
+  left: 78px;
+}
+
 .logoutError {
   border-color: color-mix(in srgb, var(--red) 40%, var(--line)) !important;
   color: var(--red) !important;
@@ -92,8 +101,17 @@
     margin-left: 220px;
   }
 
+  .sidebarCollapsed :global(.workspace) {
+    margin-left: 78px;
+  }
+
   .shell :global(.topbar) {
     left: 220px;
+  }
+
+  .sidebarCollapsed :global(.topbar),
+  .sidebarCollapsed .navbar {
+    left: 78px;
   }
 
   .navbar {
@@ -114,7 +132,16 @@
     margin-left: 0;
   }
 
+  .sidebarCollapsed :global(.workspace) {
+    margin-left: 0;
+  }
+
   .shell :global(.topbar) {
+    left: 0;
+  }
+
+  .sidebarCollapsed :global(.topbar),
+  .sidebarCollapsed .navbar {
     left: 0;
   }
 

@@ -21,6 +21,7 @@ import {
   MessageSquare,
   Package,
   PanelLeftClose,
+  PanelLeftOpen,
   Plus,
   Settings,
   ShieldCheck,
@@ -141,45 +142,30 @@ export function Sidebar({
           <button
             type="button"
             className="collapse-button"
-            onClick={onToggleOpen}
-            aria-label="Toggle sidebar"
+            onClick={() => {
+              setSchoolMenuOpen(false);
+              onToggleOpen();
+            }}
+            aria-label={isOpen ? "Collapse sidebar" : "Expand sidebar"}
+            aria-expanded={isOpen}
+            title={isOpen ? "Collapse sidebar" : "Expand sidebar"}
           >
-            <PanelLeftClose size={17} />
+            {isOpen ? (
+              <PanelLeftClose size={17} />
+            ) : (
+              <PanelLeftOpen size={17} />
+            )}
           </button>
         )}
       </div>
 
-      <button
-        type="button"
-        className="school-switcher"
-        onClick={() => setSchoolMenuOpen(!schoolMenuOpen)}
-        aria-expanded={schoolMenuOpen}
-      >
-        <div className="school-avatar">
-          {currentSchool
-            .split(" ")
-            .map((s) => s[0])
-            .slice(0, 2)
-            .join("")
-            .toUpperCase()}
-        </div>
-        {isOpen && (
-          <>
-            <div className="school-meta">
-              <strong>{currentSchool}</strong>
-              <span>Current school</span>
-            </div>
-            <ChevronDown size={16} />
-          </>
-        )}
-      </button>
-
-      {schoolMenuOpen && isOpen && (
-        <div className="school-menu">
+      {schoolMenuOpen && (
+        <div className="school-menu" role="menu">
           {schools.map((school) => (
             <button
               key={school.id}
               type="button"
+              role="menuitem"
               onClick={() => {
                 onSelectSchool?.(school.name);
                 setSchoolMenuOpen(false);
@@ -192,6 +178,7 @@ export function Sidebar({
           <button
             type="button"
             className="text-(--blue) font-medium"
+            role="menuitem"
             onClick={() => setSchoolMenuOpen(false)}
           >
             <span>Add another school</span>
@@ -217,28 +204,26 @@ export function Sidebar({
                 </>
               );
 
-              return (
-                item.href ? (
-                  <Link
-                    key={item.label}
-                    href={item.href}
-                    className={cn("nav-item", isActive && "active")}
-                    onClick={() => onSelectItem?.(item.label)}
-                    title={item.label}
-                  >
-                    {itemContent}
-                  </Link>
-                ) : (
-                  <button
-                    key={item.label}
-                    type="button"
-                    className={cn("nav-item", isActive && "active")}
-                    onClick={() => onSelectItem?.(item.label)}
-                    title={item.label}
-                  >
-                    {itemContent}
-                  </button>
-                )
+              return item.href ? (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  className={cn("nav-item", isActive && "active")}
+                  onClick={() => onSelectItem?.(item.label)}
+                  title={item.label}
+                >
+                  {itemContent}
+                </Link>
+              ) : (
+                <button
+                  key={item.label}
+                  type="button"
+                  className={cn("nav-item", isActive && "active")}
+                  onClick={() => onSelectItem?.(item.label)}
+                  title={item.label}
+                >
+                  {itemContent}
+                </button>
               );
             })}
           </div>

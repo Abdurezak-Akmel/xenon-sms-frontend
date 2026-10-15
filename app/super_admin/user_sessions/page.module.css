@@ -1,0 +1,438 @@
+.sessionPage {
+  --session-accent: #3267d6;
+  min-height: 100%;
+  background:
+    radial-gradient(ellipse at 8% 0%, rgb(50 103 214 / 5%), transparent 32rem),
+    var(--background);
+}
+
+.sessionPage :global(.content) {
+  padding-top: 30px;
+}
+
+.pageHeading {
+  position: relative;
+  min-height: 196px;
+  overflow: hidden;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 28px 30px;
+  border: 1px solid rgb(124 179 255 / 20%);
+  border-radius: 22px;
+  color: #fff;
+  background:
+    radial-gradient(ellipse at 80% 5%, rgb(96 165 250 / 30%), transparent 39%),
+    radial-gradient(ellipse at 100% 100%, rgb(34 211 238 / 12%), transparent 35%),
+    linear-gradient(115deg, #0f1d35 0%, #172c4d 58%, #1c3c67 100%);
+  box-shadow: 0 18px 44px rgb(15 41 77 / 16%);
+}
+
+.pageHeading::before,
+.pageHeading::after {
+  position: absolute;
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 50%;
+  content: "";
+  pointer-events: none;
+}
+
+.pageHeading::before {
+  top: -116px;
+  right: 13%;
+  width: 280px;
+  height: 280px;
+}
+
+.pageHeading::after {
+  right: -62px;
+  bottom: -184px;
+  width: 320px;
+  height: 320px;
+  border-color: rgb(124 179 255 / 20%);
+}
+
+.pageHeading > div,
+.pageHeading > button,
+.pageHeading > .headerActions {
+  position: relative;
+  z-index: 1;
+}
+
+.pageHeading h1 {
+  color: #fff;
+  font-size: clamp(25px, 2.4vw, 32px);
+  font-weight: 650;
+  letter-spacing: -1px;
+}
+
+.pageHeading :global(.subheading) {
+  max-width: 540px;
+  color: rgb(226 235 249 / 76%);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.pageEyebrow {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #a8c8f7 !important;
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.headerNote {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 12px 0 0;
+  color: rgb(201 221 246 / 82%);
+  font-size: 11px;
+}
+
+.headerNote svg {
+  color: #83d4ad;
+}
+
+.headerActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+
+.refreshButton,
+.revokeAllButton {
+  min-height: 40px;
+  padding-inline: 14px;
+  border-radius: 10px !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+}
+
+.refreshButton {
+  border-color: rgb(255 255 255 / 24%) !important;
+  color: #fff !important;
+  background: rgb(255 255 255 / 8%) !important;
+}
+
+.refreshButton:hover:not(:disabled) {
+  background: rgb(255 255 255 / 16%) !important;
+}
+
+.revokeAllButton {
+  border: 1px solid rgb(255 255 255 / 28%) !important;
+  color: #8e2630 !important;
+  background: #fff !important;
+  box-shadow: 0 8px 20px rgb(3 15 34 / 18%);
+}
+
+.revokeAllButton:hover:not(:disabled) {
+  color: #7f1d26 !important;
+  background: #fff1f2 !important;
+}
+
+.metricsGrid {
+  gap: 12px;
+  margin-bottom: 18px !important;
+}
+
+.metricsGrid :global(.metric-card) {
+  min-height: 116px;
+  align-items: center;
+  padding: 19px;
+  border-radius: 14px;
+  box-shadow: 0 5px 18px rgb(35 61 98 / 3%);
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.metricsGrid :global(.metric-card:hover) {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 25px rgb(35 61 98 / 8%);
+}
+
+.metricsGrid :global(.metric-icon) {
+  width: 41px;
+  height: 41px;
+  border-radius: 12px;
+}
+
+.metricsGrid :global(.metric-copy > span) {
+  font-size: 11px;
+  font-weight: 550;
+}
+
+.metricsGrid :global(.metric-copy > strong) {
+  margin: 5px 0 3px;
+  font-size: 25px;
+  letter-spacing: -.8px;
+}
+
+.sessionsPanel {
+  overflow: hidden;
+  padding: 22px;
+  border-radius: 16px;
+  box-shadow: 0 8px 26px rgb(35 61 98 / 4%);
+}
+
+.sessionsPanel :global(.panel-heading) {
+  align-items: center;
+  margin-bottom: 18px !important;
+}
+
+.sessionsPanel :global(.panel-heading h2) {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--foreground);
+  font-size: 14px;
+  font-weight: 650;
+  letter-spacing: -.2px;
+}
+
+.sessionsPanel :global(.panel-heading p) {
+  margin-top: 6px;
+  font-size: 11px;
+}
+
+.sessionsPanel :global(.panel-heading > span) {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 550;
+}
+
+.directoryCount {
+  display: inline-flex;
+  min-width: 25px;
+  height: 23px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 7px;
+  border: 1px solid color-mix(in srgb, var(--blue) 13%, var(--line));
+  border-radius: 7px;
+  color: var(--blue);
+  background: var(--blue-soft);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.bulkActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: -2px 0 16px;
+  padding: 11px 13px;
+  border: 1px solid color-mix(in srgb, var(--red) 18%, var(--line));
+  border-radius: 11px;
+  background: color-mix(in srgb, var(--red) 4%, var(--card));
+}
+
+.bulkActions > span {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.bulkActions button {
+  flex-shrink: 0;
+  font-size: 11px;
+}
+
+.filters {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.searchControl,
+.filterControl {
+  position: relative;
+  display: flex;
+  min-height: 42px;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--background);
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.searchControl {
+  flex: 1;
+}
+
+.searchControl svg {
+  position: absolute;
+  left: 13px;
+  color: var(--muted);
+  pointer-events: none;
+}
+
+.searchControl input,
+.filterControl select {
+  width: 100%;
+  min-height: 40px;
+  border: 0;
+  outline: 0;
+  color: var(--foreground);
+  background: transparent;
+  font-size: 12px;
+}
+
+.searchControl input {
+  padding: 0 12px 0 39px;
+}
+
+.searchControl input::placeholder {
+  color: var(--muted);
+}
+
+.filterControl {
+  width: 170px;
+  padding: 0 10px;
+}
+
+.filterControl:focus-within,
+.searchControl:focus-within {
+  border-color: color-mix(in srgb, var(--blue) 60%, var(--line));
+  box-shadow: 0 0 0 4px rgb(50 103 214 / 9%);
+}
+
+.filterControl select {
+  cursor: pointer;
+}
+
+.sessionsPanel :global(.table-wrap) {
+  overflow-x: auto;
+  margin: 0 -22px -22px;
+  border-top: 1px solid var(--line);
+  border-right: 0;
+  border-bottom: 0;
+  border-left: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.sessionsPanel table {
+  width: 100%;
+  min-width: 780px;
+  border-collapse: separate;
+  border-spacing: 0;
+  text-align: left;
+}
+
+.sessionsPanel thead {
+  background: color-mix(in srgb, var(--background) 75%, var(--card));
+}
+
+.sessionsPanel th {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.sessionsPanel td {
+  padding: 14px 16px;
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 75%, transparent);
+  color: var(--foreground);
+  font-size: 11px;
+  vertical-align: middle;
+}
+
+.sessionsPanel tbody tr {
+  transition: background 120ms ease;
+}
+
+.sessionsPanel tbody tr:hover {
+  background: color-mix(in srgb, var(--blue-soft) 42%, transparent);
+}
+
+.sessionsPanel tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.errorNotice,
+.successNotice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  border: 1px solid;
+  border-radius: 11px;
+  font-size: 12px;
+}
+
+.errorNotice {
+  border-color: rgb(217 87 87 / 25%);
+  color: var(--red);
+  background: rgb(217 87 87 / 5%);
+}
+
+.successNotice {
+  border-color: rgb(47 154 103 / 25%);
+  color: var(--green);
+  background: rgb(47 154 103 / 5%);
+}
+
+@media (max-width: 760px) {
+  .sessionPage :global(.content) {
+    padding: 22px 18px;
+  }
+
+  .pageHeading {
+    min-height: 0;
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 24px 22px;
+  }
+
+  .headerActions {
+    width: 100%;
+  }
+
+  .headerActions button {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .filters {
+    flex-direction: column;
+  }
+
+  .bulkActions {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .filterControl {
+    width: 100%;
+  }
+
+  .sessionsPanel {
+    padding: 18px;
+  }
+
+  .sessionsPanel :global(.table-wrap) {
+    margin: 0 -18px -18px;
+  }
+}
+
+@media (max-width: 420px) {
+  .sessionPage :global(.content) {
+    padding-inline: 13px;
+  }
+
+  .headerActions {
+    flex-direction: column;
+  }
+
+  .headerActions button {
+    width: 100%;
+  }
+}

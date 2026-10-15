@@ -45,8 +45,7 @@ import { listTenants } from "../../../services/tenancy/tenant.service";
 
 import type { Tenant } from "../../../services/tenancy/tenant.service";
 
-import { listUsers } from "../../../services/auth/user.service";
-
+import { listUsers, updateUser } from "../../../services/auth/user.service";
 import type { User } from "../../../services/auth/user.service";
 
 import styles from "./page.module.css";
@@ -106,6 +105,7 @@ export default function TenantMembershipCrudPage() {
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [branches, setBranches] = useState<Branch[]>([]);
   const [roles, setRoles] = useState<TenantMembershipRole[]>([]);
+  const [guestRoleId, setGuestRoleId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -143,11 +143,21 @@ export default function TenantMembershipCrudPage() {
           listBranches({ tenantId: tenant.id }),
         ),
       );
+      const superAdminRoleId = roleResult.roles.find(
+        (role) => role.code === "super-admin" || role.code === "superadmin",
+      )?.id;
       setMemberships(membershipResult.memberships);
-      setUsers(userResult.users);
+      setUsers(
+        userResult.users.filter(
+          (user) => user.globalRoleId !== superAdminRoleId,
+        ),
+      );
       setTenants(tenantResult.tenants);
       setBranches(branchResults.flatMap((result) => result.branches));
       setRoles(roleResult.roles.filter((role) => role.scope !== "platform"));
+      setGuestRoleId(
+        roleResult.roles.find((role) => role.code === "guest")?.id ?? null,
+      );
     } catch (error) {
       setLoadError(
         error instanceof Error
@@ -307,6 +317,20 @@ export default function TenantMembershipCrudPage() {
         await updateTenantMembership(editingId, changes);
         showNotice("Membership updated.");
       } else {
+        const selectedUser = users.find((user) => user.id === input.userId);
+        if (
+          selectedUser?.globalRoleId &&
+          selectedUser.globalRoleId === guestRoleId
+        ) {
+          await updateUser(selectedUser.id, { globalRoleId: null });
+          setUsers((current) =>
+            current.map((user) =>
+              user.id === selectedUser.id
+                ? { ...user, globalRoleId: null }
+                : user,
+            ),
+          );
+        }
         await createTenantMembership(input);
         showNotice("Membership added.");
       }

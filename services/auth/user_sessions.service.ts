@@ -26,6 +26,11 @@ export type RevokeAllUserSessionsResponse = {
   revokedCount: number;
 };
 
+export type DeleteRevokedUserSessionsResponse = {
+  message: string;
+  deletedCount: number;
+};
+
 export async function listUserSessions() {
   return apiFetch<UserSessionsResponse>(USER_SESSIONS_ENDPOINT);
 }
@@ -47,5 +52,19 @@ export async function revokeAllUserSessions() {
   return apiFetch<RevokeAllUserSessionsResponse>(
     `${USER_SESSIONS_ENDPOINT}/revoke-all`,
     { method: "POST" },
+  );
+}
+
+export async function deleteRevokedUserSession(sessionId: string) {
+  return apiFetch<DeleteRevokedUserSessionsResponse>(
+    `${USER_SESSIONS_ENDPOINT}/${encodeURIComponent(sessionId)}/permanent`,
+    { method: "DELETE" },
+  );
+}
+
+export async function deleteAllRevokedUserSessions() {
+  return apiFetch<DeleteRevokedUserSessionsResponse>(
+    `${USER_SESSIONS_ENDPOINT}/revoked`,
+    { method: "DELETE" },
   );
 }

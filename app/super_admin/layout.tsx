@@ -8,6 +8,7 @@ import {
   CircleUserRound,
   LayoutDashboard,
   LogOut,
+  MonitorSmartphone,
   Users,
   X,
 } from "lucide-react";
@@ -47,6 +48,11 @@ const navGroups: NavGroupDef[] = [
         href: "/super_admin/tenant_membership",
       },
       {
+        label: "User sessions",
+        icon: MonitorSmartphone,
+        href: "/super_admin/user_sessions",
+      },
+      {
         label: "Profile",
         icon: CircleUserRound,
         href: "/super_admin/profile",
@@ -59,6 +65,7 @@ const sectionByPath: Record<string, string> = {
   "/super_admin": "Dashboard",
   "/super_admin/tenants": "Schools",
   "/super_admin/tenant_membership": "Memberships",
+  "/super_admin/user_sessions": "User sessions",
   "/super_admin/profile": "Profile",
 };
 
@@ -72,6 +79,11 @@ const quickNavigationItems: QuickNavigationItem[] = [
     href: "/super_admin/tenant_membership",
     label: "Memberships",
     icon: Users,
+  },
+  {
+    href: "/super_admin/user_sessions",
+    label: "User sessions",
+    icon: MonitorSmartphone,
   },
   {
     href: "/super_admin/profile",
@@ -185,9 +197,12 @@ export default function SuperAdminLayout({
   ];
 
   return (
-    <div className={`app ${isDark ? "dark" : ""} ${styles.shell}`}>
+    <div
+      className={`app ${isDark ? "dark" : ""} ${styles.shell} ${sidebarOpen ? "" : styles.sidebarCollapsed}`}
+    >
       <Sidebar
         isOpen={sidebarOpen}
+        onToggleOpen={() => setSidebarOpen((open) => !open)}
         activeItem={activeSection}
         onSelectItem={handleSectionSelect}
         currentSchool="Xenon"

@@ -14,15 +14,17 @@ export function TenantStatsCards({
   stats,
   loading,
   className,
+  ariaLabel = "School workspace summary",
 }: {
   stats: TenantStat[];
   loading: boolean;
   className?: string;
+  ariaLabel?: string;
 }) {
   return (
     <section
       className={`metrics-grid mb-4 ${className ?? ""}`}
-      aria-label="School workspace summary"
+      aria-label={ariaLabel}
     >
       {stats.map(
         ({
