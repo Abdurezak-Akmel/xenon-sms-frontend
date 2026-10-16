@@ -14,6 +14,7 @@ import {
   X,
 } from "lucide-react";
 
+// Components from UI
 import { Button } from "@/components/ui/Button";
 import { ConfirmModal } from "@/components/ui/Modal";
 import {
@@ -25,6 +26,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/Table";
+import { Footer } from "@/components/ui/footer";
+
+// Components from tenants page
+import { TenantPageHeader } from "@/components/tenants/TenantPageHeader";
+import {
+  TenantStatsCards,
+  type TenantStat,
+} from "@/components/tenants/TenantStatsCards";
+
+// User_session's Service Functions
 import {
   deleteAllRevokedUserSessions,
   deleteRevokedUserSession,
@@ -33,13 +44,8 @@ import {
   revokeUserSession,
   type UserSession,
 } from "@/services/auth/user_sessions.service";
-import { TenantPageHeader } from "@/components/tenants/TenantPageHeader";
-import {
-  TenantStatsCards,
-  type TenantStat,
-} from "@/components/tenants/TenantStatsCards";
-import { Footer } from "@/components/ui/footer";
 
+// Stylesheet
 import styles from "./page.module.css";
 
 type SessionFilter = "all" | "active" | "expired" | "revoked";
@@ -126,6 +132,7 @@ export default function UserSessionsPage() {
             session.ipAddress ?? "",
             session.userAgent ?? "",
             session.id,
+            session.userId,
           ].some((value) => value.toLowerCase().includes(normalizedQuery));
         return matchesFilter && matchesQuery;
       })
@@ -139,7 +146,7 @@ export default function UserSessionsPage() {
     {
       label: "Total sessions",
       value: sessions.length,
-      helper: "Across your account",
+      helper: "Across all users",
       tone: "blue",
       icon: MonitorSmartphone,
     },
@@ -191,7 +198,9 @@ export default function UserSessionsPage() {
           `${response.revokedCount} active session${response.revokedCount === 1 ? "" : "s"} revoked.`,
         );
       } else if (confirmTarget.type === "delete") {
-        const response = await deleteRevokedUserSession(confirmTarget.session.id);
+        const response = await deleteRevokedUserSession(
+          confirmTarget.session.id,
+        );
         setSessions((current) =>
           current.filter((session) => session.id !== confirmTarget.session.id),
         );
@@ -219,9 +228,9 @@ export default function UserSessionsPage() {
     confirmTarget?.type === "delete" || confirmTarget?.type === "deleteAll";
   const confirmDescription =
     confirmTarget?.type === "revokeAll"
-      ? "All active sessions for your account will be revoked. You may need to sign in again on your devices."
+      ? "All active sessions across all user accounts will be revoked. Users may need to sign in again on their devices."
       : confirmTarget?.type === "deleteAll"
-        ? "All revoked sessions for your account will be permanently deleted. This cannot be undone."
+        ? "All revoked sessions across all user accounts will be permanently deleted. This cannot be undone."
         : confirmTarget?.type === "delete"
           ? "This revoked session will be permanently deleted. This cannot be undone."
           : "This session will be revoked. The device using it may need to sign in again.";
@@ -234,7 +243,7 @@ export default function UserSessionsPage() {
           icon={ShieldCheck}
           eyebrow="Platform administration / Security"
           title="User sessions"
-          subtitle="Review devices signed in to your super-admin account and revoke sessions you no longer recognize."
+          subtitle="Review signed-in devices across all user accounts and revoke sessions you no longer recognize."
           action={
             <div className={styles.headerActions}>
               <Button
@@ -262,8 +271,7 @@ export default function UserSessionsPage() {
           details={
             <p className={styles.headerNote}>
               <CheckCircle2 size={14} />
-              Sessions are scoped to your account and can be revoked at any
-              time.
+              Platform-wide sessions can be revoked at any time.
             </p>
           }
         />
@@ -279,7 +287,9 @@ export default function UserSessionsPage() {
           <div
             role={loadError || actionError ? "alert" : "status"}
             className={
-              loadError || actionError ? styles.errorNotice : styles.successNotice
+              loadError || actionError
+                ? styles.errorNotice
+                : styles.successNotice
             }
           >
             <span>{loadError ?? actionError ?? notice}</span>
@@ -308,9 +318,7 @@ export default function UserSessionsPage() {
                   {loading ? "…" : sessions.length}
                 </span>
               </h2>
-              <p>
-                Session details for devices accessing your super-admin account.
-              </p>
+              <p>Session details for devices accessing any user account.</p>
             </div>
             <span>
               {filteredSessions.length} of {sessions.length} shown
@@ -381,7 +389,7 @@ export default function UserSessionsPage() {
                 <TableEmpty
                   colSpan={6}
                   title="Loading sessions"
-                  description="Fetching devices signed in to your account."
+                  description="Fetching devices signed in across all user accounts."
                 />
               ) : loadError ? (
                 <TableEmpty
@@ -400,7 +408,7 @@ export default function UserSessionsPage() {
                   description={
                     sessions.length
                       ? "Try changing your search or status filter."
-                      : "There are no sessions associated with your account."
+                      : "There are no sessions associated with any user account."
                   }
                 />
               ) : (
@@ -419,10 +427,15 @@ export default function UserSessionsPage() {
                             <p
                               className="mt-1 max-w-sm break-all text-[11px] leading-4 text-(--muted)"
                               title={
-                                session.userAgent ?? "Device details unavailable"
+                                session.userAgent ??
+                                "Device details unavailable"
                               }
                             >
-                              {session.userAgent ?? "Device details unavailable"}
+                              {session.userAgent ??
+                                "Device details unavailable"}
+                            </p>
+                            <p className="mt-1 max-w-48 truncate font-mono text-[10px] text-(--muted)">
+                              User ID: {session.userId}
                             </p>
                             <p
                               className="mt-1 max-w-48 truncate font-mono text-[10px] text-(--muted)"

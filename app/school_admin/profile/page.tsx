@@ -9,6 +9,7 @@ import {
   updateUserAvatar,
 } from "@/services/auth/user.service";
 import {
+  beginMfaDisable,
   beginMfaSetup,
   disableMfa,
   enableMfa,
@@ -146,7 +147,23 @@ export default function SuperAdminProfilePage() {
       setMfaError(
         setupError instanceof Error
           ? setupError.message
-          : "Unable to start authenticator setup.",
+          : "Unable to send an MFA verification code.",
+      );
+    } finally {
+      setMfaBusy(false);
+    }
+  };
+
+  const startMfaDisable = async () => {
+    setMfaBusy(true);
+    setMfaError(null);
+    try {
+      await beginMfaDisable();
+    } catch (setupError) {
+      setMfaError(
+        setupError instanceof Error
+          ? setupError.message
+          : "Unable to send an MFA verification code.",
       );
     } finally {
       setMfaBusy(false);
@@ -200,6 +217,7 @@ export default function SuperAdminProfilePage() {
           onSave={saveProfile}
           onAvatarUpload={(file) => void uploadAvatar(file)}
           onBeginMfaSetup={startMfaSetup}
+          onBeginMfaDisable={startMfaDisable}
           onEnableMfa={(code) => confirmMfa(code, "enable")}
           onDisableMfa={(code) => confirmMfa(code, "disable")}
           onCancel={() => {

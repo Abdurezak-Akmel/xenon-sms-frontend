@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/Button";
 export function TenantPageHeader({
   onCreate,
   styles,
-  title = "Schools & tenants",
+  title = "Schools",
   subtitle = "Manage school workspaces, organization details, and regional settings from one place.",
   eyebrow = "Platform administration / Schools",
   icon: Icon = Globe2,

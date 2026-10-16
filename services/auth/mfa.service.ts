@@ -5,12 +5,16 @@ const MFA_ENDPOINT = "/auth/mfa";
 
 export type MfaSetupResponse = {
   message: string;
-  secret: string;
-  provisioningUri: string;
 };
 
 export function beginMfaSetup() {
   return apiFetch<MfaSetupResponse>(`${MFA_ENDPOINT}/setup`, {
+    method: "POST",
+  });
+}
+
+export function beginMfaDisable() {
+  return apiFetch<{ message: string }>(`${MFA_ENDPOINT}/disable/setup`, {
     method: "POST",
   });
 }

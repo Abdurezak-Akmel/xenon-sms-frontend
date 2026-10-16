@@ -6,7 +6,6 @@ import {
   AlertCircle,
   ArrowRight,
   CheckCircle2,
-  KeyRound,
   Lock,
   Mail,
   ShieldAlert,
@@ -140,7 +139,7 @@ export function LoginForm({
         </CardTitle>
         <CardDescription>
           {mfaStep
-            ? "MFA is required for administrator level accounts. Enter your authenticator code."
+            ? "Enter the six-digit verification code sent to your email address."
             : "Select your role and enter credentials to access your dedicated workspace."}
         </CardDescription>
       </CardHeader>
@@ -226,13 +225,15 @@ export function LoginForm({
               <div className="rounded-lg border border-(--blue)/30 bg-(--blue-soft) p-3 text-xs text-(--blue) flex items-start gap-2">
                 <ShieldAlert className="size-4 shrink-0 mt-0.5" />
                 <div>
-                  <strong>Admin Security Policy:</strong>
-                  <p className="mt-0.5 opacity-80">Use <strong>123456</strong> for testing this demo verification.</p>
+                  <strong>Email verification:</strong>
+                  <p className="mt-0.5 opacity-80">
+                    Check your inbox for a one-time sign-in code.
+                  </p>
                 </div>
               </div>
 
               <Input
-                label="6-Digit Authenticator Token"
+                label="6-Digit Email Verification Code"
                 type="text"
                 autoFocus
                 maxLength={6}
@@ -240,7 +241,7 @@ export function LoginForm({
                 value={mfaCode}
                 onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, ""))}
                 placeholder="123456"
-                startIcon={<KeyRound className="size-4" />}
+                startIcon={<Mail className="size-4" />}
               />
 
               <button

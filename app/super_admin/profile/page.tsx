@@ -2,6 +2,13 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+// Profile Components
+import type { UserProfileData } from "@/components/profile/ProfileCard";
+import { ProfilePageFeedback } from "@/components/profile/ProfilePageFeedback";
+import { ProfilePageHeader } from "@/components/profile/ProfilePageHeader";
+import { ProfileWorkspace } from "@/components/profile/ProfileWorkspace";
+
+// Auth Service Functions
 import {
   type User,
   getCurrentUser,
@@ -9,16 +16,14 @@ import {
   updateUserAvatar,
 } from "@/services/auth/user.service";
 import {
+  beginMfaDisable,
   beginMfaSetup,
   disableMfa,
   enableMfa,
   type MfaSetupResponse,
 } from "@/services/auth/mfa.service";
-import type { UserProfileData } from "@/components/profile/ProfileCard";
-import { ProfilePageFeedback } from "@/components/profile/ProfilePageFeedback";
-import { ProfilePageHeader } from "@/components/profile/ProfilePageHeader";
-import { ProfileWorkspace } from "@/components/profile/ProfileWorkspace";
 
+// Style-sheet
 import styles from "./page.module.css";
 
 function displayRole(user: User) {
@@ -146,7 +151,23 @@ export default function SuperAdminProfilePage() {
       setMfaError(
         setupError instanceof Error
           ? setupError.message
-          : "Unable to start authenticator setup.",
+          : "Unable to send an MFA verification code.",
+      );
+    } finally {
+      setMfaBusy(false);
+    }
+  };
+
+  const startMfaDisable = async () => {
+    setMfaBusy(true);
+    setMfaError(null);
+    try {
+      await beginMfaDisable();
+    } catch (setupError) {
+      setMfaError(
+        setupError instanceof Error
+          ? setupError.message
+          : "Unable to send an MFA verification code.",
       );
     } finally {
       setMfaBusy(false);
@@ -180,7 +201,10 @@ export default function SuperAdminProfilePage() {
         <ProfilePageFeedback message="Loading your profile…" loading />
       )}
       {!loading && error && !profile && (
-        <ProfilePageFeedback message={error} onRetry={() => void loadProfile()} />
+        <ProfilePageFeedback
+          message={error}
+          onRetry={() => void loadProfile()}
+        />
       )}
       {!loading && profile && user && (
         <ProfileWorkspace
@@ -200,6 +224,7 @@ export default function SuperAdminProfilePage() {
           onSave={saveProfile}
           onAvatarUpload={(file) => void uploadAvatar(file)}
           onBeginMfaSetup={startMfaSetup}
+          onBeginMfaDisable={startMfaDisable}
           onEnableMfa={(code) => confirmMfa(code, "enable")}
           onDisableMfa={(code) => confirmMfa(code, "disable")}
           onCancel={() => {

@@ -329,6 +329,27 @@
   line-height: 1.5;
 }
 
+.mfaStatus {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 4px 8px;
+  color: var(--muted);
+  background: color-mix(in srgb, var(--muted) 7%, var(--card));
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.mfaStatusOn {
+  border-color: color-mix(in srgb, var(--green) 30%, var(--line));
+  color: var(--green);
+  background: color-mix(in srgb, var(--green) 10%, var(--card));
+}
+
 .enabledBadge,
 .disabledBadge {
   flex: 0 0 auto;
@@ -341,16 +362,21 @@
 .mfaSwitch {
   position: relative;
   display: inline-flex;
-  width: 48px;
-  height: 28px;
+  width: 50px;
+  height: 30px;
   flex: 0 0 auto;
   align-items: center;
   border: 1px solid var(--line);
   border-radius: 999px;
-  padding: 3px;
-  background: color-mix(in srgb, var(--muted) 25%, var(--background));
+  padding: 4px;
+  background: color-mix(in srgb, var(--muted) 18%, var(--background));
   cursor: pointer;
-  transition: background 160ms ease, border-color 160ms ease;
+  box-shadow: inset 0 1px 2px rgb(15 23 42 / 10%);
+  transition:
+    background 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
 }
 
 .mfaSwitch span {
@@ -359,16 +385,28 @@
   border-radius: 50%;
   background: var(--card);
   box-shadow: 0 1px 4px rgb(15 23 42 / 22%);
-  transition: transform 160ms ease;
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease;
 }
 
 .mfaSwitchOn {
-  border-color: var(--blue);
-  background: var(--blue);
+  border-color: color-mix(in srgb, var(--blue) 80%, white);
+  background: linear-gradient(110deg, var(--blue), color-mix(in srgb, var(--blue) 75%, cyan));
+  box-shadow: 0 3px 10px color-mix(in srgb, var(--blue) 24%, transparent);
 }
 
 .mfaSwitchOn span {
   transform: translateX(19px);
+  box-shadow: 0 2px 5px rgb(15 23 42 / 25%);
+}
+
+.mfaSwitch:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.mfaSwitch:active:not(:disabled) {
+  transform: scale(0.96);
 }
 
 .mfaSwitch:focus-visible {

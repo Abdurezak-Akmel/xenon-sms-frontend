@@ -9,7 +9,6 @@ import {
   CheckCircle2,
   Eye,
   EyeOff,
-  KeyRound,
   Lock,
   MapPin,
   Mail,
@@ -58,6 +57,7 @@ export default function LoginPage() {
   const [dashboardChoices, setDashboardChoices] = useState<DashboardChoice[]>(
     [],
   );
+  const maskedEmail = email.replace(/^(.)(.*)(@.*)$/, "$1•••$3");
 
   useEffect(() => {
     try {
@@ -181,6 +181,31 @@ export default function LoginPage() {
     }
   };
 
+  const resendMfaCode = async () => {
+    setError(null);
+    setIsSubmitting(true);
+    try {
+      await loginUser({ email, password });
+    } catch (resendError) {
+      if (
+        resendError instanceof ApiError &&
+        resendError.code === "MFA_REQUIRED"
+      ) {
+        setMfaRequired(true);
+        setMfaCode("");
+        setError(resendError.message);
+      } else {
+        setError(
+          resendError instanceof Error
+            ? resendError.message
+            : "Unable to resend the verification code.",
+        );
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleDashboardSelection = async (choice: DashboardChoice) => {
     setError(null);
     setIsSubmitting(true);
@@ -296,16 +321,20 @@ export default function LoginPage() {
                   <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-cyan-600 dark:text-cyan-300">
                     {dashboardChoices.length > 0
                       ? "Account verified"
-                      : "Welcome back"}
+                      : mfaRequired
+                        ? "Two-step verification"
+                        : "Welcome back"}
                   </p>
                   <h2 className="mt-2 text-3xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-[2rem]">
                     {dashboardChoices.length > 0
                       ? "Choose a workspace"
-                      : "Sign in"}
+                      : mfaRequired
+                        ? "Check your email"
+                        : "Sign in"}
                   </h2>
                 </div>
                 <div className="grid h-12 w-12 place-items-center rounded-2xl bg-cyan-100 text-cyan-700 ring-1 ring-cyan-200 dark:bg-cyan-500/10 dark:text-cyan-300 dark:ring-cyan-500/20">
-                  <ShieldCheck size={22} />
+                  {mfaRequired ? <Mail size={22} /> : <ShieldCheck size={22} />}
                 </div>
               </div>
 
@@ -495,22 +524,63 @@ export default function LoginPage() {
                     </div>
 
                     {mfaRequired && (
-                      <div className="space-y-2">
+                      <section
+                        className="space-y-4 rounded-2xl border border-cyan-200 bg-cyan-50/70 p-4 dark:border-cyan-900/70 dark:bg-cyan-950/25 sm:p-5"
+                        aria-labelledby="mfa-code-label"
+                      >
+                        <div className="flex items-start gap-3">
+                          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white text-cyan-700 shadow-sm ring-1 ring-cyan-100 dark:bg-slate-900 dark:text-cyan-300 dark:ring-cyan-900">
+                            <Mail size={18} />
+                          </span>
+                          <div className="min-w-0">
+                            <h3
+                              id="mfa-code-label"
+                              className="text-sm font-semibold text-slate-900 dark:text-white"
+                            >
+                              Enter your sign-in code
+                            </h3>
+                            <p className="mt-1 text-sm leading-5 text-slate-600 dark:text-slate-300">
+                              We sent a 6-digit code to{" "}
+                              <span className="font-medium text-slate-800 dark:text-slate-100">
+                                {maskedEmail}
+                              </span>
+                              . It expires in 10 minutes.
+                            </p>
+                          </div>
+                        </div>
+
                         <label
                           htmlFor="mfa-code"
-                          className="text-sm font-medium text-slate-700 dark:text-slate-200"
+                          className="block text-xs font-semibold text-slate-700 dark:text-slate-200"
                         >
-                          Authenticator code
+                          Email verification code
                         </label>
-                        <div className="relative">
-                          <KeyRound className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+                        <div className="relative mx-auto w-full max-w-sm rounded-xl outline-none transition focus-within:ring-4 focus-within:ring-cyan-500/15">
+                          <div
+                            aria-hidden="true"
+                            className="pointer-events-none flex justify-center gap-2 sm:gap-3"
+                          >
+                            {Array.from({ length: 6 }, (_, index) => (
+                              <span
+                                key={index}
+                                className={`grid h-12 min-w-0 flex-1 place-items-center rounded-lg border bg-white text-xl font-semibold tabular-nums text-slate-900 shadow-sm transition dark:bg-slate-950 dark:text-white sm:h-14 ${
+                                  mfaCode.length === index
+                                    ? "border-cyan-500 ring-2 ring-cyan-500/20 dark:border-cyan-400"
+                                    : "border-slate-200 dark:border-slate-700"
+                                }`}
+                              >
+                                {mfaCode[index] ?? ""}
+                              </span>
+                            ))}
+                          </div>
                           <input
                             id="mfa-code"
                             type="text"
                             inputMode="numeric"
                             autoComplete="one-time-code"
+                            pattern="[0-9]*"
                             maxLength={6}
-                            required
+                            autoFocus
                             value={mfaCode}
                             onChange={(event) =>
                               setMfaCode(
@@ -519,54 +589,72 @@ export default function LoginPage() {
                                   .slice(0, 6),
                               )
                             }
-                            placeholder="Enter the 6-digit code"
-                            className="w-full rounded-xl border border-slate-200 bg-slate-50/80 py-3 pl-10 pr-3 text-sm tracking-[0.25em] text-slate-900 outline-none transition placeholder:tracking-normal placeholder:text-slate-400 focus:border-cyan-400 focus:ring-4 focus:ring-cyan-500/10 dark:border-slate-700 dark:bg-slate-950/60 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-cyan-400"
+                            aria-label="Six-digit email verification code"
+                            className="absolute inset-0 h-full w-full cursor-text opacity-0"
                           />
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setMfaRequired(false);
-                            setMfaCode("");
-                            setError(null);
-                          }}
-                          className="text-xs font-medium text-cyan-600 hover:text-cyan-500 dark:text-cyan-300"
-                        >
-                          Use a different account
-                        </button>
+
+                        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t border-cyan-200/80 pt-3 text-xs dark:border-cyan-900/70">
+                          <button
+                            type="button"
+                            disabled={isSubmitting}
+                            onClick={() => void resendMfaCode()}
+                            className="font-semibold text-cyan-700 transition hover:text-cyan-800 disabled:cursor-wait disabled:opacity-60 dark:text-cyan-300 dark:hover:text-cyan-200"
+                          >
+                            {isSubmitting ? "Sending code…" : "Resend code"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setMfaRequired(false);
+                              setMfaCode("");
+                              setError(null);
+                            }}
+                            className="inline-flex items-center gap-1 font-medium text-slate-600 transition hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
+                          >
+                            <ArrowLeft size={13} />
+                            Use a different account
+                          </button>
+                        </div>
+                      </section>
+                    )}
+
+                    {!mfaRequired && (
+                      <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5 dark:border-slate-700 dark:bg-slate-950/50">
+                        <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+                          <input
+                            type="checkbox"
+                            checked={rememberMe}
+                            onChange={(event) =>
+                              setRememberMe(event.target.checked)
+                            }
+                            className="h-4 w-4 rounded border-slate-300 text-cyan-600 focus:ring-cyan-500 dark:border-slate-600 dark:bg-slate-900"
+                          />
+                          Remember me
+                        </label>
+                        <span className="text-xs text-slate-500 dark:text-slate-400">
+                          Secure session
+                        </span>
                       </div>
                     )}
 
-                    <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5 dark:border-slate-700 dark:bg-slate-950/50">
-                      <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
-                        <input
-                          type="checkbox"
-                          checked={rememberMe}
-                          onChange={(event) =>
-                            setRememberMe(event.target.checked)
-                          }
-                          className="h-4 w-4 rounded border-slate-300 text-cyan-600 focus:ring-cyan-500 dark:border-slate-600 dark:bg-slate-900"
-                        />
-                        Remember me
-                      </label>
-                      <span className="text-xs text-slate-500 dark:text-slate-400">
-                        Secure session
-                      </span>
-                    </div>
-
                     <button
                       type="submit"
-                      disabled={isSubmitting}
+                      disabled={isSubmitting || (mfaRequired && mfaCode.length !== 6)}
                       className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#3267d6] px-4 py-3 text-sm font-semibold text-white shadow-[0_18px_30px_rgba(50,103,214,0.28)] transition hover:bg-[#2957c0] focus:outline-none focus:ring-4 focus:ring-cyan-500/20"
                     >
-                      {isSubmitting ? "Signing in..." : "Sign in"}
+                      {isSubmitting
+                        ? "Signing in..."
+                        : mfaRequired
+                          ? "Verify and continue"
+                          : "Sign in"}
                       {!isSubmitting && <ArrowRight size={16} />}
                     </button>
                   </>
                 )}
               </form>
 
-              {dashboardChoices.length === 0 && (
+              {dashboardChoices.length === 0 && !mfaRequired && (
                 <div className="mt-6 border-t border-slate-200 pt-5 text-center text-sm text-slate-600 dark:border-slate-700 dark:text-slate-300">
                   New to Xenon?{" "}
                   <Link

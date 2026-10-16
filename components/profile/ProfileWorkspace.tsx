@@ -25,6 +25,7 @@ export interface ProfileWorkspaceProps {
   onSave: (changes: Partial<UserProfileData>) => Promise<void>;
   onAvatarUpload: (file: File) => void;
   onBeginMfaSetup: () => Promise<void>;
+  onBeginMfaDisable: () => Promise<void>;
   onEnableMfa: (code: string) => Promise<void>;
   onDisableMfa: (code: string) => Promise<void>;
   onCancel: () => void;
@@ -44,6 +45,7 @@ export function ProfileWorkspace({
   onSave,
   onAvatarUpload,
   onBeginMfaSetup,
+  onBeginMfaDisable,
   onEnableMfa,
   onDisableMfa,
   onCancel,
@@ -82,9 +84,10 @@ export function ProfileWorkspace({
           mfaEnabled={user.mfaEnabled}
           lastLoginAt={user.lastLoginAt}
           mfaBusy={mfaBusy}
-          setupUri={mfaSetup?.provisioningUri ?? null}
+          setupPending={mfaSetup !== null}
           error={mfaError}
           onBeginSetup={onBeginMfaSetup}
+          onBeginDisable={onBeginMfaDisable}
           onEnable={onEnableMfa}
           onDisable={onDisableMfa}
         />

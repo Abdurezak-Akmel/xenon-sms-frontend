@@ -11,6 +11,8 @@ import {
 } from "lucide-react";
 
 // Dashboard Components
+import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
+
 import { DashboardFooter } from "@/components/dashboard/DashboardFooter";
 
 import { PlatformGrowth } from "@/components/dashboard/PlatformGrowth";
@@ -30,8 +32,6 @@ import { SchoolsTable } from "@/components/dashboard/SchoolsTable";
 import { SubscriptionOverview } from "@/components/dashboard/SubscriptionOverview";
 
 import type { SubscriptionPlan } from "@/components/dashboard/SubscriptionOverview";
-
-import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 
 // Service Functions
 import { listTenants } from "@/services/tenancy/tenant.service";
