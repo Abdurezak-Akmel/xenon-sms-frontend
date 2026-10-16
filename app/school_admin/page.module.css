@@ -475,6 +475,16 @@
   margin-top: 14px;
 }
 
+.dashboardError {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--red) 35%, var(--line));
+  border-radius: 8px;
+  color: var(--red);
+  background: color-mix(in srgb, var(--red) 6%, var(--card));
+  font-size: 11px;
+}
+
 .growthChart {
   min-height: 285px;
 }
@@ -503,6 +513,131 @@
   margin: 5px 0 0;
   color: var(--muted);
   font-size: 11px;
+}
+
+.trendPanel,
+.membershipPanel {
+  min-height: 285px;
+}
+
+.trendSummary,
+.membershipTotal {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.trendSummary strong,
+.membershipTotal strong {
+  color: var(--foreground);
+  font-size: 27px;
+  font-weight: 700;
+  letter-spacing: -.8px;
+}
+
+.trendSummary span,
+.membershipTotal span {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.trendBars {
+  display: flex;
+  height: 145px;
+  align-items: flex-end;
+  justify-content: space-around;
+  gap: 12px;
+  margin-top: 14px;
+  padding: 0 7px;
+  border-bottom: 1px solid var(--line);
+}
+
+.trendColumn {
+  display: flex;
+  height: 100%;
+  min-width: 24px;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 5px;
+}
+
+.trendColumn > span {
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.trendBarTrack {
+  display: flex;
+  width: 100%;
+  max-width: 28px;
+  height: 100px;
+  align-items: flex-end;
+}
+
+.trendBar {
+  display: block;
+  width: 100%;
+  min-height: 4px;
+  border-radius: 5px 5px 0 0;
+  background: linear-gradient(180deg, var(--blue), #6ca8eb);
+}
+
+.trendColumn small {
+  padding: 4px 0 7px;
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.membershipRows {
+  display: grid;
+  gap: 11px;
+  margin-top: 19px;
+}
+
+.membershipRow,
+.membershipRow > span {
+  display: flex;
+  align-items: center;
+}
+
+.membershipRow {
+  justify-content: space-between;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.membershipRow > span {
+  gap: 7px;
+}
+
+.membershipRow i {
+  width: 7px;
+  height: 7px;
+  border-radius: 3px;
+}
+
+.membershipRow .statusActive {
+  background: var(--green);
+}
+
+.membershipRow .statusReview {
+  background: var(--orange);
+}
+
+.membershipRow strong {
+  color: var(--foreground);
+  font-size: 11px;
+}
+
+.statusSuspended {
+  background: var(--red);
+}
+
+.statusRevoked {
+  background: var(--muted);
 }
 
 .moreButton {
@@ -778,6 +913,14 @@
 
 .activityList {
   margin-top: 14px;
+}
+
+.activityEmpty {
+  margin: 0;
+  padding: 20px 8px;
+  color: var(--muted);
+  font-size: 11px;
+  text-align: center;
 }
 
 .activityRow {

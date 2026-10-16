@@ -44,7 +44,7 @@ import type {
   UpdateBranchInput,
 } from "@/services/tenancy/branch.service";
 
-import styles from "./page.module.css";
+import styles from "@/components/tenants/BranchWorkspace.module.css";
 
 const initialForm: BranchForm = {
   code: "",

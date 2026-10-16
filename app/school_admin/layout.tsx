@@ -8,7 +8,6 @@ import {
   CircleUserRound,
   LayoutDashboard,
   LogOut,
-  MonitorSmartphone,
   Users,
   X,
 } from "lucide-react";
@@ -25,6 +24,7 @@ import { Button } from "@/components/ui/Button";
 
 // Service Functions
 import { logoutUser } from "@/services/auth/auth.service";
+import { getCurrentUser } from "@/services/auth/user.service";
 
 import styles from "./layout.module.css";
 
@@ -35,69 +35,58 @@ const navGroups: NavGroupDef[] = [
       {
         label: "Dashboard",
         icon: LayoutDashboard,
-        href: "/super_admin",
+        href: "/school_admin",
       },
       {
-        label: "Schools",
+        label: "Branches",
         icon: Building2,
-        href: "/super_admin/tenants",
+        href: "/school_admin/branches",
       },
       {
         label: "Memberships",
         icon: Users,
-        href: "/super_admin/tenant_membership",
-      },
-      {
-        label: "User sessions",
-        icon: MonitorSmartphone,
-        href: "/super_admin/user_sessions",
+        href: "/school_admin/memberships",
       },
       {
         label: "Profile",
         icon: CircleUserRound,
-        href: "/super_admin/profile",
+        href: "/school_admin/profile",
       },
     ],
   },
 ];
 
 const sectionByPath: Record<string, string> = {
-  "/super_admin": "Dashboard",
-  "/super_admin/tenants": "Schools",
-  "/super_admin/tenant_membership": "Memberships",
-  "/super_admin/user_sessions": "User sessions",
-  "/super_admin/profile": "Profile",
+  "/school_admin": "Dashboard",
+  "/school_admin/branches": "Branches",
+  "/school_admin/memberships": "Memberships",
+  "/school_admin/profile": "Profile",
 };
 
 const quickNavigationItems: QuickNavigationItem[] = [
   {
-    href: "/super_admin/tenants",
-    label: "Schools & tenants",
+    href: "/school_admin/branches",
+    label: "Branches",
     icon: Building2,
   },
   {
-    href: "/super_admin/tenant_membership",
+    href: "/school_admin/memberships",
     label: "Memberships",
     icon: Users,
   },
   {
-    href: "/super_admin/user_sessions",
-    label: "User sessions",
-    icon: MonitorSmartphone,
-  },
-  {
-    href: "/super_admin/profile",
+    href: "/school_admin/profile",
     label: "Profile",
     icon: CircleUserRound,
   },
   {
-    href: "/super_admin",
+    href: "/school_admin",
     label: "Overview",
     icon: LayoutDashboard,
   },
 ];
 
-export default function SuperAdminLayout({
+export default function SchoolAdminLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   const pathname = usePathname();
@@ -109,9 +98,42 @@ export default function SuperAdminLayout({
   const [notification, setNotification] = React.useState("");
   const [loggingOut, setLoggingOut] = React.useState(false);
   const [logoutError, setLogoutError] = React.useState(false);
-  const activeSection = pathname.startsWith("/super_admin/tenants")
-    ? "Schools"
-    : (sectionByPath[pathname] ?? "Dashboard");
+  const [userName, setUserName] = React.useState("School admin");
+  const userInitials = userName
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase();
+  const activeSection = pathname.startsWith("/school_admin/branches")
+    ? "Branches"
+    : pathname.startsWith("/school_admin/memberships")
+      ? "Memberships"
+      : (sectionByPath[pathname] ?? "Dashboard");
+
+  React.useEffect(() => {
+    let active = true;
+    getCurrentUser()
+      .then(({ user }) => {
+        if (active) {
+          const fullName = [user.firstName, user.middleName, user.lastName]
+            .filter(Boolean)
+            .join(" ");
+          setUserName(fullName || "School admin");
+        }
+      })
+      .catch((error: unknown) => {
+        console.error(
+          "Unable to load the signed-in school administrator:",
+          error,
+        );
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   React.useEffect(() => {
     if (window.matchMedia("(max-width: 720px)").matches) {
@@ -186,7 +208,7 @@ export default function SuperAdminLayout({
     {
       label: "Profile",
       icon: CircleUserRound,
-      onClick: () => router.push("/super_admin/profile"),
+      onClick: () => router.push("/school_admin/profile"),
     },
     {
       label: "Sign Out",
@@ -205,8 +227,8 @@ export default function SuperAdminLayout({
         onToggleOpen={() => setSidebarOpen((open) => !open)}
         activeItem={activeSection}
         onSelectItem={handleSectionSelect}
-        currentSchool="Xenon"
-        schools={[{ id: "platform", name: "Xenon Platform" }]}
+        currentSchool="My school"
+        schools={[{ id: "school", name: "My school" }]}
         navGroups={navGroups}
       />
 
@@ -215,9 +237,9 @@ export default function SuperAdminLayout({
           className={styles.navbar}
           breadcrumbs={[{ label: "Workspace" }, { label: activeSection }]}
           user={{
-            name: "Abdurezak Akmel",
-            role: "Super admin",
-            initials: "AA",
+            name: userName,
+            role: "School admin",
+            initials: userInitials || "SA",
           }}
           isDark={isDark}
           onThemeToggle={() => setIsDark((dark) => !dark)}
@@ -267,7 +289,7 @@ export default function SuperAdminLayout({
         isOpen={searchOpen}
         onClose={() => setSearchOpen(false)}
         title="Quick navigation"
-        description="Go to a super-admin workspace."
+        description="Go to a school administration page."
         items={quickNavigationItems}
       />
       {notification && (

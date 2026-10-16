@@ -1,339 +1,416 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { FormEvent } from "react";
-import { Check, CircleAlert, Clock3, Globe2, X } from "lucide-react";
-
-import { TenantDirectory } from "@/components/tenants/TenantDirectory";
-
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
-  TenantFormDialog,
-  type TenantFormValues,
-} from "@/components/tenants/TenantFormDialog";
-
-import { TenantPageHeader } from "@/components/tenants/TenantPageHeader";
-
-import {
-  TenantStatsCards,
-  type TenantStat,
-} from "@/components/tenants/TenantStatsCards";
+  Archive,
+  ArrowLeft,
+  Building2,
+  CircleAlert,
+  CircleCheck,
+  CircleMinus,
+  GitBranch,
+  Plus,
+  X,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
-
 import { ConfirmModal } from "@/components/ui/Modal";
-
-import { Footer } from "@/components/ui/footer";
-
+import { TenantBranchDirectory } from "@/components/tenants/TenantBranchDirectory";
 import {
-  createTenant,
-  deleteTenant,
-  listTenants,
-  updateTenant,
-} from "../../../services/tenancy/tenant.service";
-
+  TenantBranchFormDialog,
+  type BranchForm,
+} from "@/components/tenants/TenantBranchFormDialog";
+import { TenantPageHeader } from "@/components/tenants/TenantPageHeader";
+import { TenantStatsCards } from "@/components/tenants/TenantStatsCards";
+import {
+  createBranch,
+  deleteBranch,
+  listBranches,
+  updateBranch,
+} from "@/services/tenancy/branch.service";
 import type {
-  CreateTenantInput,
-  Tenant,
-  TenantStatus,
-} from "../../../services/tenancy/tenant.service";
+  Branch,
+  CreateBranchInput,
+  UpdateBranchInput,
+} from "@/services/tenancy/branch.service";
+import { getAuthenticatedTenantId } from "@/services/auth/user.service";
+import styles from "@/components/tenants/BranchWorkspace.module.css";
 
-import styles from "./page.module.css";
-
-type TenantForm = TenantFormValues;
-
-const emptyTenant: TenantForm = {
+const initialForm: BranchForm = {
   code: "",
-  legalName: "",
-  displayName: "",
-  email: "",
-  phone: "",
+  name: "",
   address: "",
-  countryCode: "ET",
-  timezone: "Africa/Addis_Ababa",
-  currencyCode: "ETB",
+  phone: "",
+  email: "",
+  timezone: "",
   status: "active",
 };
 
-export default function TenantsPage() {
-  const [notice, setNotice] = useState<string | null>(null);
-  const [tenants, setTenants] = useState<Tenant[]>([]);
+export default function SchoolAdminBranchesPage() {
+  const router = useRouter();
+  const [tenantId, setTenantId] = useState<string | null>(null);
+  const [branches, setBranches] = useState<Branch[]>([]);
   const [loading, setLoading] = useState(true);
+  const [schoolReady, setSchoolReady] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-  const [query, setQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"all" | TenantStatus>("all");
   const [formOpen, setFormOpen] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState<TenantForm>(emptyTenant);
-  const [errors, setErrors] = useState<
-    Partial<Record<keyof TenantForm, string>>
-  >({});
-  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [form, setForm] = useState<BranchForm>(initialForm);
+  const [editingBranchId, setEditingBranchId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [branchToDelete, setBranchToDelete] = useState<Branch | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
-  async function loadTenants() {
-    setLoading(true);
-    setLoadError(null);
+  const loadPage = useCallback(
+    async (id: string, isActive: () => boolean = () => true) => {
+      setLoading(true);
+      setSchoolReady(false);
+      setLoadError(null);
+      try {
+        const branchResponse = await listBranches({ tenantId: id });
+        if (!isActive()) return;
+        if (branchResponse.branches.some((branch) => branch.tenantId !== id)) {
+          throw new Error("The server returned branch data outside your school.");
+        }
+        setSchoolReady(true);
+        setBranches(branchResponse.branches);
+      } catch (error) {
+        if (isActive()) {
+          setLoadError(
+            error instanceof Error
+              ? error.message
+              : "Unable to load school branches.",
+          );
+        }
+      } finally {
+        if (isActive()) setLoading(false);
+      }
+    },
+    [],
+  );
+
+  useEffect(() => {
+    let active = true;
     try {
-      const response = await listTenants();
-      setTenants(response.tenants);
+      const id = getAuthenticatedTenantId();
+      setTenantId(id);
+      void loadPage(id, () => active);
     } catch (error) {
       setLoadError(
-        error instanceof Error ? error.message : "Unable to load tenants.",
+        error instanceof Error
+          ? error.message
+          : "Unable to identify your signed-in school.",
       );
-    } finally {
+      setSchoolReady(false);
       setLoading(false);
     }
-  }
 
-  useEffect(() => {
-    void loadTenants();
-  }, []);
+    return () => {
+      active = false;
+    };
+  }, [loadPage]);
 
-  useEffect(() => {
-    if (new URLSearchParams(window.location.search).get("create") === "1") {
-      setFormOpen(true);
-      window.history.replaceState(
-        window.history.state,
-        "",
-        window.location.pathname,
-      );
-    }
-  }, []);
-
-  const filteredTenants = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
-    return tenants.filter((tenant) => {
-      const matchesStatus =
-        statusFilter === "all" || tenant.status === statusFilter;
-      const matchesQuery =
-        !normalizedQuery ||
-        [
-          tenant.code,
-          tenant.displayName,
-          tenant.legalName,
-          tenant.email ?? "",
-        ].some((value) => value.toLowerCase().includes(normalizedQuery));
-      return matchesStatus && matchesQuery;
-    });
-  }, [query, statusFilter, tenants]);
-
-  function action(message: string) {
-    setNotice(message);
-    window.setTimeout(() => setNotice(null), 2800);
-  }
-
-  function openCreate() {
-    setEditingId(null);
-    setForm(emptyTenant);
-    setErrors({});
-    setFormOpen(true);
-  }
-
-  function openEdit(tenant: Tenant) {
-    setEditingId(tenant.id);
-    setForm({
-      code: tenant.code,
-      legalName: tenant.legalName,
-      displayName: tenant.displayName,
-      email: tenant.email ?? "",
-      phone: tenant.phone ?? "",
-      address: tenant.address ?? "",
-      countryCode: tenant.countryCode ?? "",
-      timezone: tenant.timezone,
-      currencyCode: tenant.currencyCode,
-      status: tenant.status,
-    });
-    setErrors({});
-    setFormOpen(true);
-  }
-
-  function updateForm<Key extends keyof TenantForm>(
+  function updateForm<Key extends keyof BranchForm>(
     key: Key,
-    value: TenantForm[Key],
+    value: BranchForm[Key],
   ) {
     setForm((current) => ({ ...current, [key]: value }));
-    setErrors((current) => ({ ...current, [key]: undefined }));
+    setFormError(null);
   }
 
-  function validate() {
-    const nextErrors: Partial<Record<keyof TenantForm, string>> = {};
-    if (!form.code.trim()) nextErrors.code = "Tenant code is required.";
-    if (!form.displayName.trim())
-      nextErrors.displayName = "Display name is required.";
-    if (!form.legalName.trim())
-      nextErrors.legalName = "Legal name is required.";
-    if (form.countryCode.length !== 2)
-      nextErrors.countryCode = "Use a two-letter country code.";
-    if (form.currencyCode.length !== 3)
-      nextErrors.currencyCode = "Use a three-letter currency code.";
-    setErrors(nextErrors);
-    return Object.keys(nextErrors).length === 0;
+  function openCreateForm() {
+    setEditingBranchId(null);
+    setForm(initialForm);
+    setFormError(null);
+    setFormOpen(true);
+  }
+
+  function openEditForm(branch: Branch) {
+    if (branch.tenantId !== tenantId) {
+      setLoadError("This branch does not belong to your school.");
+      return;
+    }
+    setEditingBranchId(branch.id);
+    setForm({
+      code: branch.code,
+      name: branch.name,
+      address: branch.address ?? "",
+      phone: branch.phone ?? "",
+      email: branch.email ?? "",
+      timezone: branch.timezone ?? "",
+      status: branch.status,
+    });
+    setFormError(null);
+    setFormOpen(true);
   }
 
   async function submitForm(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!validate()) return;
+    if (!tenantId || !schoolReady) {
+      setFormError("Your school could not be identified. Sign in again and retry.");
+      return;
+    }
+
+    const code = form.code.trim();
+    const name = form.name.trim();
+    if (!code || !name) {
+      setFormError("Branch code and branch name are required.");
+      return;
+    }
+
     setSaving(true);
-    setLoadError(null);
-    const input: CreateTenantInput = {
-      code: form.code.trim(),
-      legalName: form.legalName.trim(),
-      displayName: form.displayName.trim(),
-      email: form.email.trim() || null,
-      phone: form.phone.trim() || null,
+    setFormError(null);
+    const fields: Omit<CreateBranchInput, "tenantId"> = {
+      code,
+      name,
       address: form.address.trim() || null,
-      countryCode: form.countryCode.trim().toUpperCase(),
-      timezone: form.timezone.trim(),
-      currencyCode: form.currencyCode.trim().toUpperCase(),
+      phone: form.phone.trim() || null,
+      email: form.email.trim() || null,
+      timezone: form.timezone.trim() || null,
       status: form.status,
     };
+
     try {
-      if (editingId) {
-        const response = await updateTenant(editingId, input);
-        setTenants((current) =>
-          current.map((tenant) =>
-            tenant.id === editingId ? response.tenant : tenant,
+      if (editingBranchId) {
+        const changes: UpdateBranchInput = fields;
+        const response = await updateBranch(editingBranchId, changes, tenantId);
+        if (response.branch.tenantId !== tenantId) {
+          throw new Error("The server returned a branch outside your school.");
+        }
+        setBranches((current) =>
+          current.map((branch) =>
+            branch.id === editingBranchId ? response.branch : branch,
           ),
         );
-        action(`${response.tenant.displayName} updated`);
+        setNotice(`${response.branch.name} branch updated`);
       } else {
-        const response = await createTenant(input);
-        setTenants((current) => [response.tenant, ...current]);
-        action(`${response.tenant.displayName} created`);
+        const input: CreateBranchInput = { tenantId, ...fields };
+        const response = await createBranch(input);
+        if (response.branch.tenantId !== tenantId) {
+          throw new Error("The server returned a branch outside your school.");
+        }
+        setBranches((current) => [response.branch, ...current]);
+        setNotice(`${response.branch.name} branch created`);
       }
+      setForm(initialForm);
+      setEditingBranchId(null);
       setFormOpen(false);
+      window.setTimeout(() => setNotice(null), 3000);
     } catch (error) {
-      setLoadError(
-        error instanceof Error ? error.message : "Unable to save tenant.",
+      setFormError(
+        error instanceof Error
+          ? error.message
+          : `Unable to ${editingBranchId ? "update" : "create"} branch.`,
       );
     } finally {
       setSaving(false);
     }
   }
 
-  async function confirmDelete() {
-    if (!deleteId) return;
-    const tenant = tenants.find((item) => item.id === deleteId);
+  async function confirmDeleteBranch() {
+    if (!branchToDelete) return;
+    if (!tenantId || branchToDelete.tenantId !== tenantId) {
+      setBranchToDelete(null);
+      setLoadError("This branch does not belong to your signed-in school.");
+      return;
+    }
+
+    const target = branchToDelete;
     setDeleting(true);
     setLoadError(null);
     try {
-      await deleteTenant(deleteId);
-      setTenants((current) => current.filter((item) => item.id !== deleteId));
-      setDeleteId(null);
-      if (tenant) action(`${tenant.displayName} deleted`);
+      await deleteBranch(target.id, tenantId);
+      setBranches((current) =>
+        current.filter((branch) => branch.id !== target.id),
+      );
+      setBranchToDelete(null);
+      setNotice(`${target.name} branch deleted`);
+      window.setTimeout(() => setNotice(null), 3000);
     } catch (error) {
+      setBranchToDelete(null);
       setLoadError(
-        error instanceof Error ? error.message : "Unable to delete tenant.",
+        error instanceof Error ? error.message : "Unable to delete branch.",
       );
     } finally {
       setDeleting(false);
     }
   }
 
-  const deleteTarget = tenants.find((tenant) => tenant.id === deleteId);
-  const tenantStats: TenantStat[] = [
-    {
-      label: "School workspaces",
-      value: tenants.length,
-      helper: "Connected to Xenon",
-      tone: "blue",
-      helperTone: "positive",
-      helperIcon: Check,
-      icon: Globe2,
-    },
-    {
-      label: "Active",
-      value: tenants.filter((tenant) => tenant.status === "active").length,
-      helper: "Ready for operations",
-      tone: "green",
-      helperTone: "positive",
-      icon: Check,
-    },
-    {
-      label: "Pending review",
-      value: tenants.filter((tenant) => tenant.status === "pending").length,
-      helper: "Needs attention",
-      tone: "orange",
-      helperTone: "negative",
-      icon: Clock3,
-    },
-    {
-      label: "Restricted",
-      value: tenants.filter(
-        (tenant) => tenant.status === "suspended" || tenant.status === "closed",
-      ).length,
-      helper: "Suspended or closed",
-      tone: "red",
-      helperTone: "negative",
-      icon: CircleAlert,
-    },
-  ];
+  const activeBranches = branches.filter(
+    (branch) => branch.status === "active",
+  ).length;
+  const inactiveBranches = branches.filter(
+    (branch) => branch.status === "inactive",
+  ).length;
+  const archivedBranches = branches.filter(
+    (branch) => branch.status === "archived",
+  ).length;
 
   return (
-    <div className={styles.tenantPage}>
-      <div className="content">
-        <TenantPageHeader onCreate={openCreate} styles={styles} />
-        <TenantStatsCards
-          stats={tenantStats}
-          loading={loading}
-          className={styles.metricsGrid}
-        />
+    <main className={styles.page}>
+      <div className={styles.content}>
+        {tenantId && (
+          <Link href="/school_admin" className={styles.backLink}>
+            <ArrowLeft size={15} />
+            School dashboard
+          </Link>
+        )}
 
-        <TenantDirectory
-          tenants={tenants}
-          filteredTenants={filteredTenants}
-          loading={loading}
-          loadError={loadError}
-          query={query}
-          statusFilter={statusFilter}
-          onQueryChange={setQuery}
-          onStatusFilterChange={setStatusFilter}
-          onRetry={() => void loadTenants()}
-          onEdit={openEdit}
-          onDelete={setDeleteId}
-          onCreate={openCreate}
-          styles={styles}
-        />
-        <Footer year={2026} />
+        {loadError && !tenantId ? (
+          <section className={styles.statePanel} role="alert">
+            <span className={styles.errorMark}>
+              <CircleAlert size={20} />
+            </span>
+            <h1>Branches unavailable</h1>
+            <p>{loadError}</p>
+          </section>
+        ) : (
+          <>
+            <TenantPageHeader
+              styles={styles}
+              className={styles.hero}
+              contentClassName={styles.heroContent}
+              eyebrowClassName={styles.eyebrow}
+              eyebrow="School administration / Branches"
+              icon={Building2}
+              title="My school branches"
+              subtitle="Manage your school’s branch locations, contact details, and status."
+              details={
+                <div className={styles.heroMeta}>
+                  <span className={styles.codeBadge}>School workspace</span>
+                </div>
+              }
+              action={
+                <Button
+                  type="button"
+                  className={styles.createButton}
+                  onClick={openCreateForm}
+                  disabled={!schoolReady}
+                >
+                  <Plus size={16} />
+                  Add a branch
+                </Button>
+              }
+              decoration={
+                <div className={styles.heroDecoration} aria-hidden="true">
+                  <GitBranch size={100} strokeWidth={1} />
+                </div>
+              }
+            />
+
+            <TenantStatsCards
+              className={styles.summaryGrid}
+              loading={loading || Boolean(loadError)}
+              ariaLabel="School branch summary"
+              stats={[
+                {
+                  label: "Total branches",
+                  value: branches.length,
+                  helper: "School locations",
+                  tone: "blue",
+                  icon: GitBranch,
+                },
+                {
+                  label: "Active",
+                  value: activeBranches,
+                  helper: "Operational locations",
+                  tone: "green",
+                  icon: CircleCheck,
+                },
+                {
+                  label: "Inactive",
+                  value: inactiveBranches,
+                  helper: "Temporarily unavailable",
+                  tone: "orange",
+                  icon: CircleMinus,
+                },
+                {
+                  label: "Archived",
+                  value: archivedBranches,
+                  helper: "Retired locations",
+                  tone: "red",
+                  icon: Archive,
+                },
+              ]}
+            />
+
+            <TenantBranchDirectory
+              branches={branches}
+              loading={loading}
+              error={loadError}
+              styles={styles}
+              onCreate={openCreateForm}
+              onEdit={openEditForm}
+              onDelete={setBranchToDelete}
+              onView={(branch) => {
+                if (branch.tenantId !== tenantId || !tenantId) {
+                  setLoadError("This branch does not belong to your school.");
+                  return;
+                }
+                const params = new URLSearchParams({
+                  branchId: branch.id,
+                  tenantId,
+                });
+                router.push(
+                  `/school_admin/branches/overview?${params.toString()}`,
+                );
+              }}
+              onRetry={() => {
+                if (tenantId) void loadPage(tenantId);
+              }}
+            />
+          </>
+        )}
       </div>
 
-      <TenantFormDialog
+      <TenantBranchFormDialog
         isOpen={formOpen}
-        isEditing={editingId !== null}
+        editing={Boolean(editingBranchId)}
+        tenantName="Your school"
         form={form}
-        errors={errors}
+        error={formError}
         saving={saving}
+        styles={styles}
         onClose={() => setFormOpen(false)}
-        onSubmit={submitForm}
         onChange={updateForm}
+        onSubmit={submitForm}
       />
 
       <ConfirmModal
-        isOpen={deleteTarget !== undefined}
-        onClose={() => setDeleteId(null)}
-        onConfirm={() => void confirmDelete()}
-        title={`Delete ${deleteTarget?.displayName ?? "school"}?`}
-        description="This permanently removes the school workspace. Related records may prevent deletion while they are still in use."
-        confirmText="Delete school"
+        isOpen={branchToDelete !== null}
+        onClose={() => {
+          if (!deleting) setBranchToDelete(null);
+        }}
+        onConfirm={() => void confirmDeleteBranch()}
+        title="Delete branch?"
+        description={
+          branchToDelete
+            ? `This will permanently delete ${branchToDelete.name} (${branchToDelete.code}). This action cannot be undone.`
+            : ""
+        }
+        confirmText="Delete branch"
         isLoading={deleting}
       />
 
       {notice && (
-        <div className="toast" role="status">
-          <Check size={16} />
+        <div className={styles.toast} role="status">
+          <CircleCheck size={15} />
           {notice}
           <Button
             type="button"
             variant="ghost"
-            size="icon"
+            size="icon-xs"
             onClick={() => setNotice(null)}
             aria-label="Dismiss"
           >
-            <X size={15} />
+            <X size={14} />
           </Button>
         </div>
       )}
-    </div>
+    </main>
   );
 }

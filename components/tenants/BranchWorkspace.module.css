@@ -1,3 +1,4 @@
+/* Shared layout for tenant branch workspaces. */
 .page {
   min-height: 100%;
   background:
@@ -383,6 +384,15 @@
 
 .tableWrap tbody tr {
   transition: background 120ms ease;
+}
+
+.tableWrap tbody tr.branchRowInteractive {
+  cursor: pointer;
+}
+
+.tableWrap tbody tr.branchRowInteractive:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: -2px;
 }
 
 .tableWrap tbody tr:hover {

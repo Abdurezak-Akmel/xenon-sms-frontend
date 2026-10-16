@@ -41,12 +41,11 @@ import { listBranches } from "../../../services/tenancy/branch.service";
 
 import type { Branch } from "../../../services/tenancy/branch.service";
 
-import { listTenants } from "../../../services/tenancy/tenant.service";
-
-import type { Tenant } from "../../../services/tenancy/tenant.service";
-
-import { listUsers, updateUser } from "../../../services/auth/user.service";
-import type { User } from "../../../services/auth/user.service";
+import {
+  getAuthenticatedTenantId,
+  listMembershipCandidates,
+} from "../../../services/auth/user.service";
+import type { MembershipCandidate } from "../../../services/auth/user.service";
 
 import styles from "./page.module.css";
 
@@ -93,7 +92,12 @@ function formatDate(value: string | null) {
       }).format(date);
 }
 
-function userLabel(user: User) {
+function userLabel(
+  user: Pick<
+    MembershipCandidate,
+    "firstName" | "middleName" | "lastName"
+  >,
+) {
   return [user.firstName, user.middleName, user.lastName]
     .filter(Boolean)
     .join(" ");
@@ -101,11 +105,10 @@ function userLabel(user: User) {
 
 export default function TenantMembershipCrudPage() {
   const [memberships, setMemberships] = useState<TenantMembership[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
-  const [tenants, setTenants] = useState<Tenant[]>([]);
+  const [users, setUsers] = useState<MembershipCandidate[]>([]);
+  const [tenantId, setTenantId] = useState("");
   const [branches, setBranches] = useState<Branch[]>([]);
   const [roles, setRoles] = useState<TenantMembershipRole[]>([]);
-  const [guestRoleId, setGuestRoleId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -116,7 +119,6 @@ export default function TenantMembershipCrudPage() {
   const [statusFilter, setStatusFilter] = useState<
     "all" | TenantMembershipStatus
   >("all");
-  const [tenantFilter, setTenantFilter] = useState("all");
   const [formOpen, setFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<MembershipForm>(emptyForm);
@@ -131,38 +133,34 @@ export default function TenantMembershipCrudPage() {
     setLoading(true);
     setLoadError(null);
     try {
-      const [membershipResult, userResult, tenantResult, roleResult] =
+      const selectedTenantId = getAuthenticatedTenantId();
+      const [membershipResult, userResult, branchResult, roleResult] =
         await Promise.all([
-          listTenantMemberships(),
-          listUsers(),
-          listTenants(),
+          listTenantMemberships({ tenantId: selectedTenantId }),
+          listMembershipCandidates(),
+          listBranches({ tenantId: selectedTenantId }),
           listTenantMembershipRoles(),
         ]);
-      const branchResults = await Promise.all(
-        tenantResult.tenants.map((tenant) =>
-          listBranches({ tenantId: tenant.id }),
+      setTenantId(selectedTenantId);
+      setMemberships(
+        membershipResult.memberships.filter(
+          (membership) => membership.tenantId === selectedTenantId,
         ),
       );
-      const superAdminRoleId = roleResult.roles.find(
-        (role) => role.code === "super-admin" || role.code === "superadmin",
-      )?.id;
-      setMemberships(membershipResult.memberships);
-      setUsers(
-        userResult.users.filter(
-          (user) => user.globalRoleId !== superAdminRoleId,
+      setUsers(userResult.users);
+      setBranches(
+        branchResult.branches.filter(
+          (branch) => branch.tenantId === selectedTenantId,
         ),
       );
-      setTenants(tenantResult.tenants);
-      setBranches(branchResults.flatMap((result) => result.branches));
-      setRoles(roleResult.roles.filter((role) => role.scope !== "platform"));
-      setGuestRoleId(
-        roleResult.roles.find((role) => role.code === "guest")?.id ?? null,
+      setRoles(
+        roleResult.roles,
       );
     } catch (error) {
       setLoadError(
         error instanceof Error
           ? error.message
-          : "Unable to load tenant memberships.",
+          : "Unable to load school memberships.",
       );
     } finally {
       setLoading(false);
@@ -173,21 +171,29 @@ export default function TenantMembershipCrudPage() {
     void loadData();
   }, [loadData]);
 
+  const assignableRoles = roles.filter(
+    (role) =>
+      role.scope === "branch" ||
+      (role.scope === "tenant" && role.code === "school-admin"),
+  );
+
   const visibleMemberships = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
     return memberships.filter((membership) => {
       const user = users.find((item) => item.id === membership.userId);
-      const tenant = tenants.find((item) => item.id === membership.tenantId);
       const branch = branches.find((item) => item.id === membership.branchId);
       const role = roles.find((item) => item.id === membership.roleId);
-      const matchesTenant =
-        tenantFilter === "all" || membership.tenantId === tenantFilter;
+      const userName = membership.user
+        ? userLabel(membership.user)
+        : user
+          ? userLabel(user)
+          : "";
       const matchesStatus =
         statusFilter === "all" || membership.status === statusFilter;
       const searchable = [
-        user ? userLabel(user) : membership.userId,
-        user?.email ?? "",
-        tenant?.displayName ?? membership.tenantId,
+        userName || membership.user?.email || user?.email || membership.userId,
+        membership.user?.email ?? user?.email ?? "",
+        "this school",
         branch?.name ?? "",
         role?.name ?? role?.code ?? membership.roleId,
       ];
@@ -196,7 +202,7 @@ export default function TenantMembershipCrudPage() {
         searchable.some((value) =>
           value.toLowerCase().includes(normalizedQuery),
         );
-      return matchesTenant && matchesStatus && matchesQuery;
+      return matchesStatus && matchesQuery;
     });
   }, [
     branches,
@@ -204,8 +210,6 @@ export default function TenantMembershipCrudPage() {
     query,
     roles,
     statusFilter,
-    tenantFilter,
-    tenants,
     users,
   ]);
 
@@ -239,11 +243,11 @@ export default function TenantMembershipCrudPage() {
     setErrors({});
     setForm({
       ...emptyForm,
-      tenantId: tenants[0]?.id ?? "",
+      tenantId,
       userId,
       roleId:
-        roles.find((role) => role.scope === "tenant")?.id ??
-        roles.find((role) => role.scope === "branch")?.id ??
+        assignableRoles.find((role) => role.code === "school-admin")?.id ??
+        assignableRoles.find((role) => role.scope === "branch")?.id ??
         "",
     });
     setFormOpen(true);
@@ -273,15 +277,27 @@ export default function TenantMembershipCrudPage() {
 
   function validate() {
     const nextErrors: Partial<Record<keyof MembershipForm, string>> = {};
-    const selectedRole = roles.find((role) => role.id === form.roleId);
+    const selectedRole = assignableRoles.find(
+      (role) => role.id === form.roleId,
+    );
+    const currentMembership = memberships.find(
+      (membership) => membership.id === editingId,
+    );
+    const keepsCurrentRole =
+      currentMembership?.roleId === form.roleId &&
+      roles.some((role) => role.id === form.roleId);
     if (!form.userId) nextErrors.userId = "Select a user.";
-    if (!form.tenantId) nextErrors.tenantId = "Select a tenant.";
-    if (!selectedRole) nextErrors.roleId = "Select a role.";
+    if (!tenantId || form.tenantId !== tenantId) {
+      nextErrors.tenantId = "The selected school is unavailable.";
+    }
+    if (!selectedRole && !keepsCurrentRole) {
+      nextErrors.roleId = "Select an assignable role.";
+    }
     if (selectedRole?.scope === "branch" && !form.branchId) {
       nextErrors.branchId = "This role requires a branch assignment.";
     }
     if (selectedRole && selectedRole.scope !== "branch" && form.branchId) {
-      nextErrors.branchId = "This role must be assigned at tenant level.";
+      nextErrors.branchId = "This role must be assigned at school level.";
     }
     const duplicate = memberships.some(
       (membership) =>
@@ -304,7 +320,7 @@ export default function TenantMembershipCrudPage() {
     setLoadError(null);
     const input: CreateTenantMembershipInput = {
       userId: form.userId,
-      tenantId: form.tenantId,
+      tenantId,
       roleId: form.roleId,
       branchId: form.branchId || null,
       status: form.status,
@@ -313,24 +329,20 @@ export default function TenantMembershipCrudPage() {
 
     try {
       if (editingId) {
-        const changes: UpdateTenantMembershipInput = input;
+        const currentMembership = memberships.find(
+          (membership) => membership.id === editingId,
+        );
+        const changes: UpdateTenantMembershipInput = {
+          ...(currentMembership?.roleId !== input.roleId
+            ? { roleId: input.roleId }
+            : {}),
+          branchId: input.branchId,
+          status: input.status,
+          billingEligible: input.billingEligible,
+        };
         await updateTenantMembership(editingId, changes);
         showNotice("Membership updated.");
       } else {
-        const selectedUser = users.find((user) => user.id === input.userId);
-        if (
-          selectedUser?.globalRoleId &&
-          selectedUser.globalRoleId === guestRoleId
-        ) {
-          await updateUser(selectedUser.id, { globalRoleId: null });
-          setUsers((current) =>
-            current.map((user) =>
-              user.id === selectedUser.id
-                ? { ...user, globalRoleId: null }
-                : user,
-            ),
-          );
-        }
         await createTenantMembership(input);
         showNotice("Membership added.");
       }
@@ -371,7 +383,7 @@ export default function TenantMembershipCrudPage() {
 
   const selectedRole = roles.find((role) => role.id === form.roleId);
   const availableBranches = branches.filter(
-    (branch) => branch.tenantId === form.tenantId,
+    (branch) => branch.tenantId === tenantId,
   );
   const deleteUser = deleteTarget
     ? users.find((user) => user.id === deleteTarget.userId)
@@ -384,12 +396,12 @@ export default function TenantMembershipCrudPage() {
           <div>
             <p className={`eyebrow ${styles.pageEyebrow}`}>
               <ShieldCheck size={13} />
-              Platform administration <span>/</span> Access control
+              School administration <span>/</span> Access control
             </p>
-            <h1>Tenant memberships</h1>
+            <h1>School memberships</h1>
             <p className="subheading">
-              Assign users to school workspaces and, where their role requires
-              it, to a specific branch.
+              Manage access for this school and assign branch-scoped roles to
+              the appropriate campus.
             </p>
           </div>
         </header>
@@ -416,7 +428,7 @@ export default function TenantMembershipCrudPage() {
             <div className="metric-copy">
               <span>Total assignments</span>
               <strong>{loading ? "—" : memberships.length}</strong>
-              <small>Users connected to tenants</small>
+              <small>Users connected to this school</small>
             </div>
           </article>
           <article className="metric-card">
@@ -460,9 +472,7 @@ export default function TenantMembershipCrudPage() {
                   {loading ? "…" : memberships.length}
                 </span>
               </h2>
-              <p>
-                People, workspace, branch access, role, and membership status.
-              </p>
+              <p>People, branch access, role, and school membership status.</p>
             </div>
             <Button
               variant="outline"
@@ -482,23 +492,10 @@ export default function TenantMembershipCrudPage() {
               <input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="Search user, school, branch, or role"
+                placeholder="Search user, branch, or role"
                 aria-label="Search memberships"
               />
             </label>
-            <select
-              className={styles.filterSelect}
-              aria-label="Filter by tenant"
-              value={tenantFilter}
-              onChange={(event) => setTenantFilter(event.target.value)}
-            >
-              <option value="all">All tenants</option>
-              {tenants.map((tenant) => (
-                <option key={tenant.id} value={tenant.id}>
-                  {tenant.displayName}
-                </option>
-              ))}
-            </select>
             <select
               className={styles.filterSelect}
               aria-label="Filter by status"
@@ -523,7 +520,7 @@ export default function TenantMembershipCrudPage() {
               <thead>
                 <tr>
                   <th>User</th>
-                  <th>Tenant</th>
+                  <th>School</th>
                   <th>Branch</th>
                   <th>Role</th>
                   <th>Status</th>
@@ -556,7 +553,7 @@ export default function TenantMembershipCrudPage() {
                       <span>
                         {memberships.length
                           ? "Try changing the search or filters."
-                          : "Add a user to a tenant to get started."}
+                          : "Add an eligible user to this school to get started."}
                       </span>
                     </td>
                   </tr>
@@ -565,16 +562,21 @@ export default function TenantMembershipCrudPage() {
                     const user = users.find(
                       (item) => item.id === membership.userId,
                     );
-                    const tenant = tenants.find(
-                      (item) => item.id === membership.tenantId,
-                    );
                     const branch = branches.find(
                       (item) => item.id === membership.branchId,
                     );
                     const role = roles.find(
                       (item) => item.id === membership.roleId,
                     );
-                    const displayName = user ? userLabel(user) : "Unknown user";
+                    const displayName =
+                      (membership.user
+                        ? userLabel(membership.user)
+                        : user
+                          ? userLabel(user)
+                          : "") ||
+                      membership.user?.email ||
+                      user?.email ||
+                      membership.userId;
                     return (
                       <tr key={membership.id}>
                         <td>
@@ -589,16 +591,17 @@ export default function TenantMembershipCrudPage() {
                             </span>
                             <span className={styles.cellCopy}>
                               <strong>{displayName}</strong>
-                              <small>{user?.email ?? membership.userId}</small>
+                              <small>
+                                {membership.user?.email ??
+                                  user?.email ??
+                                  membership.userId}
+                              </small>
                             </span>
                           </div>
                         </td>
                         <td>
                           <span className={styles.primaryCell}>
-                            {tenant?.displayName ?? "Unknown tenant"}
-                          </span>
-                          <span className={styles.secondaryCell}>
-                            {tenant?.code ?? membership.tenantId}
+                            This school
                           </span>
                         </td>
                         <td>
@@ -677,7 +680,7 @@ export default function TenantMembershipCrudPage() {
               {loading ? "—" : memberships.length} assignments
             </span>
             <span>
-              Membership status and scope are enforced by the platform.
+              Access is limited to this school and its branches.
             </span>
           </div>
         </section>
@@ -686,12 +689,14 @@ export default function TenantMembershipCrudPage() {
           <div className={`panel-heading ${styles.panelHeading}`}>
             <div>
               <h2>
-                User directory
+                Eligible users
                 <span className={styles.directoryCount}>
                   {loading ? "…" : users.length}
                 </span>
               </h2>
-              <p>Select a user to assign them tenant or branch access.</p>
+              <p>
+                All users except super-admin accounts can be assigned.
+              </p>
             </div>
             <label className={styles.searchControl}>
               <Search size={16} aria-hidden="true" />
@@ -711,7 +716,9 @@ export default function TenantMembershipCrudPage() {
             </div>
           ) : visibleUsers.length === 0 ? (
             <div className={styles.userListMessage}>
-              {users.length ? "No users match your search." : "No users found."}
+              {users.length
+                ? "No users match your search."
+                : "No eligible users found."}
             </div>
           ) : (
             <div className={styles.userList}>
@@ -724,7 +731,7 @@ export default function TenantMembershipCrudPage() {
                     className={styles.userOption}
                     onClick={() => openCreate(user.id)}
                     aria-label={`Add a membership for ${displayName}`}
-                    disabled={!tenants.length || !roles.length}
+                    disabled={!tenantId || !roles.length}
                   >
                     <span className={styles.avatar}>
                       {displayName
@@ -781,8 +788,8 @@ export default function TenantMembershipCrudPage() {
                   {editingId ? "Edit membership" : "Add membership"}
                 </h2>
                 <p>
-                  Choose a tenant and grant the appropriate tenant-wide or
-                  branch role for this user.
+                  Grant school-wide administrator or branch-scoped access for
+                  this user.
                 </p>
               </div>
               <Button
@@ -825,23 +832,10 @@ export default function TenantMembershipCrudPage() {
                     )}
                   </label>
                   <label className={styles.field}>
-                    <span>Tenant / school</span>
-                    <select
-                      className={inputClass}
-                      value={form.tenantId}
-                      onChange={(event) => {
-                        updateForm("tenantId", event.target.value);
-                        updateForm("branchId", "");
-                      }}
-                      aria-invalid={Boolean(errors.tenantId)}
-                    >
-                      <option value="">Select a tenant</option>
-                      {tenants.map((tenant) => (
-                        <option key={tenant.id} value={tenant.id}>
-                          {tenant.displayName} · {tenant.code}
-                        </option>
-                      ))}
-                    </select>
+                    <span>School</span>
+                    <div className={inputClass} aria-invalid={Boolean(errors.tenantId)}>
+                      Current school
+                    </div>
                     {errors.tenantId && (
                       <small className={styles.fieldError}>
                         {errors.tenantId}
@@ -872,11 +866,20 @@ export default function TenantMembershipCrudPage() {
                       aria-invalid={Boolean(errors.roleId)}
                     >
                       <option value="">Select a role</option>
-                      {roles.map((role) => (
+                      {assignableRoles.map((role) => (
                         <option key={role.id} value={role.id}>
                           {role.name} · {role.scope}
                         </option>
                       ))}
+                      {editingId &&
+                        selectedRole &&
+                        !assignableRoles.some(
+                          (role) => role.id === selectedRole.id,
+                        ) && (
+                          <option value={selectedRole.id}>
+                            {selectedRole.name} · current assignment
+                          </option>
+                        )}
                     </select>
                     {errors.roleId && (
                       <small className={styles.fieldError}>
@@ -898,14 +901,14 @@ export default function TenantMembershipCrudPage() {
                         updateForm("branchId", event.target.value)
                       }
                       disabled={
-                        selectedRole?.scope !== "branch" || !form.tenantId
+                        selectedRole?.scope !== "branch" || !tenantId
                       }
                       aria-invalid={Boolean(errors.branchId)}
                     >
                       <option value="">
                         {selectedRole?.scope === "branch"
                           ? "Select a branch"
-                          : "Tenant-wide access"}
+                          : "School-wide access"}
                       </option>
                       {availableBranches.map((branch) => (
                         <option key={branch.id} value={branch.id}>
@@ -926,7 +929,7 @@ export default function TenantMembershipCrudPage() {
                     {selectedRole.description ||
                       (selectedRole.scope === "branch"
                         ? "This role is limited to the selected branch."
-                        : "This role applies across the tenant and has no branch assignment.")}
+                        : "This role applies across the school and has no branch assignment.")}
                   </p>
                 )}
               </div>
@@ -984,7 +987,7 @@ export default function TenantMembershipCrudPage() {
                 <Button
                   type="submit"
                   disabled={
-                    saving || !users.length || !tenants.length || !roles.length
+                    saving || !users.length || !tenantId || !roles.length
                   }
                 >
                   {saving ? (
@@ -1020,8 +1023,7 @@ export default function TenantMembershipCrudPage() {
                   This will remove{" "}
                   {deleteUser ? userLabel(deleteUser) : "this user"}&apos;s
                   assignment from{" "}
-                  {tenants.find((tenant) => tenant.id === deleteTarget.tenantId)
-                    ?.displayName ?? "this tenant"}
+                  this school
                   .
                 </p>
               </div>

@@ -11,6 +11,13 @@ export type TenantMembershipStatus =
 export type TenantMembership = {
   id: string;
   userId: string;
+  user?: {
+    id: string;
+    email: string;
+    firstName: string;
+    middleName: string | null;
+    lastName: string;
+  } | null;
   tenantId: string;
   branchId: string | null;
   roleId: string;

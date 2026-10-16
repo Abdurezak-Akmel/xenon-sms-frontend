@@ -72,6 +72,18 @@ export type TenantMembershipSelectionResponse = AuthMessageResponse & {
   accessToken: string;
 };
 
+export type TenantMembershipChoice = {
+  id: string;
+  tenantId: string;
+  branchId: string | null;
+  status: string;
+  joinedAt: string | null;
+  roleCode: string;
+  roleName: string;
+  roleDescription: string | null;
+  roleScope: "platform" | "tenant" | "branch" | "self" | "linked";
+};
+
 const saveTokens = (accessToken: string, refreshToken?: string) => {
   if (typeof window === "undefined") return;
 
@@ -117,6 +129,12 @@ export async function selectTenantMembership(membershipId: string) {
     localStorage.setItem("activeMembershipId", membershipId);
   }
   return response;
+}
+
+export async function listTenantMembershipChoices() {
+  return apiFetch<{ memberships: TenantMembershipChoice[] }>(
+    `${AUTH_ENDPOINT}/tenant-membership-choices`,
+  );
 }
 
 export async function verifyEmail(token: string) {

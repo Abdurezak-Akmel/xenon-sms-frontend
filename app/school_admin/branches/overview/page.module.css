@@ -175,7 +175,8 @@
 }
 
 .status_suspended,
-.status_closed {
+.status_closed,
+.status_inactive {
   color: #ffaaaa;
 }
 

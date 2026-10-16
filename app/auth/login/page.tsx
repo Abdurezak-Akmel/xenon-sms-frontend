@@ -5,33 +5,45 @@ import Link from "next/link";
 import {
   ArrowLeft,
   ArrowRight,
+  Building2,
   CheckCircle2,
   Eye,
   EyeOff,
   KeyRound,
   Lock,
+  MapPin,
   Mail,
   MoonStar,
   ShieldCheck,
   Sparkles,
   SunMedium,
 } from "lucide-react";
-import { loginUser } from "../../../services/auth/auth.service";
+import {
+  listTenantMembershipChoices,
+  loginUser,
+  selectTenantMembership,
+} from "../../../services/auth/auth.service";
 import { getRoleHomePath } from "../../../route_protection/ProtectedRoute";
 import { ApiError } from "../../../lib/api";
-import {
-  listTenantMembershipRoles,
-  listTenantMemberships,
-} from "../../../services/auth/ten_mem.service";
-import { selectTenantMembership } from "../../../services/auth/auth.service";
 
 type DashboardChoice = {
   membershipId: string;
   roleName: string;
+  roleDescription: string | null;
+  roleScope: "platform" | "tenant" | "branch" | "self" | "linked";
   tenantId: string;
   branchId: string | null;
+  membershipStatus: string;
+  joinedAt: string | null;
   homePath: string;
 };
+
+function formatMembershipDate(value: string) {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime())
+    ? value
+    : new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(date);
+}
 
 export default function LoginPage() {
   const [isDark, setIsDark] = useState(true);
@@ -90,28 +102,24 @@ export default function LoginPage() {
       });
 
       if (response.user.globalRoleId === null) {
-        const [{ memberships }, { roles }] = await Promise.all([
-          listTenantMemberships({
-            userId: response.user.id,
-            status: "active",
-          }),
-          listTenantMembershipRoles(),
-        ]);
-        const rolesById = new Map(roles.map((role) => [role.id, role]));
+        const { memberships } = await listTenantMembershipChoices();
         const choices = memberships.flatMap((membership) => {
-          const role = rolesById.get(membership.roleId);
           const homePath =
-            role && role.scope !== "platform"
-              ? getRoleHomePath(role.code)
+            membership.roleScope !== "platform"
+              ? getRoleHomePath(membership.roleCode)
               : null;
 
-          return role && homePath
+          return homePath
             ? [
                 {
                   membershipId: membership.id,
-                  roleName: role.name,
+                  roleName: membership.roleName,
+                  roleDescription: membership.roleDescription,
+                  roleScope: membership.roleScope,
                   tenantId: membership.tenantId,
                   branchId: membership.branchId,
+                  membershipStatus: membership.status,
+                  joinedAt: membership.joinedAt,
                   homePath,
                 },
               ]
@@ -286,10 +294,14 @@ export default function LoginPage() {
               <div className="mb-7 flex items-center justify-between gap-4">
                 <div>
                   <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-cyan-600 dark:text-cyan-300">
-                    Welcome back
+                    {dashboardChoices.length > 0
+                      ? "Account verified"
+                      : "Welcome back"}
                   </p>
                   <h2 className="mt-2 text-3xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-[2rem]">
-                    Sign in
+                    {dashboardChoices.length > 0
+                      ? "Choose a workspace"
+                      : "Sign in"}
                   </h2>
                 </div>
                 <div className="grid h-12 w-12 place-items-center rounded-2xl bg-cyan-100 text-cyan-700 ring-1 ring-cyan-200 dark:bg-cyan-500/10 dark:text-cyan-300 dark:ring-cyan-500/20">
@@ -307,171 +319,264 @@ export default function LoginPage() {
                   </p>
                 )}
 
-                {dashboardChoices.length > 0 && (
-                  <div
-                    className="space-y-3 rounded-xl border border-cyan-200 bg-cyan-50/70 p-4 dark:border-cyan-900/70 dark:bg-cyan-950/30"
-                    aria-label="Choose a tenant dashboard"
+                {dashboardChoices.length > 0 ? (
+                  <section
+                    className="space-y-5"
+                    aria-label="Choose a tenant membership"
                   >
-                    <p className="text-sm font-medium text-slate-800 dark:text-slate-100">
-                      Choose a role and tenant to continue
-                    </p>
-                    {dashboardChoices.map((choice) => (
-                      <button
-                        key={choice.membershipId}
-                        type="button"
-                        disabled={isSubmitting}
-                        onClick={() => {
-                          void handleDashboardSelection(choice);
-                        }}
-                        className="flex w-full items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-left text-sm transition hover:border-cyan-400 dark:border-slate-700 dark:bg-slate-900"
-                      >
-                        <span className="font-medium text-slate-800 dark:text-slate-100">
-                          {choice.roleName}
-                        </span>
-                        <span className="max-w-[60%] truncate text-xs text-slate-500 dark:text-slate-400">
-                          Tenant {choice.tenantId}
-                          {choice.branchId && ` · Branch ${choice.branchId}`}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                <div className="space-y-2">
-                  <label
-                    htmlFor="email"
-                    className="text-sm font-medium text-slate-700 dark:text-slate-200"
-                  >
-                    Email address
-                  </label>
-                  <div className="relative">
-                    <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
-                    <input
-                      id="email"
-                      type="email"
-                      value={email}
-                      onChange={(event) => setEmail(event.target.value)}
-                      placeholder="name@school.edu"
-                      autoComplete="email"
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50/80 py-3 pl-10 pr-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-cyan-400 focus:ring-4 focus:ring-cyan-500/10 dark:border-slate-700 dark:bg-slate-950/60 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-cyan-400"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between gap-3">
-                    <label
-                      htmlFor="password"
-                      className="text-sm font-medium text-slate-700 dark:text-slate-200"
-                    >
-                      Password
-                    </label>
-                    <Link
-                      href="/auth/forgot_password"
-                      className="text-xs font-medium text-cyan-600 hover:text-cyan-500 dark:text-cyan-300 dark:hover:text-cyan-200"
-                    >
-                      Forgot password?
-                    </Link>
-                  </div>
-                  <div className="relative">
-                    <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
-                    <input
-                      id="password"
-                      type={showPassword ? "text" : "password"}
-                      value={password}
-                      onChange={(event) => setPassword(event.target.value)}
-                      placeholder="Enter your password"
-                      autoComplete="current-password"
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50/80 py-3 pl-10 pr-11 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-cyan-400 focus:ring-4 focus:ring-cyan-500/10 dark:border-slate-700 dark:bg-slate-950/60 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-cyan-400"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword((current) => !current)}
-                      className="absolute right-3 top-1/2 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-md text-slate-400 hover:bg-slate-200 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
-                      aria-label={
-                        showPassword ? "Hide password" : "Show password"
-                      }
-                    >
-                      {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
-                    </button>
-                  </div>
-                </div>
-
-                {mfaRequired && (
-                  <div className="space-y-2">
-                    <label
-                      htmlFor="mfa-code"
-                      className="text-sm font-medium text-slate-700 dark:text-slate-200"
-                    >
-                      Authenticator code
-                    </label>
-                    <div className="relative">
-                      <KeyRound className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
-                      <input
-                        id="mfa-code"
-                        type="text"
-                        inputMode="numeric"
-                        autoComplete="one-time-code"
-                        maxLength={6}
-                        required
-                        value={mfaCode}
-                        onChange={(event) =>
-                          setMfaCode(
-                            event.target.value.replace(/\D/g, "").slice(0, 6),
-                          )
-                        }
-                        placeholder="Enter the 6-digit code"
-                        className="w-full rounded-xl border border-slate-200 bg-slate-50/80 py-3 pl-10 pr-3 text-sm tracking-[0.25em] text-slate-900 outline-none transition placeholder:tracking-normal placeholder:text-slate-400 focus:border-cyan-400 focus:ring-4 focus:ring-cyan-500/10 dark:border-slate-700 dark:bg-slate-950/60 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-cyan-400"
-                      />
+                    <div>
+                      <p className="text-sm font-medium text-slate-800 dark:text-slate-100">
+                        Choose a workspace
+                      </p>
+                      <p className="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">
+                        Select the school and role you want to use for this
+                        session.
+                      </p>
                     </div>
+
+                    <div className="grid gap-3">
+                      {dashboardChoices.map((choice) => (
+                        <button
+                          key={choice.membershipId}
+                          type="button"
+                          disabled={isSubmitting}
+                          onClick={() => {
+                            void handleDashboardSelection(choice);
+                          }}
+                          className="group w-full rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-cyan-400 hover:shadow-lg hover:shadow-cyan-900/5 focus:outline-none focus:ring-4 focus:ring-cyan-500/15 disabled:cursor-wait disabled:opacity-60 dark:border-slate-700 dark:bg-slate-950/70 dark:hover:border-cyan-500 dark:hover:shadow-cyan-950/30 sm:p-5"
+                        >
+                          <span className="flex items-start justify-between gap-4">
+                            <span className="flex min-w-0 items-start gap-3">
+                              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-cyan-100 text-cyan-700 transition group-hover:bg-cyan-600 group-hover:text-white dark:bg-cyan-500/10 dark:text-cyan-300 dark:group-hover:bg-cyan-500 dark:group-hover:text-white">
+                                <ShieldCheck size={20} />
+                              </span>
+                              <span className="min-w-0">
+                                <span className="block text-base font-semibold text-slate-900 dark:text-white">
+                                  {choice.roleName}
+                                </span>
+                                {choice.roleDescription && (
+                                  <span className="mt-1 block text-sm leading-5 text-slate-500 dark:text-slate-400">
+                                    {choice.roleDescription}
+                                  </span>
+                                )}
+                              </span>
+                            </span>
+                            <span className="mt-1 shrink-0 text-cyan-600 transition group-hover:translate-x-0.5 dark:text-cyan-300">
+                              <ArrowRight size={18} />
+                            </span>
+                          </span>
+
+                          <span className="mt-4 grid gap-3 border-t border-slate-100 pt-4 text-sm dark:border-slate-800 sm:grid-cols-2">
+                            <span className="flex min-w-0 items-start gap-2.5">
+                              <Building2
+                                size={16}
+                                className="mt-0.5 shrink-0 text-slate-400"
+                              />
+                              <span className="min-w-0">
+                                <span className="block text-[11px] font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
+                                  School ID
+                                </span>
+                                <span className="mt-0.5 block break-all font-medium text-slate-700 dark:text-slate-200">
+                                  {choice.tenantId}
+                                </span>
+                                <span className="mt-1 block text-xs capitalize text-slate-500 dark:text-slate-400">
+                                  {choice.roleScope} access
+                                </span>
+                              </span>
+                            </span>
+                            <span className="flex min-w-0 items-start gap-2.5">
+                              <MapPin
+                                size={16}
+                                className="mt-0.5 shrink-0 text-slate-400"
+                              />
+                              <span className="min-w-0">
+                                <span className="block text-[11px] font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
+                                  Branch ID
+                                </span>
+                                <span className="mt-0.5 block break-all font-medium text-slate-700 dark:text-slate-200">
+                                  {choice.branchId ?? "No branch assigned"}
+                                </span>
+                              </span>
+                            </span>
+                          </span>
+
+                          <span className="mt-4 flex flex-wrap items-center gap-2">
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium capitalize text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-300">
+                              <CheckCircle2 size={13} />
+                              {choice.membershipStatus}
+                            </span>
+                            {choice.joinedAt && (
+                              <span className="text-xs text-slate-500 dark:text-slate-400">
+                                Member since{" "}
+                                {formatMembershipDate(choice.joinedAt)}
+                              </span>
+                            )}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+
                     <button
                       type="button"
                       onClick={() => {
-                        setMfaRequired(false);
-                        setMfaCode("");
+                        setDashboardChoices([]);
                         setError(null);
                       }}
-                      className="text-xs font-medium text-cyan-600 hover:text-cyan-500 dark:text-cyan-300"
+                      className="inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition hover:text-cyan-600 dark:text-slate-400 dark:hover:text-cyan-300"
                     >
-                      Use a different account
+                      <ArrowLeft size={15} />
+                      Sign in with a different account
                     </button>
-                  </div>
+                  </section>
+                ) : (
+                  <>
+                    <div className="space-y-2">
+                      <label
+                        htmlFor="email"
+                        className="text-sm font-medium text-slate-700 dark:text-slate-200"
+                      >
+                        Email address
+                      </label>
+                      <div className="relative">
+                        <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+                        <input
+                          id="email"
+                          type="email"
+                          value={email}
+                          onChange={(event) => setEmail(event.target.value)}
+                          placeholder="name@school.edu"
+                          autoComplete="email"
+                          className="w-full rounded-xl border border-slate-200 bg-slate-50/80 py-3 pl-10 pr-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-cyan-400 focus:ring-4 focus:ring-cyan-500/10 dark:border-slate-700 dark:bg-slate-950/60 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-cyan-400"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between gap-3">
+                        <label
+                          htmlFor="password"
+                          className="text-sm font-medium text-slate-700 dark:text-slate-200"
+                        >
+                          Password
+                        </label>
+                        <Link
+                          href="/auth/forgot_password"
+                          className="text-xs font-medium text-cyan-600 hover:text-cyan-500 dark:text-cyan-300 dark:hover:text-cyan-200"
+                        >
+                          Forgot password?
+                        </Link>
+                      </div>
+                      <div className="relative">
+                        <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+                        <input
+                          id="password"
+                          type={showPassword ? "text" : "password"}
+                          value={password}
+                          onChange={(event) => setPassword(event.target.value)}
+                          placeholder="Enter your password"
+                          autoComplete="current-password"
+                          className="w-full rounded-xl border border-slate-200 bg-slate-50/80 py-3 pl-10 pr-11 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-cyan-400 focus:ring-4 focus:ring-cyan-500/10 dark:border-slate-700 dark:bg-slate-950/60 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-cyan-400"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword((current) => !current)}
+                          className="absolute right-3 top-1/2 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-md text-slate-400 hover:bg-slate-200 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+                          aria-label={
+                            showPassword ? "Hide password" : "Show password"
+                          }
+                        >
+                          {showPassword ? (
+                            <EyeOff size={15} />
+                          ) : (
+                            <Eye size={15} />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+
+                    {mfaRequired && (
+                      <div className="space-y-2">
+                        <label
+                          htmlFor="mfa-code"
+                          className="text-sm font-medium text-slate-700 dark:text-slate-200"
+                        >
+                          Authenticator code
+                        </label>
+                        <div className="relative">
+                          <KeyRound className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+                          <input
+                            id="mfa-code"
+                            type="text"
+                            inputMode="numeric"
+                            autoComplete="one-time-code"
+                            maxLength={6}
+                            required
+                            value={mfaCode}
+                            onChange={(event) =>
+                              setMfaCode(
+                                event.target.value
+                                  .replace(/\D/g, "")
+                                  .slice(0, 6),
+                              )
+                            }
+                            placeholder="Enter the 6-digit code"
+                            className="w-full rounded-xl border border-slate-200 bg-slate-50/80 py-3 pl-10 pr-3 text-sm tracking-[0.25em] text-slate-900 outline-none transition placeholder:tracking-normal placeholder:text-slate-400 focus:border-cyan-400 focus:ring-4 focus:ring-cyan-500/10 dark:border-slate-700 dark:bg-slate-950/60 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-cyan-400"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setMfaRequired(false);
+                            setMfaCode("");
+                            setError(null);
+                          }}
+                          className="text-xs font-medium text-cyan-600 hover:text-cyan-500 dark:text-cyan-300"
+                        >
+                          Use a different account
+                        </button>
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5 dark:border-slate-700 dark:bg-slate-950/50">
+                      <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+                        <input
+                          type="checkbox"
+                          checked={rememberMe}
+                          onChange={(event) =>
+                            setRememberMe(event.target.checked)
+                          }
+                          className="h-4 w-4 rounded border-slate-300 text-cyan-600 focus:ring-cyan-500 dark:border-slate-600 dark:bg-slate-900"
+                        />
+                        Remember me
+                      </label>
+                      <span className="text-xs text-slate-500 dark:text-slate-400">
+                        Secure session
+                      </span>
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#3267d6] px-4 py-3 text-sm font-semibold text-white shadow-[0_18px_30px_rgba(50,103,214,0.28)] transition hover:bg-[#2957c0] focus:outline-none focus:ring-4 focus:ring-cyan-500/20"
+                    >
+                      {isSubmitting ? "Signing in..." : "Sign in"}
+                      {!isSubmitting && <ArrowRight size={16} />}
+                    </button>
+                  </>
                 )}
-
-                <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5 dark:border-slate-700 dark:bg-slate-950/50">
-                  <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
-                    <input
-                      type="checkbox"
-                      checked={rememberMe}
-                      onChange={(event) => setRememberMe(event.target.checked)}
-                      className="h-4 w-4 rounded border-slate-300 text-cyan-600 focus:ring-cyan-500 dark:border-slate-600 dark:bg-slate-900"
-                    />
-                    Remember me
-                  </label>
-                  <span className="text-xs text-slate-500 dark:text-slate-400">
-                    Secure session
-                  </span>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#3267d6] px-4 py-3 text-sm font-semibold text-white shadow-[0_18px_30px_rgba(50,103,214,0.28)] transition hover:bg-[#2957c0] focus:outline-none focus:ring-4 focus:ring-cyan-500/20"
-                >
-                  {isSubmitting ? "Signing in..." : "Sign in"}
-                  {!isSubmitting && <ArrowRight size={16} />}
-                </button>
               </form>
 
-              <div className="mt-6 border-t border-slate-200 pt-5 text-center text-sm text-slate-600 dark:border-slate-700 dark:text-slate-300">
-                New to Xenon?{" "}
-                <Link
-                  href="/auth/register"
-                  className="font-semibold text-cyan-600 hover:text-cyan-500 dark:text-cyan-300 dark:hover:text-cyan-200"
-                >
-                  Create an account
-                </Link>
-              </div>
+              {dashboardChoices.length === 0 && (
+                <div className="mt-6 border-t border-slate-200 pt-5 text-center text-sm text-slate-600 dark:border-slate-700 dark:text-slate-300">
+                  New to Xenon?{" "}
+                  <Link
+                    href="/auth/register"
+                    className="font-semibold text-cyan-600 hover:text-cyan-500 dark:text-cyan-300 dark:hover:text-cyan-200"
+                  >
+                    Create an account
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
         </section>

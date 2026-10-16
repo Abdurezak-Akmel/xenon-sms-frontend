@@ -31,6 +31,17 @@ export type User = {
   updatedAt: string;
 };
 
+export type MembershipCandidate = Pick<
+  User,
+  | "id"
+  | "globalRoleId"
+  | "email"
+  | "firstName"
+  | "middleName"
+  | "lastName"
+  | "status"
+>;
+
 export type UpdateUserProfileInput = {
   firstName: string;
   middleName: string | null;
@@ -70,16 +81,21 @@ export type UserResponse = {
   user: User;
 };
 
-function getAuthenticatedUserId() {
+type AuthenticatedTokenClaims = {
+  id?: unknown;
+  tenantId?: unknown;
+};
+
+function getAuthenticatedTokenClaims(): AuthenticatedTokenClaims {
   if (typeof window === "undefined") {
-    throw new Error("The signed-in user is only available in the browser.");
+    throw new Error("The signed-in account is only available in the browser.");
   }
 
   const token = localStorage.getItem("token");
-  if (!token) throw new Error("You must be signed in to view your profile.");
+  if (!token) throw new Error("You must be signed in to view this page.");
 
   const encodedPayload = token.split(".")[1];
-  if (!encodedPayload) throw new Error("Unable to identify the signed-in user.");
+  if (!encodedPayload) throw new Error("Unable to identify the signed-in account.");
 
   let payload: unknown;
   try {
@@ -96,13 +112,29 @@ function getAuthenticatedUserId() {
   if (
     typeof payload !== "object" ||
     payload === null ||
-    !("id" in payload) ||
-    typeof payload.id !== "string" ||
-    !payload.id
+    !("id" in payload)
   ) {
+    throw new Error("The access token does not contain account information.");
+  }
+  return payload;
+}
+
+function getAuthenticatedUserId() {
+  const claims = getAuthenticatedTokenClaims();
+  if (typeof claims.id !== "string" || !claims.id) {
     throw new Error("The access token does not contain a user ID.");
   }
-  return payload.id;
+  return claims.id;
+}
+
+export function getAuthenticatedTenantId() {
+  const claims = getAuthenticatedTokenClaims();
+  if (typeof claims.tenantId !== "string" || !claims.tenantId) {
+    throw new Error(
+      "The signed-in account has no selected school. Sign in again and choose a school.",
+    );
+  }
+  return claims.tenantId;
 }
 
 export function getUserAvatarSrc(avatarUrl: string | null) {
@@ -124,6 +156,12 @@ export async function listUsers(filters: UserListFilters = {}) {
   const queryString = query.toString();
   return apiFetch<UserListResponse>(
     `${USERS_ENDPOINT}${queryString ? `?${queryString}` : ""}`,
+  );
+}
+
+export async function listMembershipCandidates() {
+  return apiFetch<{ users: MembershipCandidate[] }>(
+    `${USERS_ENDPOINT}/membership-candidates`,
   );
 }
 

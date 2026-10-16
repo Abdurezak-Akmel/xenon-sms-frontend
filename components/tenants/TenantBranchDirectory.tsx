@@ -54,6 +54,7 @@ export function TenantBranchDirectory({
   onEdit,
   onDelete,
   onRetry,
+  onView,
 }: {
   branches: Branch[];
   loading: boolean;
@@ -63,6 +64,7 @@ export function TenantBranchDirectory({
   onEdit: (branch: Branch) => void;
   onDelete: (branch: Branch) => void;
   onRetry: () => void;
+  onView?: (branch: Branch) => void;
 }) {
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | BranchStatus>("all");
@@ -179,7 +181,33 @@ export function TenantBranchDirectory({
             </thead>
             <tbody>
               {filteredBranches.map((branch) => (
-                <tr key={branch.id}>
+                <tr
+                  key={branch.id}
+                  className={onView ? styles.branchRowInteractive : undefined}
+                  onClick={(event) => {
+                    if (
+                      onView &&
+                      !(event.target as HTMLElement).closest("button")
+                    ) {
+                      onView(branch);
+                    }
+                  }}
+                  onKeyDown={(event) => {
+                    if (
+                      onView &&
+                      !(event.target as HTMLElement).closest("button") &&
+                      (event.key === "Enter" || event.key === " ")
+                    ) {
+                      event.preventDefault();
+                      onView(branch);
+                    }
+                  }}
+                  tabIndex={onView ? 0 : undefined}
+                  role={onView ? "link" : undefined}
+                  aria-label={
+                    onView ? `View ${branch.name} branch overview` : undefined
+                  }
+                >
                   <td>
                     <div className={styles.branchIdentity}>
                       <div className={styles.branchAvatar} aria-hidden="true">
