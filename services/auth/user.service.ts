@@ -84,6 +84,7 @@ export type UserResponse = {
 type AuthenticatedTokenClaims = {
   id?: unknown;
   tenantId?: unknown;
+  branchId?: unknown;
 };
 
 function getAuthenticatedTokenClaims(): AuthenticatedTokenClaims {
@@ -127,6 +128,16 @@ export function getAuthenticatedTenantId() {
     );
   }
   return claims.tenantId;
+}
+
+export function getAuthenticatedBranchId() {
+  const claims = getAuthenticatedTokenClaims();
+  if (typeof claims.branchId !== "string" || !claims.branchId) {
+    throw new Error(
+      "The signed-in account has no selected branch. Sign in again and choose a branch.",
+    );
+  }
+  return claims.branchId;
 }
 
 export function getUserAvatarSrc(avatarUrl: string | null) {

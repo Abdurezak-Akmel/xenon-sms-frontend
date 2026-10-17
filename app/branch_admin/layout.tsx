@@ -4,7 +4,6 @@ import * as React from "react";
 import { usePathname, useRouter } from "next/navigation";
 
 import {
-  Building2,
   CircleUserRound,
   LayoutDashboard,
   LogOut,
@@ -22,7 +21,6 @@ import {
 import { Sidebar, type NavGroupDef } from "@/components/layout/Sidebar";
 import { Button } from "@/components/ui/Button";
 
-// Service Functions
 import { logoutUser } from "@/services/auth/auth.service";
 import { getCurrentUser } from "@/services/auth/user.service";
 
@@ -35,58 +33,47 @@ const navGroups: NavGroupDef[] = [
       {
         label: "Dashboard",
         icon: LayoutDashboard,
-        href: "/school_admin",
-      },
-      {
-        label: "Branches",
-        icon: Building2,
-        href: "/school_admin/branches",
+        href: "/branch_admin",
       },
       {
         label: "Memberships",
         icon: Users,
-        href: "/school_admin/memberships",
+        href: "/branch_admin/memberships",
       },
       {
         label: "Profile",
         icon: CircleUserRound,
-        href: "/school_admin/profile",
+        href: "/branch_admin/profile",
       },
     ],
   },
 ];
 
 const sectionByPath: Record<string, string> = {
-  "/school_admin": "Dashboard",
-  "/school_admin/branches": "Branches",
-  "/school_admin/memberships": "Memberships",
-  "/school_admin/profile": "Profile",
+  "/branch_admin": "Dashboard",
+  "/branch_admin/memberships": "Memberships",
+  "/branch_admin/profile": "Profile",
 };
 
 const quickNavigationItems: QuickNavigationItem[] = [
   {
-    href: "/school_admin/branches",
-    label: "Branches",
-    icon: Building2,
-  },
-  {
-    href: "/school_admin/memberships",
+    href: "/branch_admin/memberships",
     label: "Memberships",
     icon: Users,
   },
   {
-    href: "/school_admin/profile",
+    href: "/branch_admin/profile",
     label: "Profile",
     icon: CircleUserRound,
   },
   {
-    href: "/school_admin",
-    label: "Overview",
+    href: "/branch_admin",
+    label: "Dashboard",
     icon: LayoutDashboard,
   },
 ];
 
-export default function SchoolAdminLayout({
+export default function BranchAdminLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   const pathname = usePathname();
@@ -98,7 +85,7 @@ export default function SchoolAdminLayout({
   const [notification, setNotification] = React.useState("");
   const [loggingOut, setLoggingOut] = React.useState(false);
   const [logoutError, setLogoutError] = React.useState(false);
-  const [userName, setUserName] = React.useState("School admin");
+  const [userName, setUserName] = React.useState("Branch admin");
   const userInitials = userName
     .split(/\s+/)
     .filter(Boolean)
@@ -106,26 +93,25 @@ export default function SchoolAdminLayout({
     .map((part) => part[0])
     .join("")
     .toUpperCase();
-  const activeSection = pathname.startsWith("/school_admin/branches")
-    ? "Branches"
-    : pathname.startsWith("/school_admin/memberships")
-      ? "Memberships"
+  const activeSection = pathname.startsWith("/branch_admin/memberships")
+    ? "Memberships"
+    : pathname.startsWith("/branch_admin/profile")
+      ? "Profile"
       : (sectionByPath[pathname] ?? "Dashboard");
 
   React.useEffect(() => {
     let active = true;
     getCurrentUser()
       .then(({ user }) => {
-        if (active) {
-          const fullName = [user.firstName, user.middleName, user.lastName]
-            .filter(Boolean)
-            .join(" ");
-          setUserName(fullName || "School admin");
-        }
+        if (!active) return;
+        const fullName = [user.firstName, user.middleName, user.lastName]
+          .filter(Boolean)
+          .join(" ");
+        setUserName(fullName || "Branch admin");
       })
       .catch((error: unknown) => {
         console.error(
-          "Unable to load the signed-in school administrator:",
+          "Unable to load the signed-in branch administrator:",
           error,
         );
       });
@@ -208,7 +194,7 @@ export default function SchoolAdminLayout({
     {
       label: "Profile",
       icon: CircleUserRound,
-      onClick: () => router.push("/school_admin/profile"),
+      onClick: () => router.push("/branch_admin/profile"),
     },
     {
       label: "Sign Out",
@@ -227,8 +213,8 @@ export default function SchoolAdminLayout({
         onToggleOpen={() => setSidebarOpen((open) => !open)}
         activeItem={activeSection}
         onSelectItem={handleSectionSelect}
-        currentSchool="My school"
-        schools={[{ id: "school", name: "My school" }]}
+        currentSchool="My branch"
+        schools={[{ id: "branch", name: "My branch" }]}
         navGroups={navGroups}
       />
 
@@ -238,8 +224,8 @@ export default function SchoolAdminLayout({
           breadcrumbs={[{ label: "Workspace" }, { label: activeSection }]}
           user={{
             name: userName,
-            role: "School admin",
-            initials: userInitials || "SA",
+            role: "Branch admin",
+            initials: userInitials || "BA",
           }}
           isDark={isDark}
           onThemeToggle={() => setIsDark((dark) => !dark)}
@@ -289,7 +275,7 @@ export default function SchoolAdminLayout({
         isOpen={searchOpen}
         onClose={() => setSearchOpen(false)}
         title="Quick navigation"
-        description="Go to a school administration page."
+        description="Go to a branch administration page."
         items={quickNavigationItems}
       />
       {notification && (

@@ -911,6 +911,27 @@
   background: var(--orange);
 }
 
+.schoolStatus.statusSuspended,
+.schoolStatus.statusRevoked {
+  background: transparent;
+}
+
+.schoolStatus.statusSuspended {
+  color: var(--red);
+}
+
+.schoolStatus.statusSuspended i {
+  background: var(--red);
+}
+
+.schoolStatus.statusRevoked {
+  color: var(--muted);
+}
+
+.schoolStatus.statusRevoked i {
+  background: var(--muted);
+}
+
 .activityList {
   margin-top: 14px;
 }

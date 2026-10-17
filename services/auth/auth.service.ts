@@ -1,4 +1,4 @@
-import { apiFetch } from "../../lib/api";
+import { ApiError, apiFetch } from "../../lib/api";
 
 const AUTH_ENDPOINT = "/auth";
 
@@ -68,6 +68,8 @@ export type RefreshTokenResponse = AuthMessageResponse & {
   user: AuthUser;
 };
 
+let refreshInFlight: Promise<RefreshTokenResponse> | null = null;
+
 export type TenantMembershipSelectionResponse = AuthMessageResponse & {
   accessToken: string;
 };
@@ -84,6 +86,7 @@ export type TenantMembershipChoice = {
   roleScope: "platform" | "tenant" | "branch" | "self" | "linked";
 };
 
+// Function to save access and refresh tokens in local storage
 const saveTokens = (accessToken: string, refreshToken?: string) => {
   if (typeof window === "undefined") return;
 
@@ -93,6 +96,7 @@ const saveTokens = (accessToken: string, refreshToken?: string) => {
   }
 };
 
+// Register user service
 export async function registerUser(input: RegisterInput) {
   return apiFetch<AuthUserResponse>(`${AUTH_ENDPOINT}/register`, {
     method: "POST",
@@ -101,6 +105,7 @@ export async function registerUser(input: RegisterInput) {
   });
 }
 
+// Login user service
 export async function loginUser(input: LoginInput) {
   const response = await apiFetch<LoginResponse>(`${AUTH_ENDPOINT}/login`, {
     method: "POST",
@@ -169,7 +174,11 @@ export async function resetPassword(input: ResetPasswordInput) {
   });
 }
 
-export async function refreshAuthToken(refreshToken?: string) {
+export async function refreshAuthToken(
+  refreshToken?: string,
+): Promise<RefreshTokenResponse> {
+  if (refreshInFlight) return refreshInFlight;
+
   const storedRefreshToken =
     refreshToken ??
     (typeof window !== "undefined"
@@ -180,24 +189,56 @@ export async function refreshAuthToken(refreshToken?: string) {
     throw new Error("Refresh token is required.");
   }
 
-  const activeMembershipId =
-    typeof window !== "undefined"
-      ? localStorage.getItem("activeMembershipId")
-      : null;
-  const response = await apiFetch<RefreshTokenResponse>(
-    `${AUTH_ENDPOINT}/refresh-token`,
-    {
-      method: "POST",
-      auth: false,
-      body: JSON.stringify({
-        refreshToken: storedRefreshToken,
-        ...(activeMembershipId ? { membershipId: activeMembershipId } : {}),
-      }),
-    },
-  );
+  refreshInFlight = (async () => {
+    const activeMembershipId =
+      typeof window !== "undefined"
+        ? localStorage.getItem("activeMembershipId")
+        : null;
+    try {
+      const response = await apiFetch<RefreshTokenResponse>(
+        `${AUTH_ENDPOINT}/refresh-token`,
+        {
+          method: "POST",
+          auth: false,
+          body: JSON.stringify({
+            refreshToken: storedRefreshToken,
+            ...(activeMembershipId ? { membershipId: activeMembershipId } : {}),
+          }),
+        },
+      );
 
-  saveTokens(response.accessToken, response.refreshToken);
-  return response;
+      if (
+        typeof response !== "object" ||
+        response === null ||
+        typeof response.accessToken !== "string"
+      ) {
+        throw new ApiError(
+          "Refresh response did not include an access token.",
+          500,
+        );
+      }
+
+      saveTokens(response.accessToken, response.refreshToken);
+      return response;
+    } catch (error) {
+      if (
+        typeof window !== "undefined" &&
+        error instanceof ApiError &&
+        (error.status === 401 || error.status === 403)
+      ) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("refreshToken");
+        localStorage.removeItem("activeMembershipId");
+      }
+      throw error;
+    }
+  })();
+
+  try {
+    return await refreshInFlight;
+  } finally {
+    refreshInFlight = null;
+  }
 }
 
 export async function logoutUser() {

@@ -37,11 +37,8 @@ import type {
   UpdateTenantMembershipInput,
 } from "../../../services/auth/ten_mem.service";
 
-import { listBranches } from "../../../services/tenancy/branch.service";
-
-import type { Branch } from "../../../services/tenancy/branch.service";
-
 import {
+  getAuthenticatedBranchId,
   getAuthenticatedTenantId,
   listMembershipCandidates,
 } from "../../../services/auth/user.service";
@@ -107,7 +104,7 @@ export default function TenantMembershipCrudPage() {
   const [memberships, setMemberships] = useState<TenantMembership[]>([]);
   const [users, setUsers] = useState<MembershipCandidate[]>([]);
   const [tenantId, setTenantId] = useState("");
-  const [branches, setBranches] = useState<Branch[]>([]);
+  const [branchId, setBranchId] = useState("");
   const [roles, setRoles] = useState<TenantMembershipRole[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -134,33 +131,34 @@ export default function TenantMembershipCrudPage() {
     setLoadError(null);
     try {
       const selectedTenantId = getAuthenticatedTenantId();
-      const [membershipResult, userResult, branchResult, roleResult] =
-        await Promise.all([
-          listTenantMemberships({ tenantId: selectedTenantId }),
-          listMembershipCandidates(),
-          listBranches({ tenantId: selectedTenantId }),
-          listTenantMembershipRoles(),
-        ]);
+      const selectedBranchId = getAuthenticatedBranchId();
+      const [membershipResult, userResult, roleResult] = await Promise.all([
+        listTenantMemberships({
+          tenantId: selectedTenantId,
+          branchId: selectedBranchId,
+        }),
+        listMembershipCandidates(),
+        listTenantMembershipRoles(),
+      ]);
+      if (
+        membershipResult.memberships.some(
+          (membership) =>
+            membership.tenantId !== selectedTenantId ||
+            membership.branchId !== selectedBranchId,
+        )
+      ) {
+        throw new Error("The server returned memberships outside your branch.");
+      }
       setTenantId(selectedTenantId);
-      setMemberships(
-        membershipResult.memberships.filter(
-          (membership) => membership.tenantId === selectedTenantId,
-        ),
-      );
+      setBranchId(selectedBranchId);
+      setMemberships(membershipResult.memberships);
       setUsers(userResult.users);
-      setBranches(
-        branchResult.branches.filter(
-          (branch) => branch.tenantId === selectedTenantId,
-        ),
-      );
-      setRoles(
-        roleResult.roles,
-      );
+      setRoles(roleResult.roles);
     } catch (error) {
       setLoadError(
         error instanceof Error
           ? error.message
-          : "Unable to load school memberships.",
+          : "Unable to load branch memberships.",
       );
     } finally {
       setLoading(false);
@@ -172,16 +170,13 @@ export default function TenantMembershipCrudPage() {
   }, [loadData]);
 
   const assignableRoles = roles.filter(
-    (role) =>
-      role.scope === "branch" ||
-      (role.scope === "tenant" && role.code === "school-admin"),
+    (role) => role.scope === "branch",
   );
 
   const visibleMemberships = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
     return memberships.filter((membership) => {
       const user = users.find((item) => item.id === membership.userId);
-      const branch = branches.find((item) => item.id === membership.branchId);
       const role = roles.find((item) => item.id === membership.roleId);
       const userName = membership.user
         ? userLabel(membership.user)
@@ -193,8 +188,7 @@ export default function TenantMembershipCrudPage() {
       const searchable = [
         userName || membership.user?.email || user?.email || membership.userId,
         membership.user?.email ?? user?.email ?? "",
-        "this school",
-        branch?.name ?? "",
+        "this branch",
         role?.name ?? role?.code ?? membership.roleId,
       ];
       const matchesQuery =
@@ -205,7 +199,6 @@ export default function TenantMembershipCrudPage() {
       return matchesStatus && matchesQuery;
     });
   }, [
-    branches,
     memberships,
     query,
     roles,
@@ -229,8 +222,8 @@ export default function TenantMembershipCrudPage() {
   const invitedCount = memberships.filter(
     (item) => item.status === "invited",
   ).length;
-  const branchScopedCount = memberships.filter(
-    (item) => item.branchId !== null,
+  const suspendedCount = memberships.filter(
+    (item) => item.status === "suspended",
   ).length;
 
   function showNotice(message: string) {
@@ -245,10 +238,8 @@ export default function TenantMembershipCrudPage() {
       ...emptyForm,
       tenantId,
       userId,
-      roleId:
-        assignableRoles.find((role) => role.code === "school-admin")?.id ??
-        assignableRoles.find((role) => role.scope === "branch")?.id ??
-        "",
+      branchId,
+      roleId: assignableRoles[0]?.id ?? "",
     });
     setFormOpen(true);
   }
@@ -280,24 +271,15 @@ export default function TenantMembershipCrudPage() {
     const selectedRole = assignableRoles.find(
       (role) => role.id === form.roleId,
     );
-    const currentMembership = memberships.find(
-      (membership) => membership.id === editingId,
-    );
-    const keepsCurrentRole =
-      currentMembership?.roleId === form.roleId &&
-      roles.some((role) => role.id === form.roleId);
     if (!form.userId) nextErrors.userId = "Select a user.";
     if (!tenantId || form.tenantId !== tenantId) {
       nextErrors.tenantId = "The selected school is unavailable.";
     }
-    if (!selectedRole && !keepsCurrentRole) {
+    if (!selectedRole) {
       nextErrors.roleId = "Select an assignable role.";
     }
-    if (selectedRole?.scope === "branch" && !form.branchId) {
-      nextErrors.branchId = "This role requires a branch assignment.";
-    }
-    if (selectedRole && selectedRole.scope !== "branch" && form.branchId) {
-      nextErrors.branchId = "This role must be assigned at school level.";
+    if (selectedRole?.scope === "branch" && form.branchId !== branchId) {
+      nextErrors.branchId = "Memberships can only be assigned to this branch.";
     }
     const duplicate = memberships.some(
       (membership) =>
@@ -382,9 +364,6 @@ export default function TenantMembershipCrudPage() {
   }
 
   const selectedRole = roles.find((role) => role.id === form.roleId);
-  const availableBranches = branches.filter(
-    (branch) => branch.tenantId === tenantId,
-  );
   const deleteUser = deleteTarget
     ? users.find((user) => user.id === deleteTarget.userId)
     : undefined;
@@ -396,12 +375,11 @@ export default function TenantMembershipCrudPage() {
           <div>
             <p className={`eyebrow ${styles.pageEyebrow}`}>
               <ShieldCheck size={13} />
-              School administration <span>/</span> Access control
+              Branch administration <span>/</span> Access control
             </p>
-            <h1>School memberships</h1>
+            <h1>Branch memberships</h1>
             <p className="subheading">
-              Manage access for this school and assign branch-scoped roles to
-              the appropriate campus.
+              Manage access for this branch and assign branch-scoped roles.
             </p>
           </div>
         </header>
@@ -428,7 +406,7 @@ export default function TenantMembershipCrudPage() {
             <div className="metric-copy">
               <span>Total assignments</span>
               <strong>{loading ? "—" : memberships.length}</strong>
-              <small>Users connected to this school</small>
+              <small>Users assigned to this branch</small>
             </div>
           </article>
           <article className="metric-card">
@@ -456,9 +434,9 @@ export default function TenantMembershipCrudPage() {
               <KeyRound size={18} />
             </div>
             <div className="metric-copy">
-              <span>Branch assignments</span>
-              <strong>{loading ? "—" : branchScopedCount}</strong>
-              <small>Limited to a campus</small>
+              <span>Suspended memberships</span>
+              <strong>{loading ? "—" : suspendedCount}</strong>
+              <small>Branch access currently suspended</small>
             </div>
           </article>
         </section>
@@ -472,7 +450,7 @@ export default function TenantMembershipCrudPage() {
                   {loading ? "…" : memberships.length}
                 </span>
               </h2>
-              <p>People, branch access, role, and school membership status.</p>
+              <p>People, branch roles, access status, and billing eligibility.</p>
             </div>
             <Button
               variant="outline"
@@ -492,7 +470,7 @@ export default function TenantMembershipCrudPage() {
               <input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="Search user, branch, or role"
+                placeholder="Search user or role"
                 aria-label="Search memberships"
               />
             </label>
@@ -553,7 +531,7 @@ export default function TenantMembershipCrudPage() {
                       <span>
                         {memberships.length
                           ? "Try changing the search or filters."
-                          : "Add an eligible user to this school to get started."}
+                          : "Add an eligible user to this branch to get started."}
                       </span>
                     </td>
                   </tr>
@@ -561,9 +539,6 @@ export default function TenantMembershipCrudPage() {
                   visibleMemberships.map((membership) => {
                     const user = users.find(
                       (item) => item.id === membership.userId,
-                    );
-                    const branch = branches.find(
-                      (item) => item.id === membership.branchId,
                     );
                     const role = roles.find(
                       (item) => item.id === membership.roleId,
@@ -601,21 +576,13 @@ export default function TenantMembershipCrudPage() {
                         </td>
                         <td>
                           <span className={styles.primaryCell}>
-                            This school
+                            Current school
                           </span>
                         </td>
                         <td>
                           <span className={styles.primaryCell}>
-                            {branch?.name ??
-                              (membership.branchId
-                                ? "Unknown branch"
-                                : "All branches")}
+                            {membership.branchId ? "This branch" : "Unassigned"}
                           </span>
-                          {branch && (
-                            <span className={styles.secondaryCell}>
-                              {branch.code}
-                            </span>
-                          )}
                         </td>
                         <td>
                           <span className={styles.rolePill}>
@@ -680,7 +647,7 @@ export default function TenantMembershipCrudPage() {
               {loading ? "—" : memberships.length} assignments
             </span>
             <span>
-              Access is limited to this school and its branches.
+              Access is limited to your assigned branch.
             </span>
           </div>
         </section>
@@ -695,7 +662,7 @@ export default function TenantMembershipCrudPage() {
                 </span>
               </h2>
               <p>
-                All users except super-admin accounts can be assigned.
+                Eligible users available for branch assignments.
               </p>
             </div>
             <label className={styles.searchControl}>
@@ -787,10 +754,7 @@ export default function TenantMembershipCrudPage() {
                 <h2 id="membership-form-title">
                   {editingId ? "Edit membership" : "Add membership"}
                 </h2>
-                <p>
-                  Grant school-wide administrator or branch-scoped access for
-                  this user.
-                </p>
+                <p>Grant branch-scoped access to this user.</p>
               </div>
               <Button
                 variant="ghost"
@@ -888,33 +852,22 @@ export default function TenantMembershipCrudPage() {
                     )}
                   </label>
                   <label className={styles.field}>
-                    <span>
-                      Branch{" "}
-                      {selectedRole?.scope === "branch"
-                        ? "(required)"
-                        : "(not applicable)"}
-                    </span>
+                    <span>Branch</span>
                     <select
                       className={inputClass}
                       value={form.branchId}
                       onChange={(event) =>
                         updateForm("branchId", event.target.value)
                       }
-                      disabled={
-                        selectedRole?.scope !== "branch" || !tenantId
-                      }
+                      disabled={selectedRole?.scope !== "branch" || !branchId}
                       aria-invalid={Boolean(errors.branchId)}
                     >
                       <option value="">
                         {selectedRole?.scope === "branch"
                           ? "Select a branch"
-                          : "School-wide access"}
+                          : "Branch role required"}
                       </option>
-                      {availableBranches.map((branch) => (
-                        <option key={branch.id} value={branch.id}>
-                          {branch.name} · {branch.code}
-                        </option>
-                      ))}
+                      {branchId && <option value={branchId}>This branch</option>}
                     </select>
                     {errors.branchId && (
                       <small className={styles.fieldError}>
@@ -927,9 +880,7 @@ export default function TenantMembershipCrudPage() {
                   <p className={styles.scopeHint}>
                     <ShieldCheck size={14} />
                     {selectedRole.description ||
-                      (selectedRole.scope === "branch"
-                        ? "This role is limited to the selected branch."
-                        : "This role applies across the school and has no branch assignment.")}
+                      "This role is limited to your assigned branch."}
                   </p>
                 )}
               </div>
@@ -1022,9 +973,7 @@ export default function TenantMembershipCrudPage() {
                 <p>
                   This will remove{" "}
                   {deleteUser ? userLabel(deleteUser) : "this user"}&apos;s
-                  assignment from{" "}
-                  this school
-                  .
+                  assignment from this branch.
                 </p>
               </div>
               <Button

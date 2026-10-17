@@ -232,6 +232,17 @@ export default function TenantMembershipCrudPage() {
   const branchScopedCount = memberships.filter(
     (item) => item.branchId !== null,
   ).length;
+  const schoolAdminMemberships = memberships.filter((membership) => {
+    const role = roles.find((item) => item.id === membership.roleId);
+    return role?.code.replace(/_/g, "-") === "school-admin";
+  });
+
+  function isLastSchoolAdminMembership(membership: TenantMembership) {
+    return (
+      schoolAdminMemberships.length === 1 &&
+      schoolAdminMemberships[0]?.id === membership.id
+    );
+  }
 
   function showNotice(message: string) {
     setNotice(message);
@@ -315,6 +326,20 @@ export default function TenantMembershipCrudPage() {
 
   async function submitForm(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const currentMembership = memberships.find(
+      (membership) => membership.id === editingId,
+    );
+    if (
+      currentMembership &&
+      isLastSchoolAdminMembership(currentMembership) &&
+      (form.roleId !== currentMembership.roleId ||
+        form.status !== currentMembership.status)
+    ) {
+      setLoadError(
+        "The final school administrator membership cannot change role or status.",
+      );
+      return;
+    }
     if (!validate()) return;
     setSaving(true);
     setLoadError(null);
@@ -329,9 +354,6 @@ export default function TenantMembershipCrudPage() {
 
     try {
       if (editingId) {
-        const currentMembership = memberships.find(
-          (membership) => membership.id === editingId,
-        );
         const changes: UpdateTenantMembershipInput = {
           ...(currentMembership?.roleId !== input.roleId
             ? { roleId: input.roleId }
@@ -361,6 +383,10 @@ export default function TenantMembershipCrudPage() {
 
   async function confirmDelete() {
     if (!deleteTarget) return;
+    if (isLastSchoolAdminMembership(deleteTarget)) {
+      setLoadError("At least one school administrator membership must remain.");
+      return;
+    }
     setDeleting(true);
     setLoadError(null);
     try {
@@ -382,6 +408,10 @@ export default function TenantMembershipCrudPage() {
   }
 
   const selectedRole = roles.find((role) => role.id === form.roleId);
+  const editingLastSchoolAdmin = memberships.some(
+    (membership) =>
+      membership.id === editingId && isLastSchoolAdminMembership(membership),
+  );
   const availableBranches = branches.filter(
     (branch) => branch.tenantId === tenantId,
   );
@@ -659,8 +689,13 @@ export default function TenantMembershipCrudPage() {
                               variant="ghost"
                               size="icon-sm"
                               aria-label={`Remove ${displayName}'s membership`}
-                              title="Remove membership"
+                              title={
+                                isLastSchoolAdminMembership(membership)
+                                  ? "At least one school administrator membership must remain"
+                                  : "Remove membership"
+                              }
                               onClick={() => setDeleteTarget(membership)}
+                              disabled={isLastSchoolAdminMembership(membership)}
                               className={styles.deleteIcon}
                             >
                               <Trash2 size={15} />
@@ -851,7 +886,11 @@ export default function TenantMembershipCrudPage() {
                 </h3>
                 <div className={styles.formGrid}>
                   <label className={styles.field}>
-                    <span>Role</span>
+                    <span>
+                      Role
+                      {editingLastSchoolAdmin &&
+                        " (locked for the final school administrator)"}
+                    </span>
                     <select
                       className={inputClass}
                       value={form.roleId}
@@ -863,6 +902,7 @@ export default function TenantMembershipCrudPage() {
                         if (nextRole?.scope !== "branch")
                           updateForm("branchId", "");
                       }}
+                      disabled={editingLastSchoolAdmin}
                       aria-invalid={Boolean(errors.roleId)}
                     >
                       <option value="">Select a role</option>
@@ -936,10 +976,15 @@ export default function TenantMembershipCrudPage() {
 
               <div className={styles.formGrid}>
                 <label className={styles.field}>
-                  <span>Membership status</span>
+                  <span>
+                    Membership status
+                    {editingLastSchoolAdmin &&
+                      " (locked for the final school administrator)"}
+                  </span>
                   <select
                     className={inputClass}
                     value={form.status}
+                    disabled={editingLastSchoolAdmin}
                     onChange={(event) =>
                       updateForm(
                         "status",

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { refreshAccessToken } from "../lib/api";
+import { refreshAuthToken } from "../services/auth/auth.service";
 
 import {
   getRoleHomePath,
@@ -86,7 +86,7 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
       (!token || !Number.isFinite(expiry) || expiry <= Date.now()) &&
       window.localStorage.getItem("refreshToken")
     ) {
-      void refreshAccessToken()
+      void refreshAuthToken()
         .then(({ accessToken }) => {
           if (active) authorize(accessToken);
         })

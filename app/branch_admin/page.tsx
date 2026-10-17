@@ -5,9 +5,8 @@ import Link from "next/link";
 import {
   Activity,
   ArrowRight,
-  Building2,
   Clock3,
-  GitBranch,
+  ShieldAlert,
   UserRoundCheck,
   Users,
 } from "lucide-react";
@@ -15,11 +14,18 @@ import {
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardPanel } from "@/components/dashboard/DashboardPanel";
 import { StatsCard } from "@/components/dashboard/StatsCard";
-import { listTenantMemberships } from "@/services/auth/ten_mem.service";
-import type { TenantMembership } from "@/services/auth/ten_mem.service";
-import { getAuthenticatedTenantId } from "@/services/auth/user.service";
-import { listBranches } from "@/services/tenancy/branch.service";
-import type { Branch } from "@/services/tenancy/branch.service";
+import {
+  listTenantMembershipRoles,
+  listTenantMemberships,
+} from "@/services/auth/ten_mem.service";
+import type {
+  TenantMembership,
+  TenantMembershipRole,
+} from "@/services/auth/ten_mem.service";
+import {
+  getAuthenticatedBranchId,
+  getAuthenticatedTenantId,
+} from "@/services/auth/user.service";
 import styles from "./page.module.css";
 
 const membershipStatuses = [
@@ -29,7 +35,7 @@ const membershipStatuses = [
   { status: "revoked", label: "Revoked", className: "statusRevoked" },
 ] as const;
 
-function getBranchTrend(branches: Branch[]) {
+function getMembershipTrend(memberships: TenantMembership[]) {
   const now = new Date();
   const months = Array.from({ length: 6 }, (_, index) => {
     const date = new Date(now.getFullYear(), now.getMonth() - 5 + index, 1);
@@ -42,8 +48,8 @@ function getBranchTrend(branches: Branch[]) {
     };
   });
 
-  for (const branch of branches) {
-    const createdAt = new Date(branch.createdAt);
+  for (const membership of memberships) {
+    const createdAt = new Date(membership.createdAt);
     if (Number.isNaN(createdAt.getTime())) continue;
     const month = months.find(
       ({ date }) =>
@@ -73,19 +79,19 @@ function formatRelativeTime(value: string) {
   }).format(new Date(timestamp));
 }
 
-function branchInitials(name: string) {
-  return name
-    .split(/\s+/)
+function membershipUserName(membership: TenantMembership) {
+  return [
+    membership.user?.firstName,
+    membership.user?.middleName,
+    membership.user?.lastName,
+  ]
     .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0])
-    .join("")
-    .toUpperCase();
+    .join(" ");
 }
 
-export default function SchoolAdminPage() {
-  const [branches, setBranches] = useState<Branch[]>([]);
+export default function BranchAdminPage() {
   const [memberships, setMemberships] = useState<TenantMembership[]>([]);
+  const [roles, setRoles] = useState<TenantMembershipRole[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -97,40 +103,33 @@ export default function SchoolAdminPage() {
       setLoadError(null);
       try {
         const tenantId = getAuthenticatedTenantId();
-        const [branchResult, membershipResult] = await Promise.all([
-          listBranches({ tenantId }),
-          listTenantMemberships({ tenantId }),
+        const branchId = getAuthenticatedBranchId();
+        const [membershipResult, roleResult] = await Promise.all([
+          listTenantMemberships({ tenantId, branchId }),
+          listTenantMembershipRoles(),
         ]);
-        if (branchResult.branches.some((branch) => branch.tenantId !== tenantId)) {
-          throw new Error("The server returned branch data outside your school.");
-        }
         if (
           membershipResult.memberships.some(
-            (membership) => membership.tenantId !== tenantId,
+            (membership) =>
+              membership.tenantId !== tenantId ||
+              membership.branchId !== branchId,
           )
         ) {
           throw new Error(
-            "The server returned membership data outside your school.",
+            "The server returned membership data outside your branch.",
           );
         }
 
         if (active) {
-          setBranches(
-            branchResult.branches
-              .sort(
-                (first, second) =>
-                  new Date(second.createdAt).getTime() -
-                  new Date(first.createdAt).getTime(),
-              ),
-          );
           setMemberships(membershipResult.memberships);
+          setRoles(roleResult.roles);
         }
       } catch (error) {
         if (active) {
           setLoadError(
             error instanceof Error
               ? error.message
-              : "Unable to load school dashboard data.",
+              : "Unable to load branch dashboard data.",
           );
         }
       } finally {
@@ -144,64 +143,68 @@ export default function SchoolAdminPage() {
     };
   }, []);
 
-  const activeBranches = branches.filter(
-    (branch) => branch.status === "active",
-  ).length;
   const activeMemberships = memberships.filter(
     (membership) => membership.status === "active",
   ).length;
   const invitedMemberships = memberships.filter(
     (membership) => membership.status === "invited",
   ).length;
-  const branchTrend = useMemo(() => getBranchTrend(branches), [branches]);
-  const maxTrendCount = Math.max(...branchTrend.map(({ count }) => count), 1);
+  const suspendedMemberships = memberships.filter(
+    (membership) => membership.status === "suspended",
+  ).length;
+  const recentMemberships = useMemo(
+    () =>
+      [...memberships].sort(
+        (first, second) =>
+          new Date(second.updatedAt).getTime() -
+          new Date(first.updatedAt).getTime(),
+      ),
+    [memberships],
+  );
+  const membershipTrend = useMemo(
+    () => getMembershipTrend(memberships),
+    [memberships],
+  );
+  const maxTrendCount = Math.max(
+    ...membershipTrend.map(({ count }) => count),
+    1,
+  );
 
   const recentActivity = useMemo(
     () =>
-      [
-        ...branches.map((branch) => ({
-          key: `branch-${branch.id}`,
-          title: "Branch added",
-          detail: `${branch.name} · ${branch.code}`,
-          time: branch.createdAt,
-          icon: GitBranch,
-          tone: "blue",
-        })),
-        ...memberships.map((membership) => {
-          const branch = branches.find(
-            (item) => item.id === membership.branchId,
-          );
-          return {
-            key: `membership-${membership.id}`,
-            title: `Membership ${membership.status}`,
-            detail: branch?.name ?? "School-wide membership",
-            time: membership.updatedAt,
-            icon: Users,
-            tone:
-              membership.status === "active"
-                ? "green"
-                : membership.status === "invited"
-                  ? "orange"
-                  : "violet",
-          };
-        }),
-      ]
+      memberships
+        .map((membership) => ({
+          key: membership.id,
+          title: `Membership ${membership.status}`,
+          detail:
+            membershipUserName(membership) ||
+            membership.user?.email ||
+            "Branch member",
+          time: membership.updatedAt,
+          icon: Users,
+          tone:
+            membership.status === "active"
+              ? "green"
+              : membership.status === "invited"
+                ? "orange"
+                : "violet",
+        }))
         .sort(
           (first, second) =>
             new Date(second.time).getTime() - new Date(first.time).getTime(),
         )
         .slice(0, 4),
-    [branches, memberships],
+    [memberships],
   );
 
   return (
     <div className={styles.dashboardContent}>
       <DashboardHeader
-        title="School Admin Dashboard"
-        subtitle="A snapshot of branches and staff access across your school."
+        title="Branch Admin Dashboard"
+        subtitle="A snapshot of staff access and membership activity for your branch."
         action={{
-          href: "/school_admin/branches",
-          label: "Add a branch",
+          href: "/branch_admin/memberships",
+          label: "Manage memberships",
         }}
         styles={styles}
       />
@@ -212,21 +215,13 @@ export default function SchoolAdminPage() {
         </p>
       )}
 
-      <section className={styles.statsGrid} aria-label="School statistics">
+      <section className={styles.statsGrid} aria-label="Branch statistics">
         <StatsCard
-          title="Total branches"
-          value={loadError ? "—" : branches.length}
-          icon={Building2}
+          title="Branch members"
+          value={loadError ? "—" : memberships.length}
+          icon={Users}
           tone="blue"
-          description="Across your school"
-          loading={loading}
-        />
-        <StatsCard
-          title="Active branches"
-          value={loadError ? "—" : activeBranches}
-          icon={GitBranch}
-          tone="green"
-          description="Currently operating"
+          description="Memberships assigned to your branch"
           loading={loading}
         />
         <StatsCard
@@ -234,15 +229,23 @@ export default function SchoolAdminPage() {
           value={loadError ? "—" : activeMemberships}
           icon={UserRoundCheck}
           tone="violet"
-          description="Staff and school users"
+          description="Currently active branch access"
           loading={loading}
         />
         <StatsCard
-          title="Invitations"
+          title="Pending invitations"
           value={loadError ? "—" : invitedMemberships}
           icon={Clock3}
           tone="orange"
-          description="Awaiting acceptance"
+          description="Awaiting branch access acceptance"
+          loading={loading}
+        />
+        <StatsCard
+          title="Suspended memberships"
+          value={loadError ? "—" : suspendedMemberships}
+          icon={ShieldAlert}
+          tone="red"
+          description="Branch access currently suspended"
           loading={loading}
         />
       </section>
@@ -251,21 +254,21 @@ export default function SchoolAdminPage() {
         <DashboardPanel
           className={`${styles.contentPanel} ${styles.trendPanel}`}
           headingClassName={styles.panelHeading}
-          title="Branch activity"
-          subtitle="New branches added over the last six months"
+          title="Membership activity"
+          subtitle="Memberships created over the last six months"
         >
           <div className={styles.trendSummary}>
-            <strong>{loading || loadError ? "—" : branches.length}</strong>
-            <span>total branches</span>
+            <strong>{loading || loadError ? "—" : memberships.length}</strong>
+            <span>total memberships</span>
           </div>
           <div
             className={styles.trendBars}
             role="img"
-            aria-label={`Branches added by month: ${branchTrend
+            aria-label={`Memberships created by month: ${membershipTrend
               .map(({ label, count }) => `${label}: ${count}`)
               .join(", ")}`}
           >
-            {branchTrend.map(({ label, count }) => (
+            {membershipTrend.map(({ label, count }) => (
               <div className={styles.trendColumn} key={label}>
                 <span>{count || ""}</span>
                 <div className={styles.trendBarTrack}>
@@ -286,9 +289,9 @@ export default function SchoolAdminPage() {
           className={`${styles.contentPanel} ${styles.membershipPanel}`}
           headingClassName={styles.panelHeading}
           title="Membership overview"
-          subtitle="User access across your school"
+          subtitle="Access assigned to this branch"
           action={
-            <Link href="/school_admin/memberships" className={styles.textLink}>
+            <Link href="/branch_admin/memberships" className={styles.textLink}>
               Manage <ArrowRight size={14} />
             </Link>
           }
@@ -320,11 +323,11 @@ export default function SchoolAdminPage() {
         <DashboardPanel
           className={styles.contentPanel}
           headingClassName={styles.panelHeading}
-          title="Branches"
-          subtitle="A quick look at your school branches"
+          title="Branch membership"
+          subtitle="A quick look at your branch roster"
           action={
-            <Link href="/school_admin/branches" className={styles.textLink}>
-              View all <ArrowRight size={14} />
+            <Link href="/branch_admin/memberships" className={styles.textLink}>
+              View memberships <ArrowRight size={14} />
             </Link>
           }
         >
@@ -332,64 +335,82 @@ export default function SchoolAdminPage() {
             <table className={styles.schoolTable}>
               <thead>
                 <tr>
-                  <th>Branch</th>
-                  <th>Code</th>
-                  <th>Location</th>
+                  <th>Member</th>
+                  <th>Role</th>
+                  <th>Updated</th>
                   <th>Status</th>
                 </tr>
               </thead>
               <tbody>
-                {branches.slice(0, 5).map((branch) => (
-                  <tr key={branch.id}>
-                    <td>
-                      <div className={styles.schoolIdentity}>
+                {recentMemberships.slice(0, 5).map((membership) => {
+                  const role = roles.find(
+                    (item) => item.id === membership.roleId,
+                  );
+                  const name =
+                    membershipUserName(membership) ||
+                    membership.user?.email ||
+                    "Branch member";
+                  const statusClass =
+                    membership.status === "active"
+                      ? styles.statusActive
+                      : membership.status === "invited"
+                        ? styles.statusReview
+                        : membership.status === "suspended"
+                          ? styles.statusSuspended
+                          : styles.statusRevoked;
+                  return (
+                    <tr key={membership.id}>
+                      <td>
+                        <div className={styles.schoolIdentity}>
+                          <span
+                            className={`${styles.schoolAvatar} ${styles.blue}`}
+                          >
+                            {name
+                              .split(/\s+/)
+                              .slice(0, 2)
+                              .map((part) => part[0])
+                              .join("")
+                              .toUpperCase()}
+                          </span>
+                          <span>
+                            <strong>{name}</strong>
+                            <small>
+                              {membership.user?.email ?? "Branch member"}
+                            </small>
+                          </span>
+                        </div>
+                      </td>
+                      <td>
+                        <span className={styles.planBadge}>
+                          {role?.name ?? role?.code ?? "Membership"}
+                        </span>
+                      </td>
+                      <td>{formatRelativeTime(membership.updatedAt)}</td>
+                      <td>
                         <span
-                          className={`${styles.schoolAvatar} ${styles.blue}`}
+                          className={`${styles.schoolStatus} ${statusClass}`}
                         >
-                          {branchInitials(branch.name)}
+                          <i />
+                          {membership.status[0].toUpperCase() +
+                            membership.status.slice(1)}
                         </span>
-                        <span>
-                          <strong>{branch.name}</strong>
-                          <small>
-                            {branch.email ?? branch.phone ?? "Branch"}
-                          </small>
-                        </span>
-                      </div>
-                    </td>
-                    <td>
-                      <span className={styles.planBadge}>{branch.code}</span>
-                    </td>
-                    <td>{branch.address || "Not set"}</td>
-                    <td>
-                      <span
-                        className={`${styles.schoolStatus} ${
-                          branch.status === "active"
-                            ? styles.statusActive
-                            : styles.statusReview
-                        }`}
-                      >
-                        <i />
-                        {branch.status[0].toUpperCase() + branch.status.slice(1)}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                    </tr>
+                  );
+                })}
                 {loading && (
                   <tr>
                     <td colSpan={4} className={styles.schoolTableMessage}>
-                      Loading branches…
+                      Loading branch memberships…
                     </td>
                   </tr>
                 )}
-                {!loading && !loadError && branches.length === 0 && (
+                {!loading && !loadError && memberships.length === 0 && (
                   <tr>
                     <td colSpan={4} className={styles.schoolTableMessage}>
-                      No branches yet.{" "}
-                      <Link
-                        href="/school_admin/branches"
-                        className={styles.textLink}
-                      >
-                        Add a branch
+                      No memberships assigned to this branch yet.{" "}
+                      <Link href="/branch_admin/memberships" className={styles.textLink}>
+                        Manage memberships
                       </Link>
                     </td>
                   </tr>
@@ -397,7 +418,7 @@ export default function SchoolAdminPage() {
                 {!loading && loadError && (
                   <tr>
                     <td colSpan={4} className={styles.schoolTableMessage}>
-                      Branch data is unavailable.
+                      Branch membership data is unavailable.
                     </td>
                   </tr>
                 )}
@@ -411,9 +432,9 @@ export default function SchoolAdminPage() {
           headingClassName={styles.panelHeading}
           id="activity"
           title="Recent activity"
-          subtitle="Latest branch and membership updates"
+          subtitle="Latest membership updates for this branch"
           action={
-            <Link href="/school_admin/memberships" className={styles.textLink}>
+            <Link href="/branch_admin/memberships" className={styles.textLink}>
               View memberships <ArrowRight size={14} />
             </Link>
           }
@@ -435,31 +456,31 @@ export default function SchoolAdminPage() {
             )}
             {!loading && !loadError && recentActivity.length === 0 && (
               <p className={styles.activityEmpty}>
-                No branch or membership activity yet.
+                No membership activity yet.
               </p>
             )}
             {loading && (
               <p className={styles.activityEmpty} role="status">
-                Loading school activity…
+                Loading branch activity…
               </p>
             )}
             {loadError && (
               <p className={styles.activityEmpty}>
-                School activity is unavailable.
+                Branch activity is unavailable.
               </p>
             )}
           </div>
           <div className={styles.activityFooter}>
             <span>
-              <Activity size={15} /> School operations at a glance
+              <Activity size={15} /> Branch operations at a glance
             </span>
           </div>
         </DashboardPanel>
       </section>
 
       <footer className={styles.footer}>
-        <span>School administration</span>
-        <span>Manage your branches and school memberships</span>
+        <span>Branch administration</span>
+        <span>Manage access and membership activity for your branch</span>
       </footer>
     </div>
   );
