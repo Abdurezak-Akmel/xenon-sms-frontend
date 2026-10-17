@@ -119,14 +119,6 @@ function getAuthenticatedTokenClaims(): AuthenticatedTokenClaims {
   return payload;
 }
 
-function getAuthenticatedUserId() {
-  const claims = getAuthenticatedTokenClaims();
-  if (typeof claims.id !== "string" || !claims.id) {
-    throw new Error("The access token does not contain a user ID.");
-  }
-  return claims.id;
-}
-
 export function getAuthenticatedTenantId() {
   const claims = getAuthenticatedTokenClaims();
   if (typeof claims.tenantId !== "string" || !claims.tenantId) {
@@ -144,7 +136,7 @@ export function getUserAvatarSrc(avatarUrl: string | null) {
 }
 
 export async function getCurrentUser() {
-  return getUser(getAuthenticatedUserId());
+  return apiFetch<UserResponse>(`${USERS_ENDPOINT}/me`);
 }
 
 export async function listUsers(filters: UserListFilters = {}) {
@@ -184,7 +176,20 @@ export async function updateUser(id: string, input: UpdateUserInput) {
 }
 
 export async function updateCurrentUserProfile(input: UpdateUserProfileInput) {
-  return updateUser(getAuthenticatedUserId(), input);
+  return apiFetch<UserResponse>(`${USERS_ENDPOINT}/me`, {
+    method: "PATCH",
+    body: JSON.stringify(input),
+  });
+}
+
+export async function updateCurrentUserAvatar(avatar: File) {
+  const formData = new FormData();
+  formData.append("avatar", avatar);
+
+  return apiFetch<UserResponse>(`${USERS_ENDPOINT}/me`, {
+    method: "PATCH",
+    body: formData,
+  });
 }
 
 export async function updateUserAvatar(

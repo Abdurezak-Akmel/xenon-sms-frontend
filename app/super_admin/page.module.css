@@ -467,6 +467,12 @@
   min-height: 104px;
 }
 
+.statsError {
+  margin: 8px 0 0;
+  color: var(--red);
+  font-size: 11px;
+}
+
 .analyticsGrid,
 .bottomGrid {
   display: grid;

@@ -2,12 +2,25 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+// UI Components
+import type { UserProfileData } from "@/components/profile/ProfileCard";
+import { ProfilePageFeedback } from "@/components/profile/ProfilePageFeedback";
+import { ProfilePageHeader } from "@/components/profile/ProfilePageHeader";
+import { ProfileWorkspace } from "@/components/profile/ProfileWorkspace";
+
+// Stylesheet
+import styles from "./page.module.css";
+
+// Service Functions
 import {
   type User,
+  getAuthenticatedTenantId,
   getCurrentUser,
   updateCurrentUserProfile,
-  updateUserAvatar,
+  updateCurrentUserAvatar,
 } from "@/services/auth/user.service";
+import { getTenant } from "@/services/tenancy/tenant.service";
+
 import {
   beginMfaDisable,
   beginMfaSetup,
@@ -15,24 +28,8 @@ import {
   enableMfa,
   type MfaSetupResponse,
 } from "@/services/auth/mfa.service";
-import type { UserProfileData } from "@/components/profile/ProfileCard";
-import { ProfilePageFeedback } from "@/components/profile/ProfilePageFeedback";
-import { ProfilePageHeader } from "@/components/profile/ProfilePageHeader";
-import { ProfileWorkspace } from "@/components/profile/ProfileWorkspace";
 
-import styles from "./page.module.css";
-
-function displayRole(user: User) {
-  const roleCode = user.metadata.roleCode;
-  if (typeof roleCode !== "string") return "Platform Administrator";
-  if (roleCode === "super-admin") return "Platform Super Administrator";
-  return roleCode
-    .split(/[-_]/)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
-}
-
-function toProfile(user: User): UserProfileData {
+function toProfile(user: User, schoolName: string): UserProfileData {
   const fullName = [user.firstName, user.middleName, user.lastName]
     .filter(Boolean)
     .join(" ");
@@ -45,8 +42,8 @@ function toProfile(user: User): UserProfileData {
     lastName: user.lastName,
     email: user.email,
     phone: user.phone ?? "",
-    role: displayRole(user),
-    schoolName: "Xenon Platform",
+    role: "School Administrator",
+    schoolName,
     ...(user.avatarUrl ? { avatarUrl: user.avatarUrl } : {}),
     joinDate: new Intl.DateTimeFormat(undefined, {
       month: "long",
@@ -56,9 +53,10 @@ function toProfile(user: User): UserProfileData {
   };
 }
 
-export default function SuperAdminProfilePage() {
+export default function SchoolAdminProfilePage() {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfileData | null>(null);
+  const [schoolName, setSchoolName] = useState("");
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -72,9 +70,14 @@ export default function SuperAdminProfilePage() {
     setLoading(true);
     setError(null);
     try {
-      const response = await getCurrentUser();
+      const tenantId = getAuthenticatedTenantId();
+      const [response, tenantResponse] = await Promise.all([
+        getCurrentUser(),
+        getTenant(tenantId),
+      ]);
+      setSchoolName(tenantResponse.tenant.displayName);
       setUser(response.user);
-      setProfile(toProfile(response.user));
+      setProfile(toProfile(response.user, tenantResponse.tenant.displayName));
     } catch (loadError) {
       setError(
         loadError instanceof Error
@@ -105,7 +108,7 @@ export default function SuperAdminProfilePage() {
         phone: changes.phone?.trim() ? changes.phone.trim() : null,
       });
       setUser(response.user);
-      setProfile(toProfile(response.user));
+      setProfile(toProfile(response.user, schoolName));
       setEditing(false);
     } catch (saveError) {
       const message =
@@ -124,9 +127,9 @@ export default function SuperAdminProfilePage() {
     setUploadingAvatar(true);
     setError(null);
     try {
-      const response = await updateUserAvatar(user.id, file);
+      const response = await updateCurrentUserAvatar(file);
       setUser(response.user);
-      setProfile(toProfile(response.user));
+      setProfile(toProfile(response.user, schoolName));
     } catch (uploadError) {
       setError(
         uploadError instanceof Error
@@ -177,7 +180,7 @@ export default function SuperAdminProfilePage() {
       const response =
         action === "enable" ? await enableMfa(code) : await disableMfa(code);
       setUser(response.user);
-      setProfile(toProfile(response.user));
+      setProfile(toProfile(response.user, schoolName));
       setMfaSetup(null);
     } catch (mfaActionError) {
       setMfaError(
@@ -197,7 +200,10 @@ export default function SuperAdminProfilePage() {
         <ProfilePageFeedback message="Loading your profile…" loading />
       )}
       {!loading && error && !profile && (
-        <ProfilePageFeedback message={error} onRetry={() => void loadProfile()} />
+        <ProfilePageFeedback
+          message={error}
+          onRetry={() => void loadProfile()}
+        />
       )}
       {!loading && profile && user && (
         <ProfileWorkspace

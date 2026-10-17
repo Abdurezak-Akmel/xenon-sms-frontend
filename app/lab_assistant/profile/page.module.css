@@ -1,0 +1,576 @@
+.profilePage {
+  --profile-font: var(--font-sans), "Plus Jakarta Sans", system-ui, sans-serif;
+  width: min(100%, 1440px);
+  min-height: calc(100vh - 70px);
+  margin: 0 auto;
+  padding: 30px 36px 42px;
+  color: var(--foreground);
+  font-family: var(--profile-font);
+  background:
+    radial-gradient(ellipse at 8% 0%, rgb(50 103 214 / 5%), transparent 32rem),
+    var(--background);
+}
+
+.pageHeader {
+  position: relative;
+  display: flex;
+  min-height: 188px;
+  align-items: center;
+  overflow: hidden;
+  margin-bottom: 22px;
+  padding: 28px 32px;
+  border: 1px solid rgb(124 179 255 / 20%);
+  border-radius: 22px;
+  color: #fff;
+  background:
+    radial-gradient(ellipse at 80% 5%, rgb(96 165 250 / 30%), transparent 39%),
+    radial-gradient(ellipse at 100% 100%, rgb(34 211 238 / 12%), transparent 35%),
+    linear-gradient(115deg, #0f1d35 0%, #172c4d 58%, #1c3c67 100%);
+  box-shadow: 0 18px 44px rgb(15 41 77 / 16%);
+}
+
+.pageHeader::before,
+.pageHeader::after {
+  position: absolute;
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 50%;
+  content: "";
+  pointer-events: none;
+}
+
+.pageHeader::before {
+  top: -116px;
+  right: 13%;
+  width: 280px;
+  height: 280px;
+}
+
+.pageHeader::after {
+  right: -62px;
+  bottom: -184px;
+  width: 320px;
+  height: 320px;
+  border-color: rgb(124 179 255 / 20%);
+}
+
+.pageHeader > div {
+  position: relative;
+  z-index: 1;
+}
+
+.pageHeader h1 {
+  margin: 8px 0 0;
+  color: #fff;
+  font-size: clamp(26px, 2.5vw, 34px);
+  font-weight: 700;
+  letter-spacing: -1.1px;
+}
+
+.pageHeader p:last-child {
+  max-width: 540px;
+  margin: 10px 0 0;
+  color: rgb(226 235 249 / 76%);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.eyebrow {
+  margin: 0;
+  color: #a8c8f7;
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.profileGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(300px, 0.8fr);
+  align-items: start;
+  gap: 22px;
+}
+
+.primaryColumn {
+  display: grid;
+  min-width: 0;
+  gap: 20px;
+}
+
+.editForm {
+  width: 100%;
+}
+
+.profileBanner {
+  position: relative;
+  height: 168px;
+  overflow: hidden;
+  border-radius: 10px 10px 0 0;
+  background:
+    radial-gradient(ellipse at 80% 5%, rgb(96 165 250 / 24%), transparent 39%),
+    linear-gradient(115deg, #172c4d 0%, #21477b 58%, #3267a7 100%);
+}
+
+.accountStatusPosition {
+  position: absolute;
+  top: 17px;
+  right: 18px;
+}
+
+.accountStatus {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid rgb(255 255 255 / 20%);
+  border-radius: 999px;
+  padding: 7px 11px;
+  color: #fff;
+  background: rgb(255 255 255 / 12%);
+  font-size: 10px;
+  font-weight: 650;
+  backdrop-filter: blur(8px);
+}
+
+.profileContent {
+  padding: 0 27px 27px;
+}
+
+.profileActions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 17px;
+  margin: -72px 0 28px;
+}
+
+.profileAvatar {
+  display: flex;
+  width: 148px;
+  height: 148px;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 5px solid var(--card);
+  border-radius: 28px;
+  background: #d9efe5;
+  color: #267a52;
+  font-size: 38px;
+  font-weight: 700;
+  box-shadow: 0 8px 22px rgb(15 23 42 / 14%);
+}
+
+.profileButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+
+.profileIdentity {
+  display: grid;
+  gap: 9px;
+}
+
+.profileNameRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 9px 12px;
+}
+
+.profileName {
+  margin: 0;
+  color: var(--foreground);
+  font-size: clamp(21px, 2vw, 26px);
+  font-weight: 700;
+  letter-spacing: -0.6px;
+}
+
+.profileRole {
+  border: 1px solid color-mix(in srgb, var(--blue) 13%, var(--line));
+  border-radius: 7px;
+  padding: 5px 9px;
+  color: var(--blue);
+  background: var(--blue-soft);
+  font-size: 10px;
+  font-weight: 650;
+}
+
+.profileOrganization {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.contactGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 20px;
+  margin-top: 23px;
+  border-top: 1px solid var(--line);
+  padding-top: 20px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.contactGrid > div {
+  min-width: 0;
+  gap: 9px;
+}
+
+.contactGrid > div > span {
+  min-width: 0;
+  color: var(--foreground);
+  font-weight: 550;
+  overflow-wrap: anywhere;
+}
+
+.contactGrid svg {
+  flex: 0 0 auto;
+}
+
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 23px;
+  border-top: 1px solid var(--line);
+  padding-top: 20px;
+}
+
+.metric {
+  display: grid;
+  min-height: 78px;
+  align-content: center;
+  gap: 7px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px 9px;
+  background: color-mix(in srgb, var(--card) 60%, var(--background));
+  text-align: center;
+}
+
+.metricValue {
+  color: var(--foreground);
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.metricLabel {
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.securityCard {
+  min-width: 0;
+  font-family: var(--profile-font);
+  border-radius: 12px !important;
+  box-shadow: 0 8px 26px rgb(35 61 98 / 5%) !important;
+}
+
+.securityIcon,
+.securityItemIcon {
+  display: inline-grid;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--blue) 12%, var(--line));
+  border-radius: 10px;
+  color: var(--blue);
+  background: var(--blue-soft);
+}
+
+.securityIcon {
+  width: 42px;
+  height: 42px;
+  margin-bottom: 8px;
+}
+
+.securityList {
+  display: grid;
+  gap: 17px;
+}
+
+.securityItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding-top: 17px;
+  border-top: 1px solid var(--line);
+}
+
+.securityItemIcon {
+  width: 38px;
+  height: 38px;
+}
+
+.securityItem > span:nth-child(2) {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+  flex: 1;
+}
+
+.securityItem strong {
+  color: var(--foreground);
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.securityItem small {
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.enabledBadge,
+.disabledBadge {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  padding: 5px 8px;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.mfaSwitch {
+  position: relative;
+  display: inline-flex;
+  width: 48px;
+  height: 28px;
+  flex: 0 0 auto;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 3px;
+  background: color-mix(in srgb, var(--muted) 25%, var(--background));
+  cursor: pointer;
+  transition: background 160ms ease, border-color 160ms ease;
+}
+
+.mfaSwitch span {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--card);
+  box-shadow: 0 1px 4px rgb(15 23 42 / 22%);
+  transition: transform 160ms ease;
+}
+
+.mfaSwitchOn {
+  border-color: var(--blue);
+  background: var(--blue);
+}
+
+.mfaSwitchOn span {
+  transform: translateX(19px);
+}
+
+.mfaSwitch:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--blue) 35%, transparent);
+  outline-offset: 3px;
+}
+
+.mfaSwitch:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.mfaSetup {
+  display: grid;
+  gap: 14px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  padding: 16px;
+  background: color-mix(in srgb, var(--card) 70%, var(--background));
+}
+
+.mfaSetup p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.65;
+}
+
+.mfaSetup code {
+  overflow-wrap: anywhere;
+  border: 1px dashed color-mix(in srgb, var(--blue) 35%, var(--line));
+  border-radius: 8px;
+  padding: 11px 12px;
+  color: var(--blue);
+  background: var(--blue-soft);
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+}
+
+.mfaActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 9px;
+}
+
+.editForm {
+  font-family: var(--profile-font);
+}
+
+.editForm :global(label) {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.005em;
+}
+
+.editForm :global(input) {
+  font-family: var(--profile-font);
+  font-size: 13px;
+}
+
+.editForm :global(button) {
+  font-family: var(--profile-font);
+  font-weight: 650;
+  letter-spacing: 0.005em;
+}
+
+.enabledBadge {
+  color: var(--green);
+  background: color-mix(in srgb, var(--green) 12%, transparent);
+}
+
+.disabledBadge {
+  border: 1px solid var(--line);
+  color: var(--muted);
+  background: var(--background);
+}
+
+.feedbackContent {
+  display: grid;
+  justify-items: start;
+  gap: 18px;
+}
+
+.loadingMessage,
+.errorMessage,
+.uploadStatus {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.loadingMessage,
+.uploadStatus {
+  color: var(--muted);
+}
+
+.errorMessage {
+  color: #b42318;
+}
+
+.profilePage :global(input:focus-visible),
+.profilePage :global(button:focus-visible) {
+  outline: 3px solid color-mix(in srgb, var(--blue) 40%, transparent);
+  outline-offset: 2px;
+}
+
+@media (min-width: 640px) {
+  .profileActions {
+    flex-direction: row;
+    align-items: flex-end;
+  }
+}
+
+@media (max-width: 1100px) {
+  .profileGrid {
+    grid-template-columns: minmax(0, 1.25fr) minmax(270px, 0.8fr);
+    gap: 16px;
+  }
+
+  .profileContent {
+    padding-right: 22px;
+    padding-left: 22px;
+  }
+}
+
+@media (max-width: 850px) {
+  .profileGrid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 17px;
+  }
+
+  .profilePage {
+    padding-right: 24px;
+    padding-left: 24px;
+  }
+}
+
+@media (max-width: 540px) {
+  .profilePage {
+    min-height: calc(100vh - 62px);
+    padding: 21px 15px 30px;
+  }
+
+  .pageHeader {
+    min-height: 158px;
+    margin-bottom: 16px;
+    padding: 22px 20px;
+    border-radius: 16px;
+  }
+
+  .pageHeader::before {
+    right: -35px;
+  }
+
+  .pageHeader h1 {
+    font-size: 26px;
+  }
+
+  .pageHeader p:last-child {
+    font-size: 12px;
+  }
+
+  .profileBanner {
+    height: 132px;
+  }
+
+  .profileContent {
+    padding-right: 17px;
+    padding-left: 17px;
+  }
+
+  .profileActions {
+    gap: 13px;
+    margin-top: -42px;
+    margin-bottom: 20px;
+  }
+
+  .profileAvatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 24px;
+    font-size: 32px;
+  }
+
+  .profileButtons {
+    width: 100%;
+  }
+
+  .contactGrid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 13px;
+  }
+
+  .metricsGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .securityItem {
+    flex-wrap: wrap;
+  }
+
+}

@@ -48,6 +48,11 @@ const navGroups: NavGroupDef[] = [
         href: "/super_admin/tenant_membership",
       },
       {
+        label: "Users",
+        icon: Users,
+        href: "/super_admin/users",
+      },
+      {
         label: "User sessions",
         icon: MonitorSmartphone,
         href: "/super_admin/user_sessions",
@@ -65,6 +70,7 @@ const sectionByPath: Record<string, string> = {
   "/super_admin": "Dashboard",
   "/super_admin/tenants": "Schools",
   "/super_admin/tenant_membership": "Memberships",
+  "/super_admin/users": "Users",
   "/super_admin/user_sessions": "User sessions",
   "/super_admin/profile": "Profile",
 };

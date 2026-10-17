@@ -1,37 +1,44 @@
 "use client";
 
 import { useEffect, useState } from "react";
+
 import Link from "next/link";
+
 import {
   ArrowLeft,
   ArrowRight,
-  Building2,
   CheckCircle2,
   Eye,
   EyeOff,
   Lock,
-  MapPin,
   Mail,
   MoonStar,
   ShieldCheck,
   Sparkles,
   SunMedium,
 } from "lucide-react";
+
+// Service Functions
 import {
   listTenantMembershipChoices,
   loginUser,
   selectTenantMembership,
 } from "../../../services/auth/auth.service";
+
+import { getTenant } from "../../../services/tenancy/tenant.service";
+
+// Route Protection Middleware
 import { getRoleHomePath } from "../../../route_protection/ProtectedRoute";
+
 import { ApiError } from "../../../lib/api";
 
 type DashboardChoice = {
   membershipId: string;
   roleName: string;
   roleDescription: string | null;
-  roleScope: "platform" | "tenant" | "branch" | "self" | "linked";
-  tenantId: string;
-  branchId: string | null;
+  tenantName: string;
+  tenantLegalName: string;
+  tenantAddress: string | null;
   membershipStatus: string;
   joinedAt: string | null;
   homePath: string;
@@ -103,7 +110,7 @@ export default function LoginPage() {
 
       if (response.user.globalRoleId === null) {
         const { memberships } = await listTenantMembershipChoices();
-        const choices = memberships.flatMap((membership) => {
+        const eligibleMemberships = memberships.flatMap((membership) => {
           const homePath =
             membership.roleScope !== "platform"
               ? getRoleHomePath(membership.roleCode)
@@ -115,9 +122,7 @@ export default function LoginPage() {
                   membershipId: membership.id,
                   roleName: membership.roleName,
                   roleDescription: membership.roleDescription,
-                  roleScope: membership.roleScope,
                   tenantId: membership.tenantId,
-                  branchId: membership.branchId,
                   membershipStatus: membership.status,
                   joinedAt: membership.joinedAt,
                   homePath,
@@ -126,12 +131,24 @@ export default function LoginPage() {
             : [];
         });
 
-        if (choices.length === 1) {
-          await selectTenantMembership(choices[0].membershipId);
-          window.location.assign(choices[0].homePath);
+        if (eligibleMemberships.length === 1) {
+          await selectTenantMembership(eligibleMemberships[0].membershipId);
+          window.location.assign(eligibleMemberships[0].homePath);
           return;
         }
-        if (choices.length > 1) {
+
+        if (eligibleMemberships.length > 1) {
+          const choices = await Promise.all(
+            eligibleMemberships.map(async (membership) => {
+              const { tenant } = await getTenant(membership.tenantId);
+              return {
+                ...membership,
+                tenantName: tenant.displayName,
+                tenantLegalName: tenant.legalName,
+                tenantAddress: tenant.address,
+              };
+            }),
+          );
           setDashboardChoices(choices);
           return;
         }
@@ -381,7 +398,16 @@ export default function LoginPage() {
                               </span>
                               <span className="min-w-0">
                                 <span className="block text-base font-semibold text-slate-900 dark:text-white">
-                                  {choice.roleName}
+                                  {choice.tenantName}
+                                </span>
+                                {choice.tenantLegalName !==
+                                  choice.tenantName && (
+                                  <span className="mt-1 block text-sm text-slate-500 dark:text-slate-400">
+                                    {choice.tenantLegalName}
+                                  </span>
+                                )}
+                                <span className="mt-1 block text-sm font-medium text-slate-600 dark:text-slate-300">
+                                  Membership role: {choice.roleName}
                                 </span>
                                 {choice.roleDescription && (
                                   <span className="mt-1 block text-sm leading-5 text-slate-500 dark:text-slate-400">
@@ -395,39 +421,11 @@ export default function LoginPage() {
                             </span>
                           </span>
 
-                          <span className="mt-4 grid gap-3 border-t border-slate-100 pt-4 text-sm dark:border-slate-800 sm:grid-cols-2">
-                            <span className="flex min-w-0 items-start gap-2.5">
-                              <Building2
-                                size={16}
-                                className="mt-0.5 shrink-0 text-slate-400"
-                              />
-                              <span className="min-w-0">
-                                <span className="block text-[11px] font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
-                                  School ID
-                                </span>
-                                <span className="mt-0.5 block break-all font-medium text-slate-700 dark:text-slate-200">
-                                  {choice.tenantId}
-                                </span>
-                                <span className="mt-1 block text-xs capitalize text-slate-500 dark:text-slate-400">
-                                  {choice.roleScope} access
-                                </span>
-                              </span>
+                          {choice.tenantAddress && (
+                            <span className="mt-4 block border-t border-slate-100 pt-4 text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400">
+                              {choice.tenantAddress}
                             </span>
-                            <span className="flex min-w-0 items-start gap-2.5">
-                              <MapPin
-                                size={16}
-                                className="mt-0.5 shrink-0 text-slate-400"
-                              />
-                              <span className="min-w-0">
-                                <span className="block text-[11px] font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
-                                  Branch ID
-                                </span>
-                                <span className="mt-0.5 block break-all font-medium text-slate-700 dark:text-slate-200">
-                                  {choice.branchId ?? "No branch assigned"}
-                                </span>
-                              </span>
-                            </span>
-                          </span>
+                          )}
 
                           <span className="mt-4 flex flex-wrap items-center gap-2">
                             <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium capitalize text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-300">
@@ -640,7 +638,9 @@ export default function LoginPage() {
 
                     <button
                       type="submit"
-                      disabled={isSubmitting || (mfaRequired && mfaCode.length !== 6)}
+                      disabled={
+                        isSubmitting || (mfaRequired && mfaCode.length !== 6)
+                      }
                       className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#3267d6] px-4 py-3 text-sm font-semibold text-white shadow-[0_18px_30px_rgba(50,103,214,0.28)] transition hover:bg-[#2957c0] focus:outline-none focus:ring-4 focus:ring-cyan-500/20"
                     >
                       {isSubmitting

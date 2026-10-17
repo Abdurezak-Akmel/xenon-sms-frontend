@@ -38,6 +38,11 @@ import { listTenants } from "@/services/tenancy/tenant.service";
 
 import type { Tenant } from "@/services/tenancy/tenant.service";
 
+import {
+  listTenantMembershipRoles,
+  listTenantMemberships,
+} from "@/services/auth/ten_mem.service";
+
 import styles from "./page.module.css";
 
 const platformStats: PlatformStat[] = [
@@ -52,7 +57,7 @@ const platformStats: PlatformStat[] = [
   },
   {
     title: "Active students",
-    value: "18,492",
+    value: "",
     icon: GraduationCap,
     tone: "violet",
     trend: "up",
@@ -115,6 +120,10 @@ export default function SuperAdminPage() {
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [tenantsLoading, setTenantsLoading] = useState(true);
   const [tenantsError, setTenantsError] = useState<string | null>(null);
+  const [activeStudentCount, setActiveStudentCount] = useState<number | null>(
+    null,
+  );
+  const [studentsError, setStudentsError] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -133,6 +142,40 @@ export default function SuperAdminPage() {
       })
       .finally(() => {
         if (active) setTenantsLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    Promise.all([
+      listTenantMemberships({ status: "active" }),
+      listTenantMembershipRoles(),
+    ])
+      .then(([{ memberships }, { roles }]) => {
+        const studentRole = roles.find((role) => role.code === "student");
+        if (!studentRole) {
+          throw new Error("Student role was not found.");
+        }
+        if (active) {
+          setActiveStudentCount(
+            memberships.filter(
+              (membership) => membership.roleId === studentRole.id,
+            ).length,
+          );
+        }
+      })
+      .catch((error: unknown) => {
+        if (active) {
+          setStudentsError(
+            error instanceof Error
+              ? error.message
+              : "Unable to load active student memberships.",
+          );
+        }
       });
 
     return () => {
@@ -159,10 +202,23 @@ export default function SuperAdminPage() {
                 ...stat,
                 value: tenantsLoading ? "—" : String(tenants.length),
               }
+            : stat.title === "Active students"
+              ? {
+                  ...stat,
+                  value:
+                    activeStudentCount === null
+                      ? "—"
+                      : String(activeStudentCount),
+                }
             : stat,
         )}
         styles={styles}
       />
+      {studentsError && (
+        <p className={styles.statsError} role="alert">
+          Unable to load active students: {studentsError}
+        </p>
+      )}
 
       <section className={styles.analyticsGrid} id="analytics">
         <PlatformGrowth

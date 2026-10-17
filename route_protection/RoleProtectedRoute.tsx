@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { refreshAccessToken } from "../lib/api";
 
 import {
   getRoleHomePath,
@@ -41,46 +42,64 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
   const [authorizedPath, setAuthorizedPath] = useState<string | null>(null);
 
   useEffect(() => {
+    let active = true;
+
     if (isPublicPath(pathname)) {
       setAuthorizedPath(pathname);
-      return;
+      return () => {
+        active = false;
+      };
     }
 
-    const requiredRole = requiredRoleForPath(pathname);
+    const authorize = (token: string | null) => {
+      const claims = token ? decodeToken(token) : null;
+      const expiry =
+        typeof claims?.exp === "number" ? claims.exp * 1000 : Number.NaN;
+      if (!token || !claims || !Number.isFinite(expiry) || expiry <= Date.now()) {
+        router.replace("/auth/login");
+        return;
+      }
+
+      const roleClaim =
+        typeof claims.roleCode === "string"
+          ? claims.roleCode
+          : typeof claims.role === "string"
+            ? claims.role
+            : null;
+      const currentRole = roleClaim ? normalizeRole(roleClaim) : null;
+      const requiredRole = requiredRoleForPath(pathname);
+      if (!requiredRole || currentRole !== requiredRole) {
+        router.replace(
+          currentRole ? (getRoleHomePath(currentRole) ?? "/") : "/auth/login",
+        );
+        return;
+      }
+
+      setAuthorizedPath(pathname);
+    };
+
     const token = window.localStorage.getItem("token");
     const claims = token ? decodeToken(token) : null;
     const expiry =
       typeof claims?.exp === "number" ? claims.exp * 1000 : Number.NaN;
-    const roleClaim =
-      typeof claims?.roleCode === "string"
-        ? claims.roleCode
-        : typeof claims?.role === "string"
-          ? claims.role
-          : null;
-
-    if (!token || !claims || !Number.isFinite(expiry) || expiry <= Date.now()) {
-      window.localStorage.removeItem("token");
-      window.localStorage.removeItem("refreshToken");
-      router.replace("/auth/login");
-      return;
+    if (
+      (!token || !Number.isFinite(expiry) || expiry <= Date.now()) &&
+      window.localStorage.getItem("refreshToken")
+    ) {
+      void refreshAccessToken()
+        .then(({ accessToken }) => {
+          if (active) authorize(accessToken);
+        })
+        .catch(() => {
+          if (active) router.replace("/auth/login");
+        });
+    } else {
+      authorize(token);
     }
 
-    const currentRole = roleClaim ? normalizeRole(roleClaim) : null;
-    if (!requiredRole) {
-      router.replace(
-        currentRole ? (getRoleHomePath(currentRole) ?? "/") : "/auth/login",
-      );
-      return;
-    }
-
-    if (currentRole !== requiredRole) {
-      router.replace(
-        currentRole ? (getRoleHomePath(currentRole) ?? "/") : "/auth/login",
-      );
-      return;
-    }
-
-    setAuthorizedPath(pathname);
+    return () => {
+      active = false;
+    };
   }, [pathname, router]);
 
   if (authorizedPath !== pathname) {
