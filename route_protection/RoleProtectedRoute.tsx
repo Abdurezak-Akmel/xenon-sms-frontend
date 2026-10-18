@@ -70,7 +70,9 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
       const requiredRole = requiredRoleForPath(pathname);
       if (!requiredRole || currentRole !== requiredRole) {
         router.replace(
-          currentRole ? (getRoleHomePath(currentRole) ?? "/") : "/auth/login",
+          currentRole
+            ? getRoleHomePath(currentRole) ?? "/auth/login"
+            : "/auth/login",
         );
         return;
       }

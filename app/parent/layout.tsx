@@ -3,14 +3,7 @@
 import * as React from "react";
 import { usePathname, useRouter } from "next/navigation";
 
-import {
-  Building2,
-  CircleUserRound,
-  LayoutDashboard,
-  LogOut,
-  Users,
-  X,
-} from "lucide-react";
+import { CircleUserRound, LayoutDashboard, LogOut, X } from "lucide-react";
 
 import { NavBar, type ProfileMenuItem } from "@/components/layout/NavBar";
 
@@ -20,11 +13,18 @@ import {
 } from "@/components/layout/QuickNavigationModal";
 
 import { Sidebar, type NavGroupDef } from "@/components/layout/Sidebar";
+
 import { Button } from "@/components/ui/Button";
 
 // Service Functions
 import { logoutUser } from "@/services/auth/auth.service";
-import { getCurrentUser } from "@/services/auth/user.service";
+
+import {
+  getAuthenticatedTenantId,
+  getCurrentUser,
+} from "@/services/auth/user.service";
+
+import { getTenant } from "@/services/tenancy/tenant.service";
 
 import styles from "./layout.module.css";
 
@@ -35,58 +35,31 @@ const navGroups: NavGroupDef[] = [
       {
         label: "Dashboard",
         icon: LayoutDashboard,
-        href: "/school_admin",
-      },
-      {
-        label: "Branches",
-        icon: Building2,
-        href: "/school_admin/branches",
-      },
-      {
-        label: "Memberships",
-        icon: Users,
-        href: "/school_admin/memberships",
+        href: "/parent",
       },
       {
         label: "Profile",
         icon: CircleUserRound,
-        href: "/school_admin/profile",
+        href: "/parent/profile",
       },
     ],
   },
 ];
 
 const sectionByPath: Record<string, string> = {
-  "/school_admin": "Dashboard",
-  "/school_admin/branches": "Branches",
-  "/school_admin/memberships": "Memberships",
-  "/school_admin/profile": "Profile",
+  "/parent": "Dashboard",
+  "/parent/profile": "Profile",
 };
 
 const quickNavigationItems: QuickNavigationItem[] = [
   {
-    href: "/school_admin/branches",
-    label: "Branches",
-    icon: Building2,
-  },
-  {
-    href: "/school_admin/memberships",
-    label: "Memberships",
-    icon: Users,
-  },
-  {
-    href: "/school_admin/profile",
+    href: "/parent/profile",
     label: "Profile",
     icon: CircleUserRound,
   },
-  {
-    href: "/school_admin",
-    label: "Overview",
-    icon: LayoutDashboard,
-  },
 ];
 
-export default function SchoolAdminLayout({
+export default function ParentLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   const pathname = usePathname();
@@ -98,7 +71,8 @@ export default function SchoolAdminLayout({
   const [notification, setNotification] = React.useState("");
   const [loggingOut, setLoggingOut] = React.useState(false);
   const [logoutError, setLogoutError] = React.useState(false);
-  const [userName, setUserName] = React.useState("School admin");
+  const [userName, setUserName] = React.useState("Parent");
+  const [schoolName, setSchoolName] = React.useState("Assigned school");
   const userInitials = userName
     .split(/\s+/)
     .filter(Boolean)
@@ -106,28 +80,24 @@ export default function SchoolAdminLayout({
     .map((part) => part[0])
     .join("")
     .toUpperCase();
-  const activeSection = pathname.startsWith("/school_admin/branches")
-    ? "Branches"
-    : pathname.startsWith("/school_admin/memberships")
-      ? "Memberships"
-      : (sectionByPath[pathname] ?? "Dashboard");
+  const activeSection = pathname.startsWith("/parent/profile")
+    ? "Profile"
+    : (sectionByPath[pathname] ?? "Dashboard");
 
   React.useEffect(() => {
     let active = true;
-    getCurrentUser()
-      .then(({ user }) => {
+    Promise.all([getCurrentUser(), getTenant(getAuthenticatedTenantId())])
+      .then(([{ user }, { tenant }]) => {
         if (active) {
           const fullName = [user.firstName, user.middleName, user.lastName]
             .filter(Boolean)
             .join(" ");
-          setUserName(fullName || "School admin");
+          setUserName(fullName || "Parent");
+          setSchoolName(tenant.displayName);
         }
       })
       .catch((error: unknown) => {
-        console.error(
-          "Unable to load the signed-in school administrator:",
-          error,
-        );
+        console.error("Unable to load parent workspace details:", error);
       });
 
     return () => {
@@ -208,7 +178,7 @@ export default function SchoolAdminLayout({
     {
       label: "Profile",
       icon: CircleUserRound,
-      onClick: () => router.push("/school_admin/profile"),
+      onClick: () => router.push("/parent/profile"),
     },
     {
       label: "Sign Out",
@@ -227,8 +197,8 @@ export default function SchoolAdminLayout({
         onToggleOpen={() => setSidebarOpen((open) => !open)}
         activeItem={activeSection}
         onSelectItem={handleSectionSelect}
-        currentSchool="My school"
-        schools={[{ id: "school", name: "My school" }]}
+        currentSchool={schoolName}
+        schools={[{ id: "school", name: schoolName }]}
         navGroups={navGroups}
       />
 
@@ -238,14 +208,14 @@ export default function SchoolAdminLayout({
           breadcrumbs={[{ label: "Workspace" }, { label: activeSection }]}
           user={{
             name: userName,
-            role: "School admin",
-            initials: userInitials || "SA",
+            role: "Parent",
+            initials: userInitials || "PA",
           }}
           isDark={isDark}
           onThemeToggle={() => setIsDark((dark) => !dark)}
           onMenuToggle={() => setSidebarOpen((open) => !open)}
           search={{
-            placeholder: "Search anything...",
+            placeholder: "Search parent workspace...",
             shortcut: "⌘ K",
             onClick: () => setSearchOpen(true),
           }}
@@ -289,7 +259,7 @@ export default function SchoolAdminLayout({
         isOpen={searchOpen}
         onClose={() => setSearchOpen(false)}
         title="Quick navigation"
-        description="Go to a school administration page."
+        description="Go to a parent workspace page."
         items={quickNavigationItems}
       />
       {notification && (

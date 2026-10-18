@@ -34,6 +34,8 @@ import { ApiError } from "../../../lib/api";
 
 type DashboardChoice = {
   membershipId: string;
+  branchId: string | null;
+  roleCode: string;
   roleName: string;
   roleDescription: string | null;
   tenantName: string;
@@ -41,7 +43,7 @@ type DashboardChoice = {
   tenantAddress: string | null;
   membershipStatus: string;
   joinedAt: string | null;
-  homePath: string;
+  homePath: string | null;
 };
 
 function formatMembershipDate(value: string) {
@@ -110,51 +112,36 @@ export default function LoginPage() {
 
       if (response.user.globalRoleId === null) {
         const { memberships } = await listTenantMembershipChoices();
-        const eligibleMemberships = memberships.flatMap((membership) => {
-          const homePath =
-            membership.roleScope !== "platform"
-              ? getRoleHomePath(membership.roleCode)
-              : null;
+        const choices = await Promise.all(
+          memberships.map(async (membership) => {
+            const { tenant } = await getTenant(membership.tenantId);
+            return {
+              membershipId: membership.id,
+              branchId: membership.branchId,
+              roleCode: membership.roleCode,
+              roleName: membership.roleName,
+              roleDescription: membership.roleDescription,
+              tenantId: membership.tenantId,
+              tenantName: tenant.displayName,
+              tenantLegalName: tenant.legalName,
+              tenantAddress: tenant.address,
+              membershipStatus: membership.status,
+              joinedAt: membership.joinedAt,
+              homePath:
+                membership.roleScope !== "platform"
+                  ? getRoleHomePath(membership.roleCode)
+                  : null,
+            };
+          }),
+        );
 
-          return homePath
-            ? [
-                {
-                  membershipId: membership.id,
-                  roleName: membership.roleName,
-                  roleDescription: membership.roleDescription,
-                  tenantId: membership.tenantId,
-                  membershipStatus: membership.status,
-                  joinedAt: membership.joinedAt,
-                  homePath,
-                },
-              ]
-            : [];
-        });
-
-        if (eligibleMemberships.length === 1) {
-          await selectTenantMembership(eligibleMemberships[0].membershipId);
-          window.location.assign(eligibleMemberships[0].homePath);
-          return;
-        }
-
-        if (eligibleMemberships.length > 1) {
-          const choices = await Promise.all(
-            eligibleMemberships.map(async (membership) => {
-              const { tenant } = await getTenant(membership.tenantId);
-              return {
-                ...membership,
-                tenantName: tenant.displayName,
-                tenantLegalName: tenant.legalName,
-                tenantAddress: tenant.address,
-              };
-            }),
-          );
+        if (choices.length > 0) {
           setDashboardChoices(choices);
           return;
         }
 
         setError(
-          "Your account does not have an active tenant membership with a configured role. Contact your administrator.",
+          "Your account does not have any active tenant memberships. Contact your administrator.",
         );
         return;
       }
@@ -228,7 +215,11 @@ export default function LoginPage() {
     setIsSubmitting(true);
     try {
       await selectTenantMembership(choice.membershipId);
-      window.location.assign(choice.homePath);
+      const redirectPath =
+        choice.homePath ??
+        getRoleHomePath(choice.roleCode) ??
+        `/${choice.roleCode.trim().replace(/[\s-]+/g, "_")}`;
+      window.location.assign(redirectPath);
     } catch (selectionError) {
       setError(
         selectionError instanceof Error
@@ -368,15 +359,15 @@ export default function LoginPage() {
                 {dashboardChoices.length > 0 ? (
                   <section
                     className="space-y-5"
-                    aria-label="Choose a tenant membership"
+                    aria-label="Choose a workspace membership"
                   >
                     <div>
                       <p className="text-sm font-medium text-slate-800 dark:text-slate-100">
                         Choose a workspace
                       </p>
                       <p className="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">
-                        Select the school and role you want to use for this
-                        session.
+                        Select the school, branch, and role you want to use for
+                        this session.
                       </p>
                     </div>
 
@@ -409,6 +400,16 @@ export default function LoginPage() {
                                 <span className="mt-1 block text-sm font-medium text-slate-600 dark:text-slate-300">
                                   Membership role: {choice.roleName}
                                 </span>
+                                {choice.branchId && (
+                                  <span className="mt-1 block text-xs text-slate-500 dark:text-slate-400">
+                                    Branch workspace · {choice.branchId.slice(0, 8)}
+                                  </span>
+                                )}
+                                {!choice.branchId && (
+                                  <span className="mt-1 block text-xs text-slate-500 dark:text-slate-400">
+                                    School-wide workspace
+                                  </span>
+                                )}
                                 {choice.roleDescription && (
                                   <span className="mt-1 block text-sm leading-5 text-slate-500 dark:text-slate-400">
                                     {choice.roleDescription}

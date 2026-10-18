@@ -13,24 +13,33 @@ const routeRoles: Record<string, string> = {
   guest: "guest",
 };
 
-const roleHomes: Record<string, string> = Object.fromEntries(
-  Object.entries(routeRoles).map(([path, role]) => [role, `/${path}`]),
-);
+const roleHomes: Record<string, string> = Object.fromEntries([
+  ...Object.entries(routeRoles).map(([path, role]) => [role, `/${path}`]),
+  ...Object.entries(routeRoles).map(([path]) => [path, `/${path}`]),
+]);
 
 export function normalizeRole(role: string) {
-  const normalized = role.trim().toLowerCase().replace(/[_\s]+/g, "-");
+  const normalized = role
+    .trim()
+    .toLowerCase()
+    .replace(/[_\s]+/g, "-");
   const aliases: Record<string, string> = {
     superadmin: "super-admin",
     schooladmin: "school-admin",
     branchadmin: "branch-admin",
     gatesecurity: "gate-security",
     labassistant: "lab-assistant",
+    "cashier-receptionist": "cashier",
+    "janitor-facilities": "janitor",
+    "parent-guardian": "parent",
   };
   return aliases[normalized] ?? normalized;
 }
 
 export function getRoleHomePath(role: string) {
-  return roleHomes[normalizeRole(role)] ?? null;
+  const normalized = normalizeRole(role);
+  const exactPath = role.trim().toLowerCase().replace(/[\s-]+/g, "_");
+  return roleHomes[normalized] ?? roleHomes[exactPath] ?? null;
 }
 
 export function requiredRoleForPath(pathname: string) {
@@ -39,5 +48,7 @@ export function requiredRoleForPath(pathname: string) {
 }
 
 export function isPublicPath(pathname: string) {
-  return pathname === "/" || pathname === "/auth" || pathname.startsWith("/auth/");
+  return (
+    pathname === "/" || pathname === "/auth" || pathname.startsWith("/auth/")
+  );
 }

@@ -12,7 +12,7 @@ import {
   type User,
   getCurrentUser,
   updateCurrentUserProfile,
-  updateUserAvatar,
+  updateCurrentUserAvatar,
 } from "@/services/auth/user.service";
 import {
   beginMfaDisable,
@@ -126,7 +126,7 @@ export default function SuperAdminProfilePage() {
     setUploadingAvatar(true);
     setError(null);
     try {
-      const response = await updateUserAvatar(user.id, file);
+      const response = await updateCurrentUserAvatar(file);
       setUser(response.user);
       setProfile(toProfile(response.user));
     } catch (uploadError) {
