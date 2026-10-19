@@ -58,6 +58,7 @@ export type AuthUserResponse = AuthMessageResponse & {
 };
 
 export type LoginResponse = AuthUserResponse & {
+  globalRoleCode: string | null;
   accessToken: string;
   refreshToken: string;
 };

@@ -3,7 +3,13 @@
 import * as React from "react";
 import { usePathname, useRouter } from "next/navigation";
 
-import { CircleUserRound, LayoutDashboard, LogOut, X } from "lucide-react";
+import {
+  CircleUserRound,
+  Files,
+  LayoutDashboard,
+  LogOut,
+  X,
+} from "lucide-react";
 
 import { NavBar, type ProfileMenuItem } from "@/components/layout/NavBar";
 
@@ -38,6 +44,11 @@ const navGroups: NavGroupDef[] = [
         href: "/teacher",
       },
       {
+        label: "Resources",
+        icon: Files,
+        href: "/teacher/resources",
+      },
+      {
         label: "Profile",
         icon: CircleUserRound,
         href: "/teacher/profile",
@@ -48,10 +59,16 @@ const navGroups: NavGroupDef[] = [
 
 const sectionByPath: Record<string, string> = {
   "/teacher": "Dashboard",
+  "/teacher/resources": "Resources",
   "/teacher/profile": "Profile",
 };
 
 const quickNavigationItems: QuickNavigationItem[] = [
+  {
+    href: "/teacher/resources",
+    label: "Resources",
+    icon: Files,
+  },
   {
     href: "/teacher/profile",
     label: "Profile",
@@ -80,9 +97,11 @@ export default function TeacherLayout({
     .map((part) => part[0])
     .join("")
     .toUpperCase();
-  const activeSection = pathname.startsWith("/teacher/profile")
-    ? "Profile"
-    : (sectionByPath[pathname] ?? "Dashboard");
+  const activeSection = pathname.startsWith("/teacher/resources")
+    ? "Resources"
+    : pathname.startsWith("/teacher/profile")
+      ? "Profile"
+      : (sectionByPath[pathname] ?? "Dashboard");
 
   React.useEffect(() => {
     let active = true;

@@ -3,7 +3,13 @@
 import * as React from "react";
 import { usePathname, useRouter } from "next/navigation";
 
-import { CircleUserRound, LayoutDashboard, LogOut, X } from "lucide-react";
+import {
+  CircleUserRound,
+  Files,
+  LayoutDashboard,
+  LogOut,
+  X,
+} from "lucide-react";
 
 import { NavBar, type ProfileMenuItem } from "@/components/layout/NavBar";
 
@@ -19,12 +25,7 @@ import { Button } from "@/components/ui/Button";
 // Service Functions
 import { logoutUser } from "@/services/auth/auth.service";
 
-import {
-  getAuthenticatedTenantId,
-  getCurrentUser,
-} from "@/services/auth/user.service";
-
-import { getTenant } from "@/services/tenancy/tenant.service";
+import { getCurrentUser } from "@/services/auth/user.service";
 
 import styles from "./layout.module.css";
 
@@ -38,6 +39,11 @@ const navGroups: NavGroupDef[] = [
         href: "/guest",
       },
       {
+        label: "Resources",
+        icon: Files,
+        href: "/guest/resources",
+      },
+      {
         label: "Profile",
         icon: CircleUserRound,
         href: "/guest/profile",
@@ -48,10 +54,16 @@ const navGroups: NavGroupDef[] = [
 
 const sectionByPath: Record<string, string> = {
   "/guest": "Dashboard",
+  "/guest/resources": "Resources",
   "/guest/profile": "Profile",
 };
 
 const quickNavigationItems: QuickNavigationItem[] = [
+  {
+    href: "/guest/resources",
+    label: "Resources",
+    icon: Files,
+  },
   {
     href: "/guest/profile",
     label: "Profile",
@@ -72,7 +84,7 @@ export default function GuestLayout({
   const [loggingOut, setLoggingOut] = React.useState(false);
   const [logoutError, setLogoutError] = React.useState(false);
   const [userName, setUserName] = React.useState("Guest");
-  const [schoolName, setSchoolName] = React.useState("Assigned school");
+  const workspaceName = "Guest workspace";
   const userInitials = userName
     .split(/\s+/)
     .filter(Boolean)
@@ -80,20 +92,21 @@ export default function GuestLayout({
     .map((part) => part[0])
     .join("")
     .toUpperCase();
-  const activeSection = pathname.startsWith("/guest/profile")
-    ? "Profile"
-    : (sectionByPath[pathname] ?? "Dashboard");
+  const activeSection = pathname.startsWith("/guest/resources")
+    ? "Resources"
+    : pathname.startsWith("/guest/profile")
+      ? "Profile"
+      : (sectionByPath[pathname] ?? "Dashboard");
 
   React.useEffect(() => {
     let active = true;
-    Promise.all([getCurrentUser(), getTenant(getAuthenticatedTenantId())])
-      .then(([{ user }, { tenant }]) => {
+    getCurrentUser()
+      .then(({ user }) => {
         if (active) {
           const fullName = [user.firstName, user.middleName, user.lastName]
             .filter(Boolean)
             .join(" ");
           setUserName(fullName || "Guest");
-          setSchoolName(tenant.displayName);
         }
       })
       .catch((error: unknown) => {
@@ -197,8 +210,8 @@ export default function GuestLayout({
         onToggleOpen={() => setSidebarOpen((open) => !open)}
         activeItem={activeSection}
         onSelectItem={handleSectionSelect}
-        currentSchool={schoolName}
-        schools={[{ id: "school", name: schoolName }]}
+        currentSchool={workspaceName}
+        schools={[{ id: "guest-workspace", name: workspaceName }]}
         navGroups={navGroups}
       />
 

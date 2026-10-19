@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   Building2,
   CircleUserRound,
+  Files,
   LayoutDashboard,
   LogOut,
   MonitorSmartphone,
@@ -58,6 +59,11 @@ const navGroups: NavGroupDef[] = [
         href: "/super_admin/user_sessions",
       },
       {
+        label: "Resources",
+        icon: Files,
+        href: "/super_admin/resources",
+      },
+      {
         label: "Profile",
         icon: CircleUserRound,
         href: "/super_admin/profile",
@@ -72,6 +78,7 @@ const sectionByPath: Record<string, string> = {
   "/super_admin/tenant_membership": "Memberships",
   "/super_admin/users": "Users",
   "/super_admin/user_sessions": "User sessions",
+  "/super_admin/resources": "Resources",
   "/super_admin/profile": "Profile",
 };
 
@@ -90,6 +97,11 @@ const quickNavigationItems: QuickNavigationItem[] = [
     href: "/super_admin/user_sessions",
     label: "User sessions",
     icon: MonitorSmartphone,
+  },
+  {
+    href: "/super_admin/resources",
+    label: "Resources",
+    icon: Files,
   },
   {
     href: "/super_admin/profile",

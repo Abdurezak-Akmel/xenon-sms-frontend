@@ -96,7 +96,8 @@ function getAuthenticatedTokenClaims(): AuthenticatedTokenClaims {
   if (!token) throw new Error("You must be signed in to view this page.");
 
   const encodedPayload = token.split(".")[1];
-  if (!encodedPayload) throw new Error("Unable to identify the signed-in account.");
+  if (!encodedPayload)
+    throw new Error("Unable to identify the signed-in account.");
 
   let payload: unknown;
   try {
@@ -110,11 +111,7 @@ function getAuthenticatedTokenClaims(): AuthenticatedTokenClaims {
     throw new Error("Unable to identify the signed-in user.");
   }
 
-  if (
-    typeof payload !== "object" ||
-    payload === null ||
-    !("id" in payload)
-  ) {
+  if (typeof payload !== "object" || payload === null || !("id" in payload)) {
     throw new Error("The access token does not contain account information.");
   }
   return payload;
@@ -128,6 +125,14 @@ export function getAuthenticatedTenantId() {
     );
   }
   return claims.tenantId;
+}
+
+export function getAuthenticatedUserId() {
+  const claims = getAuthenticatedTokenClaims();
+  if (typeof claims.id !== "string" || !claims.id) {
+    throw new Error("The access token does not contain account information.");
+  }
+  return claims.id;
 }
 
 export function getAuthenticatedBranchId() {

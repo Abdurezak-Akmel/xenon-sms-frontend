@@ -3,7 +3,13 @@
 import * as React from "react";
 import { usePathname, useRouter } from "next/navigation";
 
-import { CircleUserRound, LayoutDashboard, LogOut, X } from "lucide-react";
+import {
+  CircleUserRound,
+  Files,
+  LayoutDashboard,
+  LogOut,
+  X,
+} from "lucide-react";
 
 import { NavBar, type ProfileMenuItem } from "@/components/layout/NavBar";
 
@@ -38,6 +44,11 @@ const navGroups: NavGroupDef[] = [
         href: "/librarian",
       },
       {
+        label: "Resources",
+        icon: Files,
+        href: "/librarian/resources",
+      },
+      {
         label: "Profile",
         icon: CircleUserRound,
         href: "/librarian/profile",
@@ -48,10 +59,16 @@ const navGroups: NavGroupDef[] = [
 
 const sectionByPath: Record<string, string> = {
   "/librarian": "Dashboard",
+  "/librarian/resources": "Resources",
   "/librarian/profile": "Profile",
 };
 
 const quickNavigationItems: QuickNavigationItem[] = [
+  {
+    href: "/librarian/resources",
+    label: "Resources",
+    icon: Files,
+  },
   {
     href: "/librarian/profile",
     label: "Profile",
@@ -80,9 +97,11 @@ export default function LibrarianLayout({
     .map((part) => part[0])
     .join("")
     .toUpperCase();
-  const activeSection = pathname.startsWith("/librarian/profile")
-    ? "Profile"
-    : (sectionByPath[pathname] ?? "Dashboard");
+  const activeSection = pathname.startsWith("/librarian/resources")
+    ? "Resources"
+    : pathname.startsWith("/librarian/profile")
+      ? "Profile"
+      : (sectionByPath[pathname] ?? "Dashboard");
 
   React.useEffect(() => {
     let active = true;

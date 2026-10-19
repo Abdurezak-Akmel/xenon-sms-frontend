@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   Building2,
   CircleUserRound,
+  Files,
   LayoutDashboard,
   LogOut,
   Users,
@@ -43,6 +44,11 @@ const navGroups: NavGroupDef[] = [
         href: "/school_admin/branches",
       },
       {
+        label: "Resources",
+        icon: Files,
+        href: "/school_admin/resources",
+      },
+      {
         label: "Memberships",
         icon: Users,
         href: "/school_admin/memberships",
@@ -59,6 +65,7 @@ const navGroups: NavGroupDef[] = [
 const sectionByPath: Record<string, string> = {
   "/school_admin": "Dashboard",
   "/school_admin/branches": "Branches",
+  "/school_admin/resources": "Resources",
   "/school_admin/memberships": "Memberships",
   "/school_admin/profile": "Profile",
 };
@@ -73,6 +80,11 @@ const quickNavigationItems: QuickNavigationItem[] = [
     href: "/school_admin/memberships",
     label: "Memberships",
     icon: Users,
+  },
+  {
+    href: "/school_admin/resources",
+    label: "Resources",
+    icon: Files,
   },
   {
     href: "/school_admin/profile",
@@ -108,9 +120,11 @@ export default function SchoolAdminLayout({
     .toUpperCase();
   const activeSection = pathname.startsWith("/school_admin/branches")
     ? "Branches"
-    : pathname.startsWith("/school_admin/memberships")
-      ? "Memberships"
-      : (sectionByPath[pathname] ?? "Dashboard");
+    : pathname.startsWith("/school_admin/resources")
+      ? "Resources"
+      : pathname.startsWith("/school_admin/memberships")
+        ? "Memberships"
+        : (sectionByPath[pathname] ?? "Dashboard");
 
   React.useEffect(() => {
     let active = true;

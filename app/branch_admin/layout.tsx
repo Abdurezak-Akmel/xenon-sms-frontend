@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 
 import {
   CircleUserRound,
+  Files,
   LayoutDashboard,
   LogOut,
   Users,
@@ -41,6 +42,11 @@ const navGroups: NavGroupDef[] = [
         href: "/branch_admin/memberships",
       },
       {
+        label: "Resources",
+        icon: Files,
+        href: "/branch_admin/resources",
+      },
+      {
         label: "Profile",
         icon: CircleUserRound,
         href: "/branch_admin/profile",
@@ -52,6 +58,7 @@ const navGroups: NavGroupDef[] = [
 const sectionByPath: Record<string, string> = {
   "/branch_admin": "Dashboard",
   "/branch_admin/memberships": "Memberships",
+  "/branch_admin/resources": "Resources",
   "/branch_admin/profile": "Profile",
 };
 
@@ -60,6 +67,11 @@ const quickNavigationItems: QuickNavigationItem[] = [
     href: "/branch_admin/memberships",
     label: "Memberships",
     icon: Users,
+  },
+  {
+    href: "/branch_admin/resources",
+    label: "Resources",
+    icon: Files,
   },
   {
     href: "/branch_admin/profile",
@@ -95,9 +107,11 @@ export default function BranchAdminLayout({
     .toUpperCase();
   const activeSection = pathname.startsWith("/branch_admin/memberships")
     ? "Memberships"
-    : pathname.startsWith("/branch_admin/profile")
-      ? "Profile"
-      : (sectionByPath[pathname] ?? "Dashboard");
+    : pathname.startsWith("/branch_admin/resources")
+      ? "Resources"
+      : pathname.startsWith("/branch_admin/profile")
+        ? "Profile"
+        : (sectionByPath[pathname] ?? "Dashboard");
 
   React.useEffect(() => {
     let active = true;

@@ -110,6 +110,15 @@ export default function LoginPage() {
         ...(mfaCode ? { mfaCode } : {}),
       });
 
+      const roleCode = response.globalRoleCode;
+      const roleHome =
+        typeof roleCode === "string" ? getRoleHomePath(roleCode) : null;
+
+      if (response.user.globalRoleId !== null && roleCode === "guest") {
+        window.location.assign("/guest");
+        return;
+      }
+
       if (response.user.globalRoleId === null) {
         const { memberships } = await listTenantMembershipChoices();
         const choices = await Promise.all(
@@ -146,10 +155,7 @@ export default function LoginPage() {
         return;
       }
 
-      const roleCode = response.user.metadata?.roleCode;
-
       if (typeof roleCode === "string") {
-        const roleHome = getRoleHomePath(roleCode);
         if (roleHome) {
           window.location.assign(roleHome);
           return;
@@ -402,7 +408,8 @@ export default function LoginPage() {
                                 </span>
                                 {choice.branchId && (
                                   <span className="mt-1 block text-xs text-slate-500 dark:text-slate-400">
-                                    Branch workspace · {choice.branchId.slice(0, 8)}
+                                    Branch workspace ·{" "}
+                                    {choice.branchId.slice(0, 8)}
                                   </span>
                                 )}
                                 {!choice.branchId && (

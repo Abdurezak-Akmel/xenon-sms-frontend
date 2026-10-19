@@ -3,6 +3,7 @@ const API_BASE =
 
 type RequestOptions = RequestInit & {
   auth?: boolean;
+  responseType?: "blob";
 };
 
 export class ApiError extends Error {
@@ -20,7 +21,7 @@ export async function apiFetch<T>(
   endpoint: string,
   options: RequestOptions = {},
 ): Promise<T> {
-  const { auth = true, headers, ...rest } = options;
+  const { auth = true, headers, responseType, ...rest } = options;
   const isFormData =
     typeof FormData !== "undefined" && rest.body instanceof FormData;
 
@@ -60,9 +61,12 @@ export async function apiFetch<T>(
   }
 
   const contentType = res.headers.get("content-type") ?? "";
-  const payload = contentType.includes("application/json")
-    ? await res.json()
-    : await res.text();
+  const payload =
+    responseType === "blob" && res.ok
+      ? await res.blob()
+      : contentType.includes("application/json")
+        ? await res.json()
+        : await res.text();
 
   if (!res.ok) {
     const errorPayload =

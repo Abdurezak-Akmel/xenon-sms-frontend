@@ -3,7 +3,13 @@
 import * as React from "react";
 import { usePathname, useRouter } from "next/navigation";
 
-import { CircleUserRound, LayoutDashboard, LogOut, X } from "lucide-react";
+import {
+  CircleUserRound,
+  Files,
+  LayoutDashboard,
+  LogOut,
+  X,
+} from "lucide-react";
 
 import { NavBar, type ProfileMenuItem } from "@/components/layout/NavBar";
 
@@ -38,6 +44,11 @@ const navGroups: NavGroupDef[] = [
         href: "/lab_assistant",
       },
       {
+        label: "Resources",
+        icon: Files,
+        href: "/lab_assistant/resources",
+      },
+      {
         label: "Profile",
         icon: CircleUserRound,
         href: "/lab_assistant/profile",
@@ -48,10 +59,16 @@ const navGroups: NavGroupDef[] = [
 
 const sectionByPath: Record<string, string> = {
   "/lab_assistant": "Dashboard",
+  "/lab_assistant/resources": "Resources",
   "/lab_assistant/profile": "Profile",
 };
 
 const quickNavigationItems: QuickNavigationItem[] = [
+  {
+    href: "/lab_assistant/resources",
+    label: "Resources",
+    icon: Files,
+  },
   {
     href: "/lab_assistant/profile",
     label: "Profile",
@@ -80,9 +97,11 @@ export default function LabAssistantLayout({
     .map((part) => part[0])
     .join("")
     .toUpperCase();
-  const activeSection = pathname.startsWith("/lab_assistant/profile")
-    ? "Profile"
-    : (sectionByPath[pathname] ?? "Dashboard");
+  const activeSection = pathname.startsWith("/lab_assistant/resources")
+    ? "Resources"
+    : pathname.startsWith("/lab_assistant/profile")
+      ? "Profile"
+      : (sectionByPath[pathname] ?? "Dashboard");
 
   React.useEffect(() => {
     let active = true;
