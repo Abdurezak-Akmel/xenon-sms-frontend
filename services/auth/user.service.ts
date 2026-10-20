@@ -85,6 +85,8 @@ type AuthenticatedTokenClaims = {
   id?: unknown;
   tenantId?: unknown;
   branchId?: unknown;
+  role?: unknown;
+  roleCode?: unknown;
 };
 
 function getAuthenticatedTokenClaims(): AuthenticatedTokenClaims {
@@ -143,6 +145,20 @@ export function getAuthenticatedBranchId() {
     );
   }
   return claims.branchId;
+}
+
+export function getAuthenticatedRoleCode() {
+  const claims = getAuthenticatedTokenClaims();
+  const roleCode =
+    typeof claims.roleCode === "string"
+      ? claims.roleCode
+      : typeof claims.role === "string"
+        ? claims.role
+        : null;
+  if (!roleCode) {
+    throw new Error("The access token does not contain a role.");
+  }
+  return roleCode;
 }
 
 export function getUserAvatarSrc(avatarUrl: string | null) {

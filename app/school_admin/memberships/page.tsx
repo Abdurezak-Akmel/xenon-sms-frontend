@@ -702,12 +702,25 @@ export default function TenantMembershipCrudPage() {
                     const isStudentRole =
                       role?.code.toLowerCase().replace(/_/g, "-") ===
                       "student";
+                    const normalizedRoleCode = role?.code
+                      .toLowerCase()
+                      .replace(/[_\s/]+/g, "-");
+                    const normalizedRoleName = role?.name
+                      .toLowerCase()
+                      .replace(/[_\s/]+/g, "-");
+                    const isParentGuardianRole =
+                      normalizedRoleCode === "parent" ||
+                      normalizedRoleCode === "guardian" ||
+                      normalizedRoleCode === "parent-guardian" ||
+                      normalizedRoleName === "parent" ||
+                      normalizedRoleName === "guardian" ||
+                      normalizedRoleName === "parent-guardian";
                     return (
                       <tr key={membership.id}>
                         <td>
-                          {isStudentRole ? (
+                          {isStudentRole || isParentGuardianRole ? (
                             <Link
-                              href={`/school_admin/memberships/stu_profile?userId=${encodeURIComponent(membership.userId)}&membershipId=${encodeURIComponent(membership.id)}`}
+                              href={`/school_admin/memberships/${isStudentRole ? "stu_profile" : "parent_profile"}?userId=${encodeURIComponent(membership.userId)}&membershipId=${encodeURIComponent(membership.id)}`}
                               className={`${styles.userCell} ${styles.studentProfileLink}`}
                             >
                               <span className={styles.avatar}>

@@ -478,6 +478,148 @@
   outline-offset: 2px;
 }
 
+.guardianCard {
+  margin-top: 22px;
+  border-radius: 14px !important;
+  box-shadow: 0 8px 26px rgb(35 61 98 / 5%) !important;
+}
+
+.guardianHeader {
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 16px;
+}
+
+.guardianHeading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.guardianIcon {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--blue) 12%, var(--line));
+  border-radius: 12px;
+  color: var(--blue);
+  background: var(--blue-soft);
+}
+
+.guardianForm {
+  display: grid;
+  gap: 19px;
+}
+
+.guardianFormGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.guardianFormGrid :global(label) {
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.emergencyToggle {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  align-self: end;
+  min-height: 40px;
+  color: var(--foreground);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.emergencyToggle input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--blue);
+}
+
+.guardianFormActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 9px;
+  border-top: 1px solid var(--line);
+  padding-top: 15px;
+}
+
+.guardianDetails {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 17px 22px;
+  padding: 5px 0;
+}
+
+.guardianDetails > div {
+  display: grid;
+  min-width: 0;
+  gap: 6px;
+}
+
+.guardianDetails span {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.guardianDetails strong {
+  overflow-wrap: anywhere;
+  color: var(--foreground);
+  font-size: 12px;
+  font-weight: 550;
+  line-height: 1.5;
+}
+
+.guardianFeedback {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.guardianEmpty,
+.guardianError {
+  display: grid;
+  justify-items: start;
+  gap: 13px;
+}
+
+.guardianEmpty p,
+.guardianError p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+.guardianErrorText {
+  margin: 0;
+  color: #b42318;
+  font-size: 12px;
+}
+
+.guardianNotice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 17px;
+  border: 1px solid color-mix(in srgb, #15803d 20%, var(--line));
+  border-radius: 10px;
+  padding: 11px 13px;
+  color: #15803d;
+  background: color-mix(in srgb, #15803d 7%, var(--card));
+  font-size: 12px;
+}
+
 @media (min-width: 640px) {
   .profileActions {
     flex-direction: row;
@@ -506,6 +648,11 @@
   .profilePage {
     padding-right: 24px;
     padding-left: 24px;
+  }
+
+  .guardianFormGrid,
+  .guardianDetails {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -573,4 +720,21 @@
     flex-wrap: wrap;
   }
 
+  .guardianHeader {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .guardianFormGrid,
+  .guardianDetails {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .guardianFormActions {
+    justify-content: stretch;
+  }
+
+  .guardianFormActions > * {
+    flex: 1;
+  }
 }

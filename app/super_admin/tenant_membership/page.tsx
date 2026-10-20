@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
 import {
@@ -575,23 +576,61 @@ export default function TenantMembershipCrudPage() {
                       (item) => item.id === membership.roleId,
                     );
                     const displayName = user ? userLabel(user) : "Unknown user";
+                    const normalizedRoleCode = role?.code
+                      .toLowerCase()
+                      .replace(/[_\s/]+/g, "-");
+                    const normalizedRoleName = role?.name
+                      .toLowerCase()
+                      .replace(/[_\s/]+/g, "-");
+                    const isStudentRole = normalizedRoleCode === "student";
+                    const parentGuardianRoles = new Set([
+                      "parent",
+                      "guardian",
+                      "parent-guardian",
+                    ]);
+                    const isParentGuardianRole =
+                      parentGuardianRoles.has(normalizedRoleCode ?? "") ||
+                      parentGuardianRoles.has(normalizedRoleName ?? "");
+                    const profilePath = isStudentRole
+                      ? "stu_profile"
+                      : "parent_profile";
                     return (
                       <tr key={membership.id}>
                         <td>
-                          <div className={styles.userCell}>
-                            <span className={styles.avatar}>
-                              {displayName
-                                .split(/\s+/)
-                                .slice(0, 2)
-                                .map((part) => part[0])
-                                .join("")
-                                .toUpperCase()}
-                            </span>
-                            <span className={styles.cellCopy}>
-                              <strong>{displayName}</strong>
-                              <small>{user?.email ?? membership.userId}</small>
-                            </span>
-                          </div>
+                          {isStudentRole || isParentGuardianRole ? (
+                            <Link
+                              href={`/super_admin/tenant_membership/${profilePath}?userId=${encodeURIComponent(membership.userId)}&membershipId=${encodeURIComponent(membership.id)}&tenantId=${encodeURIComponent(membership.tenantId)}`}
+                              className={`${styles.userCell} ${styles.studentProfileLink}`}
+                            >
+                              <span className={styles.avatar}>
+                                {displayName
+                                  .split(/\s+/)
+                                  .slice(0, 2)
+                                  .map((part) => part[0])
+                                  .join("")
+                                  .toUpperCase()}
+                              </span>
+                              <span className={styles.cellCopy}>
+                                <strong>{displayName}</strong>
+                                <small>{user?.email ?? membership.userId}</small>
+                              </span>
+                            </Link>
+                          ) : (
+                            <div className={styles.userCell}>
+                              <span className={styles.avatar}>
+                                {displayName
+                                  .split(/\s+/)
+                                  .slice(0, 2)
+                                  .map((part) => part[0])
+                                  .join("")
+                                  .toUpperCase()}
+                              </span>
+                              <span className={styles.cellCopy}>
+                                <strong>{displayName}</strong>
+                                <small>{user?.email ?? membership.userId}</small>
+                              </span>
+                            </div>
+                          )}
                         </td>
                         <td>
                           <span className={styles.primaryCell}>

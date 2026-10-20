@@ -1,0 +1,348 @@
+.page {
+  display: grid;
+  gap: 20px;
+  width: min(1120px, 100%);
+  margin: 0 auto;
+  padding: 28px 24px 48px;
+}
+
+.pageHeader {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 16px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.backLink:hover {
+  color: var(--blue);
+}
+
+.eyebrow {
+  margin: 0 0 7px;
+  color: var(--blue);
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: .12em;
+}
+
+.pageHeader h1 {
+  margin: 0;
+  color: var(--foreground);
+  font-size: clamp(25px, 3vw, 34px);
+  font-weight: 750;
+  letter-spacing: -.035em;
+}
+
+.subtitle {
+  margin: 7px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.headerActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+
+.memberCard {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  border-color: color-mix(in srgb, var(--blue) 13%, var(--line));
+  background:
+    radial-gradient(ellipse at 90% 0%, color-mix(in srgb, var(--blue) 8%, transparent), transparent 50%),
+    var(--card);
+}
+
+.memberAvatar {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--blue) 20%, var(--line));
+  border-radius: 15px;
+  background: color-mix(in srgb, var(--blue) 9%, var(--card));
+  color: var(--blue);
+}
+
+.memberDetails {
+  min-width: 0;
+  flex: 1;
+}
+
+.memberDetails h2 {
+  overflow: hidden;
+  margin: 0;
+  color: var(--foreground);
+  font-size: 16px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+}
+
+.memberDetails p {
+  overflow: hidden;
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  text-overflow: ellipsis;
+}
+
+.roleBadge,
+.scopeBadge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--foreground);
+  background: var(--background);
+  font-size: 10px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.roleBadge {
+  border-color: color-mix(in srgb, var(--blue) 18%, var(--line));
+  color: var(--blue);
+  background: color-mix(in srgb, var(--blue) 7%, var(--card));
+}
+
+.profileCard {
+  min-width: 0;
+}
+
+.cardHeader {
+  padding-bottom: 17px;
+  border-bottom: 1px solid var(--line);
+}
+
+.feedback {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.errorCard {
+  display: grid;
+  justify-items: start;
+  gap: 14px;
+  border-color: color-mix(in srgb, var(--red) 25%, var(--line));
+  color: var(--red);
+}
+
+.errorCard p,
+.actionError {
+  margin: 0;
+  font-size: 13px;
+}
+
+.notice,
+.actionError {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 11px 13px;
+  border-radius: 10px;
+  font-size: 12px;
+}
+
+.notice {
+  border: 1px solid color-mix(in srgb, #15803d 20%, var(--line));
+  color: #15803d;
+  background: color-mix(in srgb, #15803d 7%, var(--card));
+}
+
+.actionError {
+  border: 1px solid color-mix(in srgb, var(--red) 20%, var(--line));
+  color: var(--red);
+  background: color-mix(in srgb, var(--red) 5%, var(--card));
+}
+
+.form {
+  display: grid;
+  gap: 22px;
+}
+
+.formSection {
+  display: grid;
+  gap: 14px;
+}
+
+.formSection h3 {
+  margin: 0;
+  color: var(--foreground);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.field {
+  display: grid;
+  align-content: start;
+  gap: 7px;
+  color: var(--foreground);
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.field select,
+.field textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  outline: none;
+  background: var(--card);
+  color: var(--foreground);
+  font: inherit;
+  font-size: 13px;
+}
+
+.field select {
+  min-height: 39px;
+  padding: 0 11px;
+}
+
+.field textarea {
+  padding: 10px 11px;
+  resize: vertical;
+}
+
+.field select:focus,
+.field textarea:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--blue) 13%, transparent);
+}
+
+.checkboxField {
+  display: flex;
+  min-height: 39px;
+  align-items: center;
+  align-self: end;
+  gap: 9px;
+  color: var(--foreground);
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.checkboxField input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--blue);
+}
+
+.fullWidth {
+  grid-column: 1 / -1;
+}
+
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 9px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.detailsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+}
+
+.detail {
+  min-width: 0;
+  padding: 13px 14px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: color-mix(in srgb, var(--background) 65%, var(--card));
+}
+
+.detail dt {
+  margin-bottom: 6px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.detail dd {
+  overflow-wrap: anywhere;
+  margin: 0;
+  color: var(--foreground);
+  font-size: 13px;
+  font-weight: 550;
+  white-space: pre-wrap;
+}
+
+@media (max-width: 760px) {
+  .page {
+    padding: 22px 16px 36px;
+  }
+
+  .pageHeader {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .memberCard {
+    flex-wrap: wrap;
+  }
+
+  .memberDetails {
+    flex-basis: calc(100% - 70px);
+  }
+
+  .formGrid,
+  .detailsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .page {
+    gap: 15px;
+    padding-inline: 12px;
+  }
+
+  .formGrid,
+  .detailsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .fullWidth {
+    grid-column: auto;
+  }
+
+  .headerActions,
+  .headerActions :global(button) {
+    width: 100%;
+  }
+
+  .formActions {
+    flex-direction: column-reverse;
+  }
+}
