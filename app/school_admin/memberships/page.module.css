@@ -260,7 +260,7 @@
 
 .toolbar {
   display: grid;
-  grid-template-columns: minmax(230px, 1fr) minmax(170px, 220px) minmax(145px, 180px);
+  grid-template-columns: minmax(230px, 1.5fr) repeat(4, minmax(140px, 1fr));
   gap: 10px;
   margin-bottom: 18px;
 }
@@ -374,6 +374,22 @@
   min-width: 190px;
   align-items: center;
   gap: 10px;
+}
+
+.studentProfileLink {
+  color: inherit;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.studentProfileLink:hover .cellCopy strong {
+  color: var(--blue);
+}
+
+.studentProfileLink:focus-visible {
+  border-radius: 8px;
+  outline: 2px solid var(--blue);
+  outline-offset: 3px;
 }
 
 .avatar {

@@ -121,6 +121,11 @@ export default function LoginPage() {
 
       if (response.user.globalRoleId === null) {
         const { memberships } = await listTenantMembershipChoices();
+        if (memberships.length === 0) {
+          window.location.assign("/guest");
+          return;
+        }
+
         const choices = await Promise.all(
           memberships.map(async (membership) => {
             const { tenant } = await getTenant(membership.tenantId);
@@ -144,14 +149,7 @@ export default function LoginPage() {
           }),
         );
 
-        if (choices.length > 0) {
-          setDashboardChoices(choices);
-          return;
-        }
-
-        setError(
-          "Your account does not have any active tenant memberships. Contact your administrator.",
-        );
+        setDashboardChoices(choices);
         return;
       }
 

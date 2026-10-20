@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
+import Link from "next/link";
 import {
   Check,
   ChevronRight,
@@ -43,6 +44,7 @@ import type { Branch } from "../../../services/tenancy/branch.service";
 
 import {
   getAuthenticatedTenantId,
+  getAuthenticatedUserId,
   listMembershipCandidates,
 } from "../../../services/auth/user.service";
 import type { MembershipCandidate } from "../../../services/auth/user.service";
@@ -93,10 +95,7 @@ function formatDate(value: string | null) {
 }
 
 function userLabel(
-  user: Pick<
-    MembershipCandidate,
-    "firstName" | "middleName" | "lastName"
-  >,
+  user: Pick<MembershipCandidate, "firstName" | "middleName" | "lastName">,
 ) {
   return [user.firstName, user.middleName, user.lastName]
     .filter(Boolean)
@@ -107,6 +106,7 @@ export default function TenantMembershipCrudPage() {
   const [memberships, setMemberships] = useState<TenantMembership[]>([]);
   const [users, setUsers] = useState<MembershipCandidate[]>([]);
   const [tenantId, setTenantId] = useState("");
+  const [currentUserId, setCurrentUserId] = useState("");
   const [branches, setBranches] = useState<Branch[]>([]);
   const [roles, setRoles] = useState<TenantMembershipRole[]>([]);
   const [loading, setLoading] = useState(true);
@@ -118,6 +118,11 @@ export default function TenantMembershipCrudPage() {
   const [userQuery, setUserQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<
     "all" | TenantMembershipStatus
+  >("all");
+  const [roleFilter, setRoleFilter] = useState("all");
+  const [branchFilter, setBranchFilter] = useState("all");
+  const [billingFilter, setBillingFilter] = useState<
+    "all" | "eligible" | "exempt"
   >("all");
   const [formOpen, setFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -134,6 +139,7 @@ export default function TenantMembershipCrudPage() {
     setLoadError(null);
     try {
       const selectedTenantId = getAuthenticatedTenantId();
+      const signedInUserId = getAuthenticatedUserId();
       const [membershipResult, userResult, branchResult, roleResult] =
         await Promise.all([
           listTenantMemberships({ tenantId: selectedTenantId }),
@@ -142,6 +148,7 @@ export default function TenantMembershipCrudPage() {
           listTenantMembershipRoles(),
         ]);
       setTenantId(selectedTenantId);
+      setCurrentUserId(signedInUserId);
       setMemberships(
         membershipResult.memberships.filter(
           (membership) => membership.tenantId === selectedTenantId,
@@ -153,9 +160,7 @@ export default function TenantMembershipCrudPage() {
           (branch) => branch.tenantId === selectedTenantId,
         ),
       );
-      setRoles(
-        roleResult.roles,
-      );
+      setRoles(roleResult.roles);
     } catch (error) {
       setLoadError(
         error instanceof Error
@@ -190,6 +195,18 @@ export default function TenantMembershipCrudPage() {
           : "";
       const matchesStatus =
         statusFilter === "all" || membership.status === statusFilter;
+      const matchesRole =
+        roleFilter === "all" || membership.roleId === roleFilter;
+      const matchesBranch =
+        branchFilter === "all" ||
+        (branchFilter === "unassigned"
+          ? membership.branchId === null
+          : membership.branchId === branchFilter);
+      const matchesBilling =
+        billingFilter === "all" ||
+        (billingFilter === "eligible"
+          ? membership.billingEligible
+          : !membership.billingEligible);
       const searchable = [
         userName || membership.user?.email || user?.email || membership.userId,
         membership.user?.email ?? user?.email ?? "",
@@ -202,12 +219,21 @@ export default function TenantMembershipCrudPage() {
         searchable.some((value) =>
           value.toLowerCase().includes(normalizedQuery),
         );
-      return matchesStatus && matchesQuery;
+      return (
+        matchesStatus &&
+        matchesRole &&
+        matchesBranch &&
+        matchesBilling &&
+        matchesQuery
+      );
     });
   }, [
     branches,
+    billingFilter,
+    branchFilter,
     memberships,
     query,
+    roleFilter,
     roles,
     statusFilter,
     users,
@@ -244,6 +270,14 @@ export default function TenantMembershipCrudPage() {
     );
   }
 
+  function isOwnSchoolAdminMembership(membership: TenantMembership) {
+    const role = roles.find((item) => item.id === membership.roleId);
+    return (
+      membership.userId === currentUserId &&
+      role?.code.replace(/_/g, "-") === "school-admin"
+    );
+  }
+
   function showNotice(message: string) {
     setNotice(message);
     window.setTimeout(() => setNotice(null), 3000);
@@ -265,6 +299,8 @@ export default function TenantMembershipCrudPage() {
   }
 
   function openEdit(membership: TenantMembership) {
+    if (isOwnSchoolAdminMembership(membership)) return;
+
     setEditingId(membership.id);
     setErrors({});
     setForm({
@@ -543,6 +579,60 @@ export default function TenantMembershipCrudPage() {
                 </option>
               ))}
             </select>
+            <select
+              className={styles.filterSelect}
+              aria-label="Filter by role"
+              value={roleFilter}
+              onChange={(event) => setRoleFilter(event.target.value)}
+            >
+              <option value="all">All roles</option>
+              {roles
+                .filter((role) => {
+                  const code = role.code
+                    .toLowerCase()
+                    .replace(/[^a-z0-9]/g, "");
+                  const name = role.name
+                    .toLowerCase()
+                    .replace(/[^a-z0-9]/g, "");
+                  return (
+                    !["guest", "superadmin"].includes(code) &&
+                    !["guest", "superadmin"].includes(name)
+                  );
+                })
+                .map((role) => (
+                  <option key={role.id} value={role.id}>
+                    {role.name}
+                  </option>
+                ))}
+            </select>
+            <select
+              className={styles.filterSelect}
+              aria-label="Filter by branch"
+              value={branchFilter}
+              onChange={(event) => setBranchFilter(event.target.value)}
+            >
+              <option value="all">All branches</option>
+              <option value="unassigned">All branches (school-wide)</option>
+              {branches.map((branch) => (
+                <option key={branch.id} value={branch.id}>
+                  {branch.name}
+                </option>
+              ))}
+            </select>
+            <select
+              className={styles.filterSelect}
+              aria-label="Filter by billing eligibility"
+              value={billingFilter}
+              onChange={(event) =>
+                setBillingFilter(
+                  event.target.value as "all" | "eligible" | "exempt",
+                )
+              }
+            >
+              <option value="all">All billing</option>
+              <option value="eligible">Billing eligible</option>
+              <option value="exempt">Billing exempt</option>
+            </select>
           </div>
 
           <div className={styles.tableWrap}>
@@ -607,27 +697,56 @@ export default function TenantMembershipCrudPage() {
                       membership.user?.email ||
                       user?.email ||
                       membership.userId;
+                    const isOwnSchoolAdmin =
+                      isOwnSchoolAdminMembership(membership);
+                    const isStudentRole =
+                      role?.code.toLowerCase().replace(/_/g, "-") ===
+                      "student";
                     return (
                       <tr key={membership.id}>
                         <td>
-                          <div className={styles.userCell}>
-                            <span className={styles.avatar}>
-                              {displayName
-                                .split(/\s+/)
-                                .slice(0, 2)
-                                .map((part) => part[0])
-                                .join("")
-                                .toUpperCase()}
-                            </span>
-                            <span className={styles.cellCopy}>
-                              <strong>{displayName}</strong>
-                              <small>
-                                {membership.user?.email ??
-                                  user?.email ??
-                                  membership.userId}
-                              </small>
-                            </span>
-                          </div>
+                          {isStudentRole ? (
+                            <Link
+                              href={`/school_admin/memberships/stu_profile?userId=${encodeURIComponent(membership.userId)}&membershipId=${encodeURIComponent(membership.id)}`}
+                              className={`${styles.userCell} ${styles.studentProfileLink}`}
+                            >
+                              <span className={styles.avatar}>
+                                {displayName
+                                  .split(/\s+/)
+                                  .slice(0, 2)
+                                  .map((part) => part[0])
+                                  .join("")
+                                  .toUpperCase()}
+                              </span>
+                              <span className={styles.cellCopy}>
+                                <strong>{displayName}</strong>
+                                <small>
+                                  {membership.user?.email ??
+                                    user?.email ??
+                                    membership.userId}
+                                </small>
+                              </span>
+                            </Link>
+                          ) : (
+                            <div className={styles.userCell}>
+                              <span className={styles.avatar}>
+                                {displayName
+                                  .split(/\s+/)
+                                  .slice(0, 2)
+                                  .map((part) => part[0])
+                                  .join("")
+                                  .toUpperCase()}
+                              </span>
+                              <span className={styles.cellCopy}>
+                                <strong>{displayName}</strong>
+                                <small>
+                                  {membership.user?.email ??
+                                    user?.email ??
+                                    membership.userId}
+                                </small>
+                              </span>
+                            </div>
+                          )}
                         </td>
                         <td>
                           <span className={styles.primaryCell}>
@@ -680,7 +799,13 @@ export default function TenantMembershipCrudPage() {
                               variant="ghost"
                               size="icon-sm"
                               aria-label={`Edit ${displayName}'s membership`}
-                              title="Edit membership"
+                              title={
+                                isOwnSchoolAdmin
+                                  ? "You cannot edit your own school-admin membership"
+                                  : "Edit membership"
+                              }
+                              aria-disabled={isOwnSchoolAdmin}
+                              disabled={isOwnSchoolAdmin}
                               onClick={() => openEdit(membership)}
                             >
                               <Pencil size={15} />
@@ -714,9 +839,7 @@ export default function TenantMembershipCrudPage() {
               Showing {loading ? "—" : visibleMemberships.length} of{" "}
               {loading ? "—" : memberships.length} assignments
             </span>
-            <span>
-              Access is limited to this school and its branches.
-            </span>
+            <span>Access is limited to this school and its branches.</span>
           </div>
         </section>
 
@@ -729,9 +852,7 @@ export default function TenantMembershipCrudPage() {
                   {loading ? "…" : users.length}
                 </span>
               </h2>
-              <p>
-                All users except super-admin accounts can be assigned.
-              </p>
+              <p>All users except super-admin accounts can be assigned.</p>
             </div>
             <label className={styles.searchControl}>
               <Search size={16} aria-hidden="true" />
@@ -868,7 +989,10 @@ export default function TenantMembershipCrudPage() {
                   </label>
                   <label className={styles.field}>
                     <span>School</span>
-                    <div className={inputClass} aria-invalid={Boolean(errors.tenantId)}>
+                    <div
+                      className={inputClass}
+                      aria-invalid={Boolean(errors.tenantId)}
+                    >
                       Current school
                     </div>
                     {errors.tenantId && (
@@ -940,9 +1064,7 @@ export default function TenantMembershipCrudPage() {
                       onChange={(event) =>
                         updateForm("branchId", event.target.value)
                       }
-                      disabled={
-                        selectedRole?.scope !== "branch" || !tenantId
-                      }
+                      disabled={selectedRole?.scope !== "branch" || !tenantId}
                       aria-invalid={Boolean(errors.branchId)}
                     >
                       <option value="">
@@ -1067,9 +1189,7 @@ export default function TenantMembershipCrudPage() {
                 <p>
                   This will remove{" "}
                   {deleteUser ? userLabel(deleteUser) : "this user"}&apos;s
-                  assignment from{" "}
-                  this school
-                  .
+                  assignment from this school .
                 </p>
               </div>
               <Button

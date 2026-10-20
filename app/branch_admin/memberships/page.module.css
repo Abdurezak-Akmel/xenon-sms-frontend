@@ -376,6 +376,22 @@
   gap: 10px;
 }
 
+.studentProfileLink {
+  color: inherit;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.studentProfileLink:hover .cellCopy strong {
+  color: var(--blue);
+}
+
+.studentProfileLink:focus-visible {
+  border-radius: 8px;
+  outline: 2px solid var(--blue);
+  outline-offset: 3px;
+}
+
 .avatar {
   display: inline-flex;
   width: 36px;

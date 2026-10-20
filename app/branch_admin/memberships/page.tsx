@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
+import Link from "next/link";
 import {
   Check,
   ChevronRight,
@@ -552,27 +553,57 @@ export default function TenantMembershipCrudPage() {
                       membership.user?.email ||
                       user?.email ||
                       membership.userId;
+                    const isBranchAdminRole =
+                      role?.code.toLowerCase().replace(/_/g, "-") ===
+                      "branch-admin";
+                    const isStudentRole =
+                      role?.code.toLowerCase().replace(/_/g, "-") ===
+                      "student";
                     return (
                       <tr key={membership.id}>
                         <td>
-                          <div className={styles.userCell}>
-                            <span className={styles.avatar}>
-                              {displayName
-                                .split(/\s+/)
-                                .slice(0, 2)
-                                .map((part) => part[0])
-                                .join("")
-                                .toUpperCase()}
-                            </span>
-                            <span className={styles.cellCopy}>
-                              <strong>{displayName}</strong>
-                              <small>
-                                {membership.user?.email ??
-                                  user?.email ??
-                                  membership.userId}
-                              </small>
-                            </span>
-                          </div>
+                          {isStudentRole ? (
+                            <Link
+                              href={`/branch_admin/memberships/stu_profile?userId=${encodeURIComponent(membership.userId)}&membershipId=${encodeURIComponent(membership.id)}`}
+                              className={`${styles.userCell} ${styles.studentProfileLink}`}
+                            >
+                              <span className={styles.avatar}>
+                                {displayName
+                                  .split(/\s+/)
+                                  .slice(0, 2)
+                                  .map((part) => part[0])
+                                  .join("")
+                                  .toUpperCase()}
+                              </span>
+                              <span className={styles.cellCopy}>
+                                <strong>{displayName}</strong>
+                                <small>
+                                  {membership.user?.email ??
+                                    user?.email ??
+                                    membership.userId}
+                                </small>
+                              </span>
+                            </Link>
+                          ) : (
+                            <div className={styles.userCell}>
+                              <span className={styles.avatar}>
+                                {displayName
+                                  .split(/\s+/)
+                                  .slice(0, 2)
+                                  .map((part) => part[0])
+                                  .join("")
+                                  .toUpperCase()}
+                              </span>
+                              <span className={styles.cellCopy}>
+                                <strong>{displayName}</strong>
+                                <small>
+                                  {membership.user?.email ??
+                                    user?.email ??
+                                    membership.userId}
+                                </small>
+                              </span>
+                            </div>
+                          )}
                         </td>
                         <td>
                           <span className={styles.primaryCell}>
@@ -617,7 +648,12 @@ export default function TenantMembershipCrudPage() {
                               variant="ghost"
                               size="icon-sm"
                               aria-label={`Edit ${displayName}'s membership`}
-                              title="Edit membership"
+                              title={
+                                isBranchAdminRole
+                                  ? "Branch-admin memberships cannot be edited here"
+                                  : "Edit membership"
+                              }
+                              disabled={isBranchAdminRole}
                               onClick={() => openEdit(membership)}
                             >
                               <Pencil size={15} />
@@ -626,7 +662,12 @@ export default function TenantMembershipCrudPage() {
                               variant="ghost"
                               size="icon-sm"
                               aria-label={`Remove ${displayName}'s membership`}
-                              title="Remove membership"
+                              title={
+                                isBranchAdminRole
+                                  ? "Branch-admin memberships cannot be removed here"
+                                  : "Remove membership"
+                              }
+                              disabled={isBranchAdminRole}
                               onClick={() => setDeleteTarget(membership)}
                               className={styles.deleteIcon}
                             >
