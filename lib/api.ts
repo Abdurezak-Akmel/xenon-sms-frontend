@@ -3,7 +3,7 @@ const API_BASE =
 
 type RequestOptions = RequestInit & {
   auth?: boolean;
-  responseType?: "blob";
+  responseType?: "blob" | "download";
 };
 
 export class ApiError extends Error {
@@ -62,7 +62,7 @@ export async function apiFetch<T>(
 
   const contentType = res.headers.get("content-type") ?? "";
   const payload =
-    responseType === "blob" && res.ok
+    (responseType === "blob" || responseType === "download") && res.ok
       ? await res.blob()
       : contentType.includes("application/json")
         ? await res.json()
@@ -80,6 +80,21 @@ export async function apiFetch<T>(
       res.status,
       typeof errorPayload?.code === "string" ? errorPayload.code : undefined,
     );
+  }
+
+  if (responseType === "download") {
+    const disposition = res.headers.get("content-disposition") ?? "";
+    const encodedFilename = disposition.match(/filename\*=UTF-8''([^;]+)/i)?.[1];
+    const quotedFilename = disposition.match(/filename="([^"]+)"/i)?.[1];
+    let filename = quotedFilename ?? "download";
+    if (encodedFilename) {
+      try {
+        filename = decodeURIComponent(encodedFilename.replaceAll('"', ""));
+      } catch {
+        filename = quotedFilename ?? "download";
+      }
+    }
+    return { blob: payload as Blob, filename } as T;
   }
 
   return payload as T;

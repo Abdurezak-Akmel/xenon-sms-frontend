@@ -281,6 +281,160 @@
   white-space: pre-wrap;
 }
 
+.documentList {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.documentItem {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 17px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--background) 65%, var(--card));
+}
+
+.documentInfo {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.documentIcon {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--blue) 18%, var(--line));
+  border-radius: 11px;
+  color: var(--blue);
+  background: color-mix(in srgb, var(--blue) 8%, var(--card));
+}
+
+.documentDetails {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.documentDetails strong {
+  color: var(--foreground);
+  font-size: 14px;
+}
+
+.documentDetails p {
+  margin: 3px 0 0;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.documentFileId {
+  font-size: 10px;
+}
+
+.documentActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.documentVerified,
+.documentUnverified,
+.documentCount {
+  display: inline-flex;
+  min-height: 26px;
+  align-items: center;
+  padding: 0 9px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  background: var(--card);
+  font-size: 10px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.documentVerified,
+.documentCount {
+  border-color: color-mix(in srgb, #15803d 20%, var(--line));
+  color: #15803d;
+  background: color-mix(in srgb, #15803d 7%, var(--card));
+}
+
+.documentEmpty {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  border: 1px dashed color-mix(in srgb, var(--blue) 22%, var(--line));
+  border-radius: 12px;
+  color: var(--blue);
+  background: color-mix(in srgb, var(--blue) 3%, var(--card));
+}
+
+.documentEmpty strong {
+  color: var(--foreground);
+  font-size: 12px;
+}
+
+.documentEmpty p,
+.documentHelp {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.documentForm {
+  display: grid;
+  gap: 16px;
+  margin-top: 22px;
+  padding: 18px;
+  border: 1px solid color-mix(in srgb, var(--blue) 14%, var(--line));
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--blue) 3%, var(--card));
+}
+
+.documentForm h3 {
+  margin: 0;
+  color: var(--foreground);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.documentFormActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 9px;
+}
+
+.documentError {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.documentError .actionError {
+  flex: 1;
+  margin: 0;
+}
+
 @media (max-width: 760px) {
   .page {
     padding: 22px 16px 36px;
@@ -302,6 +456,14 @@
   .formGrid,
   .detailsGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .documentItem {
+    flex-direction: column;
+  }
+
+  .documentActions {
+    justify-content: flex-start;
   }
 }
 
@@ -326,6 +488,19 @@
   }
 
   .formActions {
+    flex-direction: column-reverse;
+  }
+
+  .documentActions,
+  .documentActions :global(button),
+  .documentFormActions,
+  .documentFormActions :global(button) {
+    width: 100%;
+  }
+
+  .documentFormActions,
+  .documentError {
+    align-items: stretch;
     flex-direction: column-reverse;
   }
 }

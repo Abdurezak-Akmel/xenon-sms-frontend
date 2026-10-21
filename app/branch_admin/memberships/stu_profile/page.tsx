@@ -1,12 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
+  BadgeCheck,
   Check,
+  Download,
+  FileText,
   LoaderCircle,
   Pencil,
+  Plus,
   Save,
   Trash2,
   UserRound,
@@ -42,6 +46,18 @@ import {
   type StudentStatus,
   type UpdateStudentInput,
 } from "../../../../services/community/students.service";
+import {
+  createStudentDocument,
+  deleteStudentDocument,
+  listStudentDocuments,
+  updateStudentDocument,
+  type StudentDocument,
+} from "../../../../services/community/stu_docs.service";
+import {
+  downloadFileObject,
+  getFileObject,
+  uploadBranchFileObject,
+} from "../../../../services/files/file_objs.service";
 import styles from "./page.module.css";
 
 type StudentForm = {
@@ -192,6 +208,22 @@ export default function StuProfilePage() {
   const [pageError, setPageError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [studentDocuments, setStudentDocuments] = useState<StudentDocument[]>(
+    [],
+  );
+  const [documentsLoading, setDocumentsLoading] = useState(false);
+  const [documentsError, setDocumentsError] = useState<string | null>(null);
+  const [documentsNotice, setDocumentsNotice] = useState<string | null>(null);
+  const [documentType, setDocumentType] = useState("");
+  const [documentIssuedDate, setDocumentIssuedDate] = useState("");
+  const [documentExpiryDate, setDocumentExpiryDate] = useState("");
+  const [documentNotes, setDocumentNotes] = useState("");
+  const [documentFile, setDocumentFile] = useState<File | null>(null);
+  const [editingDocument, setEditingDocument] =
+    useState<StudentDocument | null>(null);
+  const [savingDocument, setSavingDocument] = useState(false);
+  const [activeDocumentId, setActiveDocumentId] = useState<string | null>(null);
+  const documentFileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -204,6 +236,27 @@ export default function StuProfilePage() {
     setSelectedUserId(userId);
     setSelectedMembershipId(params.get("membershipId") ?? "");
   }, []);
+
+  const loadStudentDocuments = useCallback(
+    async (studentId: string, selectedTenantId: string) => {
+      setDocumentsLoading(true);
+      setDocumentsError(null);
+      try {
+        const result = await listStudentDocuments({
+          tenantId: selectedTenantId,
+          studentId,
+        });
+        setStudentDocuments(result.studentDocuments);
+      } catch (error) {
+        setDocumentsError(
+          getErrorMessage(error, "Unable to load student documents."),
+        );
+      } finally {
+        setDocumentsLoading(false);
+      }
+    },
+    [],
+  );
 
   const loadProfile = useCallback(async () => {
     if (!selectedUserId) return;
@@ -258,6 +311,8 @@ export default function StuProfilePage() {
       setMembership(selectedMembership);
       setRoles(roleResult.roles);
       setStudent(currentStudent);
+      setStudentDocuments([]);
+      setDocumentsError(null);
       setForm(
         currentStudent
           ? toForm(currentStudent)
@@ -269,6 +324,9 @@ export default function StuProfilePage() {
             },
       );
       setEditing(!currentStudent);
+      if (currentStudent) {
+        void loadStudentDocuments(currentStudent.id, selectedTenantId);
+      }
     } catch (error) {
       setPageError(
         getErrorMessage(error, "Unable to load the student profile."),
@@ -276,7 +334,7 @@ export default function StuProfilePage() {
     } finally {
       setLoading(false);
     }
-  }, [selectedMembershipId, selectedUserId]);
+  }, [loadStudentDocuments, selectedMembershipId, selectedUserId]);
 
   useEffect(() => {
     if (selectedUserId) void loadProfile();
@@ -307,12 +365,185 @@ export default function StuProfilePage() {
       setNotice(
         student ? "Student profile updated." : "Student profile created.",
       );
+      if (!student) {
+        void loadStudentDocuments(response.student.id, tenantId);
+      }
     } catch (error) {
       setActionError(
         getErrorMessage(error, "Unable to save the student profile."),
       );
     } finally {
       setSaving(false);
+    }
+  }
+
+  function clearDocumentForm() {
+    setEditingDocument(null);
+    setDocumentType("");
+    setDocumentIssuedDate("");
+    setDocumentExpiryDate("");
+    setDocumentNotes("");
+    setDocumentFile(null);
+    if (documentFileInputRef.current) {
+      documentFileInputRef.current.value = "";
+    }
+  }
+
+  function editDocument(document: StudentDocument) {
+    setEditingDocument(document);
+    setDocumentType(document.documentType);
+    setDocumentIssuedDate(document.issuedDate ?? "");
+    setDocumentExpiryDate(document.expiryDate ?? "");
+    setDocumentNotes(document.notes ?? "");
+    setDocumentFile(null);
+    setDocumentsError(null);
+    setDocumentsNotice(null);
+  }
+
+  async function saveDocument(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!student || !tenantId || !branchId) return;
+    if (!editingDocument && !documentFile) {
+      setDocumentsError("Choose a file to upload for this document.");
+      return;
+    }
+
+    setSavingDocument(true);
+    setDocumentsError(null);
+    setDocumentsNotice(null);
+    try {
+      if (editingDocument) {
+        const { studentDocument: updatedDocument } =
+          await updateStudentDocument(
+            editingDocument.id,
+            {
+              documentType: documentType.trim(),
+              issuedDate: documentIssuedDate || null,
+              expiryDate: documentExpiryDate || null,
+              notes: documentNotes.trim() || null,
+            },
+            tenantId,
+          );
+        setStudentDocuments((current) =>
+          current.map((item) =>
+            item.id === updatedDocument.id ? updatedDocument : item,
+          ),
+        );
+        setDocumentsNotice("Student document updated.");
+      } else {
+        if (!documentFile) {
+          throw new Error("Choose a file to upload for this document.");
+        }
+        const { fileObject } = await uploadBranchFileObject(
+          tenantId,
+          branchId,
+          documentFile,
+        );
+        const { studentDocument: createdDocument } =
+          await createStudentDocument({
+            tenantId,
+            studentId: student.id,
+            fileId: fileObject.id,
+            documentType: documentType.trim(),
+            issuedDate: documentIssuedDate || null,
+            expiryDate: documentExpiryDate || null,
+            notes: documentNotes.trim() || null,
+          });
+        setStudentDocuments((current) => [...current, createdDocument]);
+        setDocumentsNotice("Student document uploaded.");
+      }
+      clearDocumentForm();
+    } catch (error) {
+      setDocumentsError(
+        getErrorMessage(error, "Unable to save the student document."),
+      );
+    } finally {
+      setSavingDocument(false);
+    }
+  }
+
+  async function toggleDocumentVerification(document: StudentDocument) {
+    setActiveDocumentId(document.id);
+    setDocumentsError(null);
+    setDocumentsNotice(null);
+    try {
+      const { studentDocument: updatedDocument } =
+        await updateStudentDocument(
+          document.id,
+          {
+            verifiedAt: document.verifiedAt ? null : new Date().toISOString(),
+          },
+          tenantId,
+        );
+      setStudentDocuments((current) =>
+        current.map((item) =>
+          item.id === updatedDocument.id ? updatedDocument : item,
+        ),
+      );
+      setDocumentsNotice(
+        updatedDocument.verifiedAt
+          ? "Student document verified."
+          : "Student document verification removed.",
+      );
+    } catch (error) {
+      setDocumentsError(
+        getErrorMessage(error, "Unable to update document verification."),
+      );
+    } finally {
+      setActiveDocumentId(null);
+    }
+  }
+
+  async function removeStudentDocument(document: StudentDocument) {
+    if (
+      !tenantId ||
+      !window.confirm(
+        `Delete the ${document.documentType} document record? The uploaded file will remain in school resources.`,
+      )
+    ) {
+      return;
+    }
+    setActiveDocumentId(document.id);
+    setDocumentsError(null);
+    setDocumentsNotice(null);
+    try {
+      await deleteStudentDocument(document.id, tenantId);
+      setStudentDocuments((current) =>
+        current.filter((item) => item.id !== document.id),
+      );
+      if (editingDocument?.id === document.id) clearDocumentForm();
+      setDocumentsNotice("Student document record deleted.");
+    } catch (error) {
+      setDocumentsError(
+        getErrorMessage(error, "Unable to delete the student document."),
+      );
+    } finally {
+      setActiveDocumentId(null);
+    }
+  }
+
+  async function downloadStudentDocument(document: StudentDocument) {
+    setActiveDocumentId(document.id);
+    setDocumentsError(null);
+    try {
+      const [{ fileObject }, blob] = await Promise.all([
+        getFileObject(document.fileId),
+        downloadFileObject(document.fileId),
+      ]);
+      const url = URL.createObjectURL(blob);
+      const link = window.document.createElement("a");
+      link.href = url;
+      link.download = fileObject.originalName;
+      window.document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (error) {
+      setDocumentsError(
+        getErrorMessage(error, "Unable to download the student document."),
+      );
+    } finally {
+      setActiveDocumentId(null);
     }
   }
 
@@ -329,6 +560,9 @@ export default function StuProfilePage() {
     try {
       await deleteStudent(student.id, tenantId);
       setStudent(null);
+      setStudentDocuments([]);
+      setDocumentsError(null);
+      clearDocumentForm();
       setForm({
         ...emptyForm,
         firstName: membership?.user?.firstName ?? student.firstName,
@@ -689,6 +923,254 @@ export default function StuProfilePage() {
               ) : null}
             </CardContent>
           </Card>
+
+          {student && (
+            <Card padding="default" className={styles.profileCard}>
+              <CardHeader
+                className={styles.cardHeader}
+                action={
+                  !documentsLoading && !documentsError && (
+                    <span className={styles.documentCount}>
+                      {studentDocuments.length} document
+                      {studentDocuments.length === 1 ? "" : "s"}
+                    </span>
+                  )
+                }
+              >
+                <div>
+                  <CardTitle>Student documents</CardTitle>
+                  <CardDescription>
+                    Upload and manage supporting documents for this student.
+                  </CardDescription>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {documentsNotice && (
+                  <p className={styles.notice} role="status">
+                    <Check size={16} aria-hidden="true" />
+                    {documentsNotice}
+                  </p>
+                )}
+                {documentsError && (
+                  <div className={styles.documentError}>
+                    <p className={styles.actionError} role="alert">
+                      {documentsError}
+                    </p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() =>
+                        void loadStudentDocuments(student.id, tenantId)
+                      }
+                    >
+                      Try again
+                    </Button>
+                  </div>
+                )}
+
+                {documentsLoading ? (
+                  <p className={styles.feedback}>
+                    <LoaderCircle
+                      className="animate-spin"
+                      size={16}
+                      aria-hidden="true"
+                    />
+                    Loading student documents…
+                  </p>
+                ) : studentDocuments.length ? (
+                  <ul className={styles.documentList}>
+                    {studentDocuments.map((document) => (
+                      <li key={document.id} className={styles.documentItem}>
+                        <div className={styles.documentInfo}>
+                          <span className={styles.documentIcon}>
+                            <FileText size={18} aria-hidden="true" />
+                          </span>
+                          <div className={styles.documentDetails}>
+                            <strong>{document.documentType}</strong>
+                            <span>
+                              {document.issuedDate
+                                ? `Issued ${document.issuedDate}`
+                                : "Issue date not provided"}
+                              {document.expiryDate
+                                ? ` · Expires ${document.expiryDate}`
+                                : ""}
+                            </span>
+                            {document.notes && <p>{document.notes}</p>}
+                            <span className={styles.documentFileId}>
+                              Attached file available to download
+                            </span>
+                          </div>
+                        </div>
+                        <div className={styles.documentActions}>
+                          <span
+                            className={
+                              document.verifiedAt
+                                ? styles.documentVerified
+                                : styles.documentUnverified
+                            }
+                          >
+                            {document.verifiedAt
+                              ? "Verified"
+                              : "Not verified"}
+                          </span>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            disabled={activeDocumentId === document.id}
+                            onClick={() =>
+                              void downloadStudentDocument(document)
+                            }
+                          >
+                            {activeDocumentId === document.id ? (
+                              <LoaderCircle
+                                className="animate-spin"
+                                aria-hidden="true"
+                              />
+                            ) : (
+                              <Download aria-hidden="true" />
+                            )}
+                            Download
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            disabled={activeDocumentId === document.id}
+                            onClick={() =>
+                              void toggleDocumentVerification(document)
+                            }
+                          >
+                            <BadgeCheck aria-hidden="true" />
+                            {document.verifiedAt ? "Unverify" : "Verify"}
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => editDocument(document)}
+                          >
+                            <Pencil aria-hidden="true" />
+                            Edit
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            disabled={activeDocumentId === document.id}
+                            onClick={() =>
+                              void removeStudentDocument(document)
+                            }
+                          >
+                            <Trash2 aria-hidden="true" />
+                            Delete
+                          </Button>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className={styles.documentEmpty}>
+                    <FileText size={20} aria-hidden="true" />
+                    <div>
+                      <strong>No documents added</strong>
+                      <p>Upload a document using the form below.</p>
+                    </div>
+                  </div>
+                )}
+
+                <form className={styles.documentForm} onSubmit={saveDocument}>
+                  <h3>
+                    {editingDocument
+                      ? "Edit document details"
+                      : "Add a document"}
+                  </h3>
+                  <div className={styles.formGrid}>
+                    <Input
+                      label="Document type"
+                      value={documentType}
+                      onChange={(event) => setDocumentType(event.target.value)}
+                      placeholder="e.g. Birth certificate"
+                      required
+                    />
+                    {!editingDocument && (
+                      <Input
+                        ref={documentFileInputRef}
+                        label="Document file"
+                        type="file"
+                        onChange={(event) =>
+                          setDocumentFile(event.target.files?.[0] ?? null)
+                        }
+                        required
+                      />
+                    )}
+                    <Input
+                      label="Issue date"
+                      type="date"
+                      value={documentIssuedDate}
+                      onChange={(event) =>
+                        setDocumentIssuedDate(event.target.value)
+                      }
+                    />
+                    <Input
+                      label="Expiry date"
+                      type="date"
+                      value={documentExpiryDate}
+                      onChange={(event) =>
+                        setDocumentExpiryDate(event.target.value)
+                      }
+                    />
+                    <label className={`${styles.field} ${styles.fullWidth}`}>
+                      <span>Notes</span>
+                      <textarea
+                        value={documentNotes}
+                        onChange={(event) =>
+                          setDocumentNotes(event.target.value)
+                        }
+                        rows={3}
+                      />
+                    </label>
+                  </div>
+                  {editingDocument && (
+                    <p className={styles.documentHelp}>
+                      Changing the uploaded file is not available while
+                      editing. To replace it, delete this record and add a new
+                      document.
+                    </p>
+                  )}
+                  <div className={styles.documentFormActions}>
+                    {editingDocument && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        disabled={savingDocument}
+                        onClick={clearDocumentForm}
+                      >
+                        <X aria-hidden="true" />
+                        Cancel
+                      </Button>
+                    )}
+                    <Button
+                      type="submit"
+                      disabled={savingDocument || documentsLoading}
+                    >
+                      {savingDocument ? (
+                        <LoaderCircle
+                          className="animate-spin"
+                          aria-hidden="true"
+                        />
+                      ) : editingDocument ? (
+                        <Save aria-hidden="true" />
+                      ) : (
+                        <Plus aria-hidden="true" />
+                      )}
+                      {savingDocument
+                        ? "Saving…"
+                        : editingDocument
+                          ? "Save document"
+                          : "Upload document"}
+                    </Button>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+          )}
         </>
       ) : null}
     </main>

@@ -3,7 +3,13 @@
 import * as React from "react";
 import { usePathname, useRouter } from "next/navigation";
 
-import { CircleUserRound, LayoutDashboard, LogOut, X } from "lucide-react";
+import {
+  CircleUserRound,
+  GraduationCap,
+  LayoutDashboard,
+  LogOut,
+  X,
+} from "lucide-react";
 
 import { NavBar, type ProfileMenuItem } from "@/components/layout/NavBar";
 
@@ -38,6 +44,11 @@ const navGroups: NavGroupDef[] = [
         href: "/parent",
       },
       {
+        label: "My children",
+        icon: GraduationCap,
+        href: "/parent/children",
+      },
+      {
         label: "Profile",
         icon: CircleUserRound,
         href: "/parent/profile",
@@ -48,10 +59,16 @@ const navGroups: NavGroupDef[] = [
 
 const sectionByPath: Record<string, string> = {
   "/parent": "Dashboard",
+  "/parent/children": "My children",
   "/parent/profile": "Profile",
 };
 
 const quickNavigationItems: QuickNavigationItem[] = [
+  {
+    href: "/parent/children",
+    label: "My children",
+    icon: GraduationCap,
+  },
   {
     href: "/parent/profile",
     label: "Profile",
@@ -82,6 +99,8 @@ export default function ParentLayout({
     .toUpperCase();
   const activeSection = pathname.startsWith("/parent/profile")
     ? "Profile"
+    : pathname.startsWith("/parent/children")
+      ? "My children"
     : (sectionByPath[pathname] ?? "Dashboard");
 
   React.useEffect(() => {
