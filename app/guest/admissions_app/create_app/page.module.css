@@ -1,0 +1,340 @@
+.createPage {
+  min-height: 100%;
+  padding-bottom: 32px;
+  background:
+    radial-gradient(ellipse at 8% 0%, rgb(50 103 214 / 5%), transparent 32rem),
+    var(--background);
+}
+
+.createPage :global(.content) {
+  padding: 30px 28px 24px;
+}
+
+.pageHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22px;
+  margin-bottom: 20px;
+  padding: 26px 30px;
+  border: 1px solid rgb(124 179 255 / 20%);
+  border-radius: 22px;
+  color: #fff;
+  background:
+    radial-gradient(ellipse at 80% 5%, rgb(96 165 250 / 30%), transparent 39%),
+    linear-gradient(115deg, #0f1d35 0%, #172c4d 58%, #1c3c67 100%);
+  box-shadow: 0 18px 44px rgb(15 41 77 / 16%);
+}
+
+.pageHeading h1 {
+  margin: 8px 0 5px;
+  color: #fff;
+  font-size: clamp(25px, 2.4vw, 32px);
+  font-weight: 650;
+  letter-spacing: -1px;
+}
+
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  color: #a8c8f7;
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.subtitle {
+  max-width: 560px;
+  margin: 0;
+  color: rgb(226 235 249 / 76%);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.backLink,
+.cancelLink {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-decoration: none;
+}
+
+.backLink {
+  min-height: 40px;
+  padding: 0 13px;
+  border: 1px solid rgb(255 255 255 / 24%);
+  border-radius: 10px;
+  color: #fff;
+  background: rgb(255 255 255 / 8%);
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.backLink:hover {
+  background: rgb(255 255 255 / 16%);
+}
+
+.errorNotice {
+  margin-bottom: 14px;
+  padding: 12px 15px;
+  border: 1px solid color-mix(in srgb, var(--red) 22%, var(--line));
+  border-radius: 10px;
+  color: var(--red);
+  background: color-mix(in srgb, var(--red) 5%, var(--card));
+  font-size: 12px;
+}
+
+.formPanel {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--card);
+  box-shadow: 0 8px 26px rgb(35 61 98 / 4%);
+}
+
+.panelHeading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 22px;
+}
+
+.panelIcon {
+  display: flex;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid color-mix(in srgb, var(--blue) 18%, var(--line));
+  border-radius: 12px;
+  color: var(--blue);
+  background: color-mix(in srgb, var(--blue) 7%, var(--card));
+}
+
+.panelHeading h2 {
+  margin: 0;
+  color: var(--foreground);
+  font-size: 16px;
+  font-weight: 650;
+}
+
+.panelHeading p {
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.applicationForm {
+  display: grid;
+  gap: 20px;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 17px;
+}
+
+.field {
+  display: grid;
+  min-width: 0;
+  gap: 8px;
+  color: var(--foreground);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.applicationForm :global(input:not([type="file"])) {
+  min-height: 45px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--card) 96%, var(--background));
+  box-shadow: 0 1px 2px rgb(20 42 74 / 3%);
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    background-color 150ms ease;
+}
+
+.applicationForm :global(input:not([type="file"]):hover:not(:disabled)),
+.field select:hover:not(:disabled),
+.field textarea:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--blue) 32%, var(--line));
+}
+
+.applicationForm :global(input:not([type="file"]):focus-visible) {
+  border-color: var(--blue);
+  background: var(--card);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--blue) 12%, transparent);
+}
+
+.applicationForm :global(input[type="file"]) {
+  min-height: 44px;
+  border: 1px dashed color-mix(in srgb, var(--blue) 30%, var(--line));
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--blue) 3%, var(--card));
+}
+
+.applicationForm :global(input[type="file"]::file-selector-button) {
+  margin-right: 12px;
+  padding: 7px 11px;
+  border: 0;
+  border-radius: 7px;
+  color: var(--blue);
+  background: color-mix(in srgb, var(--blue) 10%, var(--card));
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.applicationForm :global(input[type="file"]:focus-visible) {
+  outline: 3px solid color-mix(in srgb, var(--blue) 16%, transparent);
+  outline-offset: 2px;
+}
+
+.field > span b {
+  color: var(--red);
+}
+
+.field select,
+.field textarea {
+  width: 100%;
+  min-height: 45px;
+  padding: 10px 13px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  outline: none;
+  color: var(--foreground);
+  background: color-mix(in srgb, var(--card) 96%, var(--background));
+  font: inherit;
+  font-size: 13px;
+  box-shadow: 0 1px 2px rgb(20 42 74 / 3%);
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    background-color 150ms ease;
+}
+
+.field textarea {
+  min-height: 124px;
+  resize: vertical;
+  line-height: 1.65;
+}
+
+.field select:focus,
+.field textarea:focus {
+  border-color: var(--blue);
+  background: var(--card);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--blue) 12%, transparent);
+}
+
+.field select:disabled,
+.field textarea:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.fullWidth,
+.noBranchNote {
+  grid-column: 1 / -1;
+}
+
+.noBranchNote,
+.noSchools {
+  margin: 0;
+  padding: 11px 13px;
+  border: 1px solid color-mix(in srgb, var(--blue) 18%, var(--line));
+  border-radius: 9px;
+  color: var(--muted);
+  background: color-mix(in srgb, var(--blue) 4%, var(--card));
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.noSchools {
+  color: var(--red);
+  border-color: color-mix(in srgb, var(--red) 22%, var(--line));
+  background: color-mix(in srgb, var(--red) 5%, var(--card));
+}
+
+.loadingState {
+  display: flex;
+  min-height: 150px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.formActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+
+.cancelLink {
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 9px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.cancelLink:hover {
+  color: var(--foreground);
+  background: color-mix(in srgb, var(--foreground) 5%, var(--card));
+}
+
+.formActions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+@media (max-width: 700px) {
+  .createPage :global(.content) {
+    padding: 18px 14px 22px;
+  }
+
+  .pageHeading {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 22px;
+  }
+
+  .formPanel {
+    padding: 18px;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .fullWidth,
+  .noBranchNote {
+    grid-column: auto;
+  }
+
+  .formActions {
+    align-items: stretch;
+    flex-direction: column-reverse;
+  }
+
+  .formActions > * {
+    width: 100%;
+  }
+}

@@ -1,0 +1,399 @@
+.overviewPage {
+  min-height: 100%;
+  background:
+    radial-gradient(ellipse at 8% 0%, rgb(50 103 214 / 5%), transparent 32rem),
+    var(--background);
+}
+
+.overviewPage :global(.content) {
+  padding: 30px 28px 24px;
+}
+
+.pageHeading {
+  display: flex;
+  min-height: 150px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22px;
+  margin-bottom: 20px;
+  padding: 26px 30px;
+  border: 1px solid rgb(124 179 255 / 20%);
+  border-radius: 22px;
+  color: #fff;
+  background:
+    radial-gradient(ellipse at 80% 5%, rgb(96 165 250 / 30%), transparent 39%),
+    linear-gradient(115deg, #0f1d35 0%, #172c4d 58%, #1c3c67 100%);
+  box-shadow: 0 18px 44px rgb(15 41 77 / 16%);
+}
+
+.pageHeading h1 {
+  margin: 8px 0 5px;
+  color: #fff;
+  font-size: clamp(25px, 2.4vw, 32px);
+  font-weight: 650;
+  letter-spacing: -1px;
+}
+
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  color: #a8c8f7;
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.subtitle {
+  max-width: 560px;
+  margin: 0;
+  color: rgb(226 235 249 / 76%);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.backLink,
+.cancelLink,
+.editLink {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-decoration: none;
+}
+
+.backLink {
+  min-height: 40px;
+  padding: 0 13px;
+  border: 1px solid rgb(255 255 255 / 24%);
+  border-radius: 10px;
+  color: #fff;
+  background: rgb(255 255 255 / 8%);
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.backLink:hover {
+  background: rgb(255 255 255 / 16%);
+}
+
+.statePanel,
+.detailsPanel {
+  max-width: 960px;
+  margin: 0 auto;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--card);
+  box-shadow: 0 8px 26px rgb(35 61 98 / 4%);
+}
+
+.statePanel {
+  display: flex;
+  min-height: 220px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 26px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.statePanel strong {
+  color: var(--foreground);
+  font-size: 15px;
+}
+
+.statePanel p {
+  margin: 0;
+  font-size: 12px;
+}
+
+.statePanel .backLink {
+  margin-top: 5px;
+  border-color: var(--line);
+  color: var(--foreground);
+  background: var(--card);
+}
+
+.detailsPanel {
+  padding: 26px;
+}
+
+.detailsHeading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding-bottom: 21px;
+  border-bottom: 1px solid var(--line);
+}
+
+.detailsHeading h2 {
+  margin: 9px 0 5px;
+  color: var(--foreground);
+  font-size: 22px;
+  font-weight: 650;
+  letter-spacing: -0.4px;
+}
+
+.schoolName {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.statusBadge {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  padding: 6px 11px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  background: var(--background);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.status_submitted,
+.status_review {
+  border-color: color-mix(in srgb, #b7791f 25%, var(--line));
+  color: #a36d16;
+  background: color-mix(in srgb, #f6ad3c 10%, var(--card));
+}
+
+.status_accepted,
+.status_converted {
+  border-color: color-mix(in srgb, #16845b 25%, var(--line));
+  color: #16845b;
+  background: color-mix(in srgb, #16845b 8%, var(--card));
+}
+
+.status_rejected,
+.status_withdrawn {
+  border-color: color-mix(in srgb, var(--red) 24%, var(--line));
+  color: var(--red);
+  background: color-mix(in srgb, var(--red) 6%, var(--card));
+}
+
+.detailsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 24px;
+  padding: 8px 0;
+}
+
+.detailItem {
+  display: grid;
+  min-width: 0;
+  gap: 7px;
+  padding: 15px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.detailLabel {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.detailItem strong {
+  min-width: 0;
+  color: var(--foreground);
+  font-size: 13px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.detailWithIcon {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.detailWithIcon svg {
+  flex: 0 0 auto;
+  color: var(--blue);
+}
+
+.notesSection {
+  margin-top: 18px;
+  padding: 17px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: color-mix(in srgb, var(--card) 94%, var(--background));
+}
+
+.notesSection h3 {
+  margin: 0 0 9px;
+  color: var(--foreground);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.notesSection p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+.attachmentsSection {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+  padding: 17px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: color-mix(in srgb, var(--card) 94%, var(--background));
+}
+
+.attachmentsSection h3 {
+  margin: 0;
+  color: var(--foreground);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.attachmentList {
+  display: grid;
+  gap: 9px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.attachmentItem {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--card);
+}
+
+.attachmentInfo {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 9px;
+  color: var(--blue);
+}
+
+.attachmentName {
+  overflow: hidden;
+  color: var(--foreground);
+  font-size: 12px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.attachmentSize {
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.downloadError {
+  margin: 0;
+  color: var(--red);
+  font-size: 12px;
+}
+
+.noAttachments {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+
+.cancelLink {
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 9px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.cancelLink:hover {
+  color: var(--foreground);
+  background: color-mix(in srgb, var(--foreground) 5%, var(--card));
+}
+
+.editLink {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid color-mix(in srgb, var(--blue) 22%, var(--line));
+  border-radius: 9px;
+  color: #fff;
+  background: var(--blue);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.editLink:hover {
+  filter: brightness(0.95);
+}
+
+@media (max-width: 700px) {
+  .overviewPage :global(.content) {
+    padding: 18px 14px 22px;
+  }
+
+  .pageHeading {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 22px;
+  }
+
+  .detailsPanel {
+    padding: 19px;
+  }
+}
+
+@media (max-width: 520px) {
+  .detailsHeading {
+    flex-direction: column;
+  }
+
+  .detailsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .actions {
+    align-items: stretch;
+    flex-direction: column-reverse;
+  }
+
+  .actions > * {
+    width: 100%;
+  }
+
+  .attachmentItem {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .attachmentItem > :global(button) {
+    width: 100%;
+  }
+}

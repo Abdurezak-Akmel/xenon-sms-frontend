@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 
 import {
   CircleUserRound,
+  ClipboardList,
   Files,
   LayoutDashboard,
   LogOut,
@@ -44,6 +45,11 @@ const navGroups: NavGroupDef[] = [
         href: "/guest/resources",
       },
       {
+        label: "Admissions applications",
+        icon: ClipboardList,
+        href: "/guest/admissions_app",
+      },
+      {
         label: "Profile",
         icon: CircleUserRound,
         href: "/guest/profile",
@@ -55,6 +61,8 @@ const navGroups: NavGroupDef[] = [
 const sectionByPath: Record<string, string> = {
   "/guest": "Dashboard",
   "/guest/resources": "Resources",
+  "/guest/admissions_app": "Admissions applications",
+  "/guest/admissions_app/create_app": "Create application",
   "/guest/profile": "Profile",
 };
 
@@ -63,6 +71,11 @@ const quickNavigationItems: QuickNavigationItem[] = [
     href: "/guest/resources",
     label: "Resources",
     icon: Files,
+  },
+  {
+    href: "/guest/admissions_app",
+    label: "Admissions applications",
+    icon: ClipboardList,
   },
   {
     href: "/guest/profile",
@@ -94,6 +107,10 @@ export default function GuestLayout({
     .toUpperCase();
   const activeSection = pathname.startsWith("/guest/resources")
     ? "Resources"
+    : pathname.startsWith("/guest/admissions_app/create_app")
+      ? "Create application"
+      : pathname.startsWith("/guest/admissions_app")
+      ? "Admissions applications"
     : pathname.startsWith("/guest/profile")
       ? "Profile"
       : (sectionByPath[pathname] ?? "Dashboard");
